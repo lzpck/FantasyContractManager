@@ -1,0 +1,549 @@
+/**
+ * Tipos e interfaces principais do sistema de gerenciamento de contratos
+ * para ligas de fantasy football
+ *
+ * Baseado nas regras da liga "The Bad Place" e requisitos do projeto
+ */
+
+// ============================================================================
+// ENUMS E TIPOS AUXILIARES
+// ============================================================================
+
+/**
+ * Status possíveis de um contrato
+ */
+export enum ContractStatus {
+  /** Contrato ativo e válido */
+  ACTIVE = 'active',
+  /** Contrato expirado (último ano concluído) */
+  EXPIRED = 'expired',
+  /** Jogador com Franchise Tag aplicada */
+  TAGGED = 'tagged',
+  /** Contrato estendido (extensão negociada) */
+  EXTENDED = 'extended',
+  /** Jogador cortado (contrato rescindido) */
+  CUT = 'cut',
+}
+
+/**
+ * Posições dos jogadores no fantasy football
+ */
+export enum PlayerPosition {
+  QB = 'QB',
+  RB = 'RB',
+  WR = 'WR',
+  TE = 'TE',
+  K = 'K',
+  DEF = 'DEF',
+}
+
+/**
+ * Tipos de aquisição de jogadores
+ */
+export enum AcquisitionType {
+  /** Leilão inicial da liga */
+  AUCTION = 'auction',
+  /** Free Agency/Waivers (FAAB) */
+  FAAB = 'faab',
+  /** Rookie Draft */
+  ROOKIE_DRAFT = 'rookie_draft',
+  /** Trade entre times */
+  TRADE = 'trade',
+  /** Jogador não disputado (contrato mínimo) */
+  UNDISPUTED = 'undisputed',
+}
+
+/**
+ * Status da liga
+ */
+export enum LeagueStatus {
+  /** Liga ativa na temporada atual */
+  ACTIVE = 'active',
+  /** Liga em off-season */
+  OFFSEASON = 'offseason',
+  /** Liga arquivada/inativa */
+  ARCHIVED = 'archived',
+}
+
+/**
+ * Tipos de movimentação no salary cap
+ */
+export enum CapMovementType {
+  /** Contratação de jogador */
+  SIGNING = 'signing',
+  /** Corte de jogador */
+  RELEASE = 'release',
+  /** Trade recebido */
+  TRADE_IN = 'trade_in',
+  /** Trade enviado */
+  TRADE_OUT = 'trade_out',
+  /** Aumento anual automático (15%) */
+  ANNUAL_INCREASE = 'annual_increase',
+  /** Franchise Tag aplicada */
+  FRANCHISE_TAG = 'franchise_tag',
+  /** Extensão de contrato */
+  CONTRACT_EXTENSION = 'contract_extension',
+  /** Dead money por corte */
+  DEAD_MONEY = 'dead_money',
+}
+
+// ============================================================================
+// INTERFACES PRINCIPAIS
+// ============================================================================
+
+/**
+ * Informações básicas de um usuário/proprietário de time
+ */
+export interface User {
+  /** ID único do usuário */
+  id: string;
+  /** Nome completo do usuário */
+  name: string;
+  /** Email do usuário */
+  email: string;
+  /** URL do avatar (opcional) */
+  avatar?: string;
+  /** Data de criação da conta */
+  createdAt: Date;
+  /** Data da última atualização */
+  updatedAt: Date;
+}
+
+/**
+ * Configurações e informações de uma liga
+ */
+export interface League {
+  /** ID único da liga */
+  id: string;
+  /** Nome da liga */
+  name: string;
+  /** Temporada atual (ano) */
+  season: number;
+  /** Teto salarial da liga em milhões */
+  salaryCap: number;
+  /** Número total de times na liga */
+  totalTeams: number;
+  /** Status atual da liga */
+  status: LeagueStatus;
+  /** ID da liga no Sleeper (integração) */
+  sleeperLeagueId?: string;
+  /** Configurações específicas da liga */
+  settings: LeagueSettings;
+  /** Data de criação da liga */
+  createdAt: Date;
+  /** Data da última atualização */
+  updatedAt: Date;
+}
+
+/**
+ * Configurações específicas de uma liga
+ */
+export interface LeagueSettings {
+  /** Número máximo de Franchise Tags por temporada */
+  maxFranchiseTags: number;
+  /** Percentual de aumento anual dos contratos (padrão: 15%) */
+  annualIncreasePercentage: number;
+  /** Valor mínimo para contratos não disputados */
+  minimumSalary: number;
+  /** Data de virada da temporada (padrão: 1º de abril) */
+  seasonTurnoverDate: string;
+  /** Configurações do Rookie Draft */
+  rookieDraft: RookieDraftSettings;
+}
+
+/**
+ * Configurações do Rookie Draft
+ */
+export interface RookieDraftSettings {
+  /** Número de rodadas do draft */
+  rounds: number;
+  /** Se picks do 1º round têm opção de 4º ano */
+  firstRoundFourthYearOption: boolean;
+  /** Tabela de salários dos rookies por pick */
+  salaryTable: RookieSalaryTable[];
+}
+
+/**
+ * Tabela de salários para picks do rookie draft
+ */
+export interface RookieSalaryTable {
+  /** Número do pick (1, 2, 3...) */
+  pick: number;
+  /** Rodada do pick */
+  round: number;
+  /** Salário em milhões para o 1º ano */
+  firstYearSalary: number;
+  /** Salário em milhões para o 2º ano */
+  secondYearSalary: number;
+  /** Salário em milhões para o 3º ano */
+  thirdYearSalary: number;
+  /** Salário em milhões para o 4º ano (se aplicável) */
+  fourthYearSalary?: number;
+}
+
+/**
+ * Informações de um time na liga
+ */
+export interface Team {
+  /** ID único do time */
+  id: string;
+  /** ID da liga à qual pertence */
+  leagueId: string;
+  /** ID do proprietário (usuário) */
+  ownerId: string;
+  /** Nome do time */
+  name: string;
+  /** Abreviação do time (3-4 letras) */
+  abbreviation: string;
+  /** URL do logo do time */
+  logo?: string;
+  /** ID do time no Sleeper (integração) */
+  sleeperTeamId?: string;
+  /** Salary cap atual disponível */
+  availableCap: number;
+  /** Total de dead money na temporada atual */
+  currentDeadMoney: number;
+  /** Total de dead money na próxima temporada */
+  nextSeasonDeadMoney: number;
+  /** Número de Franchise Tags usadas na temporada */
+  franchiseTagsUsed: number;
+  /** Data de criação do time */
+  createdAt: Date;
+  /** Data da última atualização */
+  updatedAt: Date;
+}
+
+/**
+ * Informações de um jogador
+ */
+export interface Player {
+  /** ID único do jogador */
+  id: string;
+  /** ID do jogador no Sleeper */
+  sleeperPlayerId: string;
+  /** Nome completo do jogador */
+  name: string;
+  /** Posição do jogador */
+  position: PlayerPosition;
+  /** Time da NFL */
+  nflTeam: string;
+  /** Número da camisa */
+  jerseyNumber?: number;
+  /** Ano de entrada na NFL (para rookies) */
+  rookieYear?: number;
+  /** Se o jogador está ativo na NFL */
+  isActive: boolean;
+  /** Data de criação do registro */
+  createdAt: Date;
+  /** Data da última atualização */
+  updatedAt: Date;
+}
+
+/**
+ * Contrato de um jogador com um time
+ */
+export interface Contract {
+  /** ID único do contrato */
+  id: string;
+  /** ID do jogador */
+  playerId: string;
+  /** ID do time */
+  teamId: string;
+  /** ID da liga */
+  leagueId: string;
+  /** Salário atual em milhões */
+  currentSalary: number;
+  /** Salário original (quando foi contratado) */
+  originalSalary: number;
+  /** Anos restantes no contrato */
+  yearsRemaining: number;
+  /** Anos totais do contrato original */
+  originalYears: number;
+  /** Status atual do contrato */
+  status: ContractStatus;
+  /** Tipo de aquisição do jogador */
+  acquisitionType: AcquisitionType;
+  /** Temporada em que o contrato foi assinado */
+  signedSeason: number;
+  /** Se o jogador já foi tagueado antes */
+  hasBeenTagged: boolean;
+  /** Se o jogador já recebeu extensão antes */
+  hasBeenExtended: boolean;
+  /** Se é um contrato de rookie com opção de 4º ano */
+  hasFourthYearOption: boolean;
+  /** Se a opção de 4º ano foi ativada */
+  fourthYearOptionActivated: boolean;
+  /** Data de criação do contrato */
+  createdAt: Date;
+  /** Data da última atualização */
+  updatedAt: Date;
+}
+
+/**
+ * Franchise Tag aplicada a um jogador
+ */
+export interface FranchiseTag {
+  /** ID único da tag */
+  id: string;
+  /** ID do contrato relacionado */
+  contractId: string;
+  /** ID do jogador */
+  playerId: string;
+  /** ID do time */
+  teamId: string;
+  /** Temporada em que a tag foi aplicada */
+  season: number;
+  /** Valor da tag em milhões */
+  tagValue: number;
+  /** Salário anterior do jogador */
+  previousSalary: number;
+  /** Média dos top 10 da posição (usado no cálculo) */
+  positionAverage: number;
+  /** Data de aplicação da tag */
+  appliedAt: Date;
+}
+
+/**
+ * Extensão de contrato negociada
+ */
+export interface ContractExtension {
+  /** ID único da extensão */
+  id: string;
+  /** ID do contrato original */
+  originalContractId: string;
+  /** ID do jogador */
+  playerId: string;
+  /** ID do time */
+  teamId: string;
+  /** Novo salário negociado */
+  newSalary: number;
+  /** Novos anos adicionados */
+  newYears: number;
+  /** Temporada em que a extensão foi negociada */
+  negotiatedSeason: number;
+  /** Temporada em que a extensão entra em vigor */
+  effectiveSeason: number;
+  /** Data da negociação */
+  negotiatedAt: Date;
+}
+
+/**
+ * Registro de dead money por jogador cortado
+ */
+export interface DeadMoney {
+  /** ID único do registro */
+  id: string;
+  /** ID do contrato que gerou o dead money */
+  contractId: string;
+  /** ID do jogador */
+  playerId: string;
+  /** ID do time */
+  teamId: string;
+  /** Valor total do dead money */
+  totalAmount: number;
+  /** Valor que afeta a temporada atual */
+  currentSeasonAmount: number;
+  /** Valor que afeta a próxima temporada */
+  nextSeasonAmount: number;
+  /** Temporada em que o jogador foi cortado */
+  cutSeason: number;
+  /** Se o jogador estava no practice squad */
+  wasPracticeSquad: boolean;
+  /** Data em que o jogador foi cortado */
+  cutAt: Date;
+}
+
+/**
+ * Movimentação no salary cap de um time
+ */
+export interface CapMovement {
+  /** ID único da movimentação */
+  id: string;
+  /** ID do time */
+  teamId: string;
+  /** ID do jogador (se aplicável) */
+  playerId?: string;
+  /** Tipo da movimentação */
+  type: CapMovementType;
+  /** Valor da movimentação (positivo = gasto, negativo = economia) */
+  amount: number;
+  /** Descrição da movimentação */
+  description: string;
+  /** Temporada da movimentação */
+  season: number;
+  /** Data da movimentação */
+  createdAt: Date;
+}
+
+/**
+ * Pick do rookie draft
+ */
+export interface DraftPick {
+  /** ID único do pick */
+  id: string;
+  /** ID da liga */
+  leagueId: string;
+  /** ID do time original */
+  originalTeamId: string;
+  /** ID do time atual (pode ser diferente por trades) */
+  currentTeamId: string;
+  /** Temporada do draft */
+  season: number;
+  /** Rodada do pick */
+  round: number;
+  /** Posição na rodada */
+  pick: number;
+  /** Posição geral no draft */
+  overallPick: number;
+  /** ID do jogador selecionado (se já foi usado) */
+  selectedPlayerId?: string;
+  /** Se o pick já foi usado */
+  isUsed: boolean;
+  /** Data de criação */
+  createdAt: Date;
+}
+
+// ============================================================================
+// TIPOS COMPOSTOS E UTILITÁRIOS
+// ============================================================================
+
+/**
+ * Dados completos de um jogador com seu contrato
+ */
+export interface PlayerWithContract {
+  player: Player;
+  contract: Contract;
+  franchiseTag?: FranchiseTag;
+  extension?: ContractExtension;
+  deadMoney?: DeadMoney;
+}
+
+/**
+ * Resumo financeiro de um time
+ */
+export interface TeamFinancialSummary {
+  team: Team;
+  totalSalaries: number;
+  availableCap: number;
+  currentDeadMoney: number;
+  nextSeasonDeadMoney: number;
+  projectedNextSeasonCap: number;
+  contractsExpiring: number;
+  playersWithContracts: PlayerWithContract[];
+}
+
+/**
+ * Dados para cálculo de Franchise Tag
+ */
+export interface FranchiseTagCalculation {
+  position: PlayerPosition;
+  currentSalary: number;
+  salaryWith15Percent: number;
+  positionTop10Average: number;
+  finalTagValue: number;
+  canApplyTag: boolean;
+  reason?: string;
+}
+
+/**
+ * Configurações de uma temporada
+ */
+export interface SeasonConfig {
+  season: number;
+  salaryCap: number;
+  seasonStartDate: Date;
+  seasonEndDate: Date;
+  franchiseTagDeadline: Date;
+  rookieDraftDate?: Date;
+}
+
+/**
+ * Dados de integração com Sleeper API
+ */
+export interface SleeperIntegration {
+  leagueId: string;
+  season: number;
+  lastSync: Date;
+  rosters: SleeperRoster[];
+  players: SleeperPlayer[];
+}
+
+export interface SleeperRoster {
+  rosterId: number;
+  ownerId: string;
+  players: string[];
+}
+
+export interface SleeperPlayer {
+  playerId: string;
+  firstName: string;
+  lastName: string;
+  position: string;
+  team: string;
+  active: boolean;
+}
+
+// ============================================================================
+// TIPOS PARA FORMULÁRIOS E VALIDAÇÃO
+// ============================================================================
+
+/**
+ * Dados para criação de nova liga
+ */
+export interface CreateLeagueData {
+  name: string;
+  season: number;
+  salaryCap: number;
+  totalTeams: number;
+  sleeperLeagueId?: string;
+  settings: Partial<LeagueSettings>;
+}
+
+/**
+ * Dados para criação de novo time
+ */
+export interface CreateTeamData {
+  name: string;
+  abbreviation: string;
+  ownerId: string;
+  logo?: string;
+}
+
+/**
+ * Dados para assinatura de contrato
+ */
+export interface SignContractData {
+  playerId: string;
+  teamId: string;
+  salary: number;
+  years: number;
+  acquisitionType: AcquisitionType;
+}
+
+/**
+ * Dados para aplicação de Franchise Tag
+ */
+export interface ApplyFranchiseTagData {
+  contractId: string;
+  season: number;
+}
+
+/**
+ * Dados para extensão de contrato
+ */
+export interface ExtendContractData {
+  contractId: string;
+  newSalary: number;
+  newYears: number;
+  effectiveSeason: number;
+}
+
+const types = {
+  ContractStatus,
+  PlayerPosition,
+  AcquisitionType,
+  LeagueStatus,
+  CapMovementType,
+};
+
+export default types;

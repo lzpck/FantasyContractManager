@@ -1,6 +1,7 @@
 'use client';
 
 import { useAppContext } from '@/contexts/AppContext';
+import { LeagueStatus } from '@/types';
 
 /**
  * Componente de exemplo que demonstra o uso do contexto global
@@ -16,6 +17,8 @@ export function WelcomeCard() {
       name: 'João Silva',
       email: 'joao@example.com',
       avatar: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
   };
 
@@ -27,7 +30,20 @@ export function WelcomeCard() {
       season: 2024,
       salaryCap: 279000000, // $279 milhões
       totalTeams: 12,
+      status: LeagueStatus.ACTIVE,
+      settings: {
+        maxFranchiseTags: 1,
+        annualIncreasePercentage: 15,
+        minimumSalary: 1000000,
+        seasonTurnoverDate: '04-01',
+        rookieDraft: {
+          rounds: 3,
+          firstRoundFourthYearOption: true,
+          salaryTable: [],
+        },
+      },
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
     addLeague(newLeague);
   };

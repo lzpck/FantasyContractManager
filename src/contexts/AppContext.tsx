@@ -1,23 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-
-// Tipos para o estado global
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-}
-
-export interface League {
-  id: string;
-  name: string;
-  season: number;
-  salaryCap: number;
-  totalTeams: number;
-  createdAt: Date;
-}
+import { User, League } from '../types';
 
 export interface AppState {
   user: User | null;
