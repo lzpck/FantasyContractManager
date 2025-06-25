@@ -1,6 +1,6 @@
 # Fantasy Contract Manager
 
-Sistema avançado de gerenciamento de contratos e salary cap para ligas de fantasy football, inspirado nas regras da liga *The Bad Place*.
+Sistema avançado de gerenciamento de contratos e salary cap para ligas de fantasy football, inspirado nas regras da liga _The Bad Place_.
 
 ## 📋 Sobre o Projeto
 
@@ -28,17 +28,20 @@ Este sistema automatiza todo o ciclo de vida dos contratos de jogadores em ligas
 ## 🛠️ Instalação e Execução
 
 1. Clone o repositório:
+
 ```bash
 git clone <url-do-repositorio>
 cd FantasyContractManager
 ```
 
 2. Instale as dependências:
+
 ```bash
 npm install
 ```
 
 3. Execute o servidor de desenvolvimento:
+
 ```bash
 npm run dev
 ```
@@ -66,6 +69,34 @@ O sistema segue fielmente as regras detalhadas no arquivo `project_rules.md`, in
 - Rookie draft com tabela salarial oficial
 - Waivers via FAAB
 
+## 🛠️ Qualidade de Código
+
+O projeto utiliza ferramentas modernas para garantir consistência e qualidade:
+
+### **Formatação e Linting**
+
+- **Prettier**: Formatação automática de código
+- **ESLint**: Análise estática e detecção de problemas
+- **Husky + lint-staged**: Hooks de pre-commit automáticos
+
+### **Scripts Disponíveis**
+
+```bash
+# Formatação
+npm run format          # Formatar todos os arquivos
+npm run format:check    # Verificar formatação
+
+# Linting
+npm run lint           # Executar ESLint com correções automáticas
+npm run lint:check     # Verificar problemas sem corrigir
+```
+
+### **Configurações**
+
+- **`.prettierrc`**: Regras de formatação (single quotes, trailing commas, etc.)
+- **`eslint.config.mjs`**: Configuração do ESLint integrada com Prettier
+- **`.husky/pre-commit`**: Hook que executa lint e format antes de cada commit
+
 ## 🤝 Contribuição
 
 Este projeto segue as melhores práticas de desenvolvimento:
@@ -73,11 +104,13 @@ Este projeto segue as melhores práticas de desenvolvimento:
 - Commits atômicos e descritivos
 - Padrão GitFlow (main/dev/feature branches)
 - Código limpo e bem documentado
+- Formatação automática via Prettier
+- Linting obrigatório via ESLint
 - Testes unitários e de integração
 
 ## 📄 Licença
 
-Este projeto é privado e destinado ao uso da liga *The Bad Place*.
+Este projeto é privado e destinado ao uso da liga _The Bad Place_.
 
 ---
 
