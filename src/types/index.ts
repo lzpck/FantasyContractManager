@@ -34,7 +34,9 @@ export enum PlayerPosition {
   WR = 'WR',
   TE = 'TE',
   K = 'K',
-  DEF = 'DEF',
+  DL = 'DL',
+  LB = 'LB',
+  DB = 'DB',
 }
 
 /**
