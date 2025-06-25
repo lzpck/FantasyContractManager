@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { League, LeagueStatus } from '@/types';
 
 interface LeaguesListProps {
@@ -11,6 +14,7 @@ interface LeaguesListProps {
  * Exibe as ligas do usuário com informações básicas e ações disponíveis.
  */
 export function LeaguesList({ leagues }: LeaguesListProps) {
+  const router = useRouter();
   // Função para obter a cor do status da liga
   const getStatusColor = (status: LeagueStatus) => {
     switch (status) {
@@ -93,7 +97,10 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
 
           {/* Ações */}
           <div className="flex space-x-2">
-            <button className="flex-1 px-3 py-2 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors">
+            <button
+              onClick={() => router.push(`/leagues/${league.id}`)}
+              className="flex-1 px-3 py-2 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
+            >
               Ver Liga
             </button>
             <button className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 text-xs rounded-md hover:bg-gray-50 transition-colors">
