@@ -5,11 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
 import { Team, PlayerWithContract, League } from '@/types';
 import { createMockTeamFinancialSummary, createMockLeagueWithTeams } from '@/types/mocks';
-import { TeamHeader } from '@/components/teams/TeamHeader';
+import TeamHeader from '@/components/teams/TeamHeader';
 import { PlayerContractsTable } from '@/components/teams/PlayerContractsTable';
 import { CapProjectionChart } from '@/components/teams/CapProjectionChart';
-import { PositionDistributionChart } from '@/components/teams/PositionDistributionChart';
-import { ContractActionsModal } from '@/components/teams/ContractActionsModal';
+import PositionDistributionChart from '@/components/teams/PositionDistributionChart';
+import ContractActionsModal from '@/components/teams/ContractActionsModal';
 import { Sidebar } from '@/components/layout/Sidebar';
 
 /**
@@ -204,8 +204,7 @@ export default function TeamDetailsPage() {
           <TeamHeader
             team={team}
             league={league}
-            playersWithContracts={playersWithContracts}
-            onBack={handleBack}
+            players={playersWithContracts}
             onAddPlayer={handleAddPlayer}
           />
 
@@ -240,14 +239,14 @@ export default function TeamDetailsPage() {
       {/* Modal de Ações */}
       {showActionsModal && selectedPlayer && (
         <ContractActionsModal
+          isOpen={showActionsModal}
           player={selectedPlayer}
           onClose={() => {
             setShowActionsModal(false);
             setSelectedPlayer(null);
           }}
           onAction={action => {
-            // Mock das ações
-            alert(`Ação "${action}" aplicada ao jogador ${selectedPlayer.player.name}!`);
+            console.log('Ação:', action, 'Jogador:', selectedPlayer);
             setShowActionsModal(false);
             setSelectedPlayer(null);
           }}

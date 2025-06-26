@@ -1,20 +1,17 @@
 'use client';
 
-import { PlayerWithContract } from '@/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PlayerWithContract } from '@/types';
+import { formatCurrency } from '@/utils/formatUtils';
 
 interface PositionDistributionChartProps {
-  /** Lista de jogadores com contratos */
   players: PlayerWithContract[];
 }
 
-/**
- * Componente de gráfico de distribuição por posição
- *
- * Exibe um gráfico de pizza mostrando a distribuição
- * de contratos e valores por posição dos jogadores.
- */
-export function PositionDistributionChart({ players }: PositionDistributionChartProps) {
+export default function PositionDistributionChart({ players }: PositionDistributionChartProps) {
+  // Filtrar jogadores com contratos
+  const playersWithContracts = players.filter(player => player.contract);
+
   // Cores para cada posição
   const POSITION_COLORS: Record<string, string> = {
     QB: '#3B82F6', // Blue
@@ -23,17 +20,6 @@ export function PositionDistributionChart({ players }: PositionDistributionChart
     TE: '#8B5CF6', // Purple
     K: '#EF4444', // Red
     DEF: '#6B7280', // Gray
-  };
-
-  // Função para formatar valores monetários
-  const formatMoney = (value: number) => {
-    if (value >= 1000000) {
-      return `$${(value / 1000000).toFixed(1)}M`;
-    } else if (value >= 1000) {
-      return `$${(value / 1000).toFixed(0)}K`;
-    } else {
-      return `$${value.toFixed(0)}`;
-    }
   };
 
   // Agrupar dados por posição
@@ -87,7 +73,7 @@ export function PositionDistributionChart({ players }: PositionDistributionChart
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-900">{data.position}</p>
           <p className="text-sm text-gray-600">{data.count} jogador(es)</p>
-          <p className="text-sm text-gray-600">{formatMoney(data.totalSalary)} total</p>
+          <p className="text-sm text-gray-600">{formatCurrency(data.totalSalary)} total</p>
           <p className="text-sm text-gray-600">{data.percentage}% do cap</p>
         </div>
       );
@@ -188,10 +174,10 @@ export function PositionDistributionChart({ players }: PositionDistributionChart
                   </td>
                   <td className="py-2 text-sm text-gray-900">{data.count}</td>
                   <td className="py-2 text-sm font-medium text-gray-900">
-                    {formatMoney(data.totalSalary)}
+                    {formatCurrency(data.totalSalary)}
                   </td>
                   <td className="py-2 text-sm text-gray-900">
-                    {formatMoney(data.totalSalary / data.count)}
+                    {formatCurrency(data.totalSalary / data.count)}
                   </td>
                   <td className="py-2 text-sm text-gray-900">{data.percentage}%</td>
                 </tr>

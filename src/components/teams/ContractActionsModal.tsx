@@ -3,40 +3,30 @@
 import { useState } from 'react';
 import { PlayerWithContract } from '@/types';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { formatCurrency, getCurrencyClasses } from '@/utils/formatUtils';
 
 interface ContractActionsModalProps {
-  /** Jogador selecionado */
-  player: PlayerWithContract;
-  /** Função chamada ao fechar o modal */
+  isOpen: boolean;
   onClose: () => void;
-  /** Função chamada ao executar uma ação */
-  onAction: (action: string) => void;
+  player: PlayerWithContract | null;
+  onAction: (action: string, data: any) => void;
 }
 
-/**
- * Modal de ações de contrato
- *
- * Permite executar ações como editar, estender, taguear
- * ou cortar um jogador, com formulários específicos.
- */
-export function ContractActionsModal({ player, onClose, onAction }: ContractActionsModalProps) {
+export default function ContractActionsModal({
+  isOpen,
+  onClose,
+  player,
+  onAction,
+}: ContractActionsModalProps) {
   const [activeTab, setActiveTab] = useState<'edit' | 'extend' | 'tag' | 'cut'>('edit');
   const [formData, setFormData] = useState({
-    newSalary: player.contract.currentSalary,
-    newYears: 1,
-    tagValue: 0,
+    newSalary: '',
+    newYears: '',
+    extensionSalary: '',
+    extensionYears: '',
   });
 
-  // Função para formatar valores monetários
-  const formatMoney = (value: number) => {
-    if (value >= 1000000) {
-      return `$${(value / 1000000).toFixed(1)}M`;
-    } else if (value >= 1000) {
-      return `$${(value / 1000).toFixed(0)}K`;
-    } else {
-      return `$${value.toFixed(0)}`;
-    }
-  };
+  if (!isOpen || !player || !player.contract) return null;
 
   // Calcular dead money se cortado
   const calculateDeadMoney = () => {
@@ -57,7 +47,16 @@ export function ContractActionsModal({ player, onClose, onAction }: ContractActi
   const isEligibleForTag = player.contract.yearsRemaining === 1 && !player.contract.hasBeenTagged;
 
   const handleSubmit = (action: string) => {
-    onAction(action);
+    const actionData = {
+      action,
+      player,
+      formData,
+      calculatedValues: {
+        deadMoney: calculateDeadMoney(),
+        tagValue: calculateTagValue(),
+      },
+    };
+    onAction(action, actionData);
   };
 
   const tabs = [
@@ -78,7 +77,8 @@ export function ContractActionsModal({ player, onClose, onAction }: ContractActi
             </h3>
             <p className="text-sm text-gray-600">
               {player.player.position} • {player.player.nflTeam} •{' '}
-              {formatMoney(player.contract.currentSalary)} • {player.contract.yearsRemaining} ano(s)
+              {formatCurrency(player.contract.currentSalary)} • {player.contract.yearsRemaining}{' '}
+              ano(s)
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -124,9 +124,7 @@ export function ContractActionsModal({ player, onClose, onAction }: ContractActi
                   type="number"
                   step="0.1"
                   value={formData.newSalary}
-                  onChange={e =>
-                    setFormData({ ...formData, newSalary: parseFloat(e.target.value) })
-                  }
+                  onChange={e => setFormData({ ...formData, newSalary: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -174,9 +172,7 @@ export function ContractActionsModal({ player, onClose, onAction }: ContractActi
                       type="number"
                       step="0.1"
                       value={formData.newSalary}
-                      onChange={e =>
-                        setFormData({ ...formData, newSalary: parseFloat(e.target.value) })
-                      }
+                      onChange={e => setFormData({ ...formData, extensionSalary: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -186,9 +182,7 @@ export function ContractActionsModal({ player, onClose, onAction }: ContractActi
                     </label>
                     <select
                       value={formData.newYears}
-                      onChange={e =>
-                        setFormData({ ...formData, newYears: parseInt(e.target.value) })
-                      }
+                      onChange={e => setFormData({ ...formData, extensionYears: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value={1}>1 ano</option>
@@ -232,18 +226,18 @@ export function ContractActionsModal({ player, onClose, onAction }: ContractActi
                       <div>
                         <p className="text-gray-600">Salário Atual + 15%:</p>
                         <p className="font-medium">
-                          {formatMoney(player.contract.currentSalary * 1.15)}
+                          {formatCurrency(player.contract.currentSalary * 1.15)}
                         </p>
                       </div>
                       <div>
                         <p className="text-gray-600">Média Top 10 {player.player.position}:</p>
-                        <p className="font-medium">{formatMoney(calculateTagValue())}</p>
+                        <p className="font-medium">{formatCurrency(calculateTagValue())}</p>
                       </div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <p className="text-gray-600">Valor da Tag:</p>
                       <p className="text-lg font-bold text-purple-600">
-                        {formatMoney(calculateTagValue())}
+                        {formatCurrency(calculateTagValue())}
                       </p>
                     </div>
                   </div>
@@ -280,7 +274,7 @@ export function ContractActionsModal({ player, onClose, onAction }: ContractActi
                   <div className="flex justify-between">
                     <span className="text-gray-600">Salário Atual:</span>
                     <span className="font-medium">
-                      {formatMoney(player.contract.currentSalary)}
+                      {formatCurrency(player.contract.currentSalary)}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -290,14 +284,16 @@ export function ContractActionsModal({ player, onClose, onAction }: ContractActi
                   <div className="flex justify-between">
                     <span className="text-gray-600">Salário Total Restante:</span>
                     <span className="font-medium">
-                      {formatMoney(player.contract.currentSalary * player.contract.yearsRemaining)}
+                      {formatCurrency(
+                        player.contract.currentSalary * player.contract.yearsRemaining,
+                      )}
                     </span>
                   </div>
                   <div className="pt-2 border-t border-gray-200">
                     <div className="flex justify-between">
                       <span className="text-red-600 font-medium">Dead Money Estimado:</span>
                       <span className="font-bold text-red-600">
-                        {formatMoney(calculateDeadMoney())}
+                        {formatCurrency(calculateDeadMoney())}
                       </span>
                     </div>
                   </div>

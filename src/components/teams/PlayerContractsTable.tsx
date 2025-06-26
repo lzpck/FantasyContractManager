@@ -1,6 +1,7 @@
 'use client';
 
 import { PlayerWithContract, PlayerPosition, ContractStatus } from '@/types';
+import { formatCurrency } from '@/utils/formatUtils';
 import {
   ChevronUpIcon,
   ChevronDownIcon,
@@ -48,17 +49,6 @@ export function PlayerContractsTable({
   onFilterPositionChange,
   onPlayerAction,
 }: PlayerContractsTableProps) {
-  // Função para formatar valores monetários
-  const formatMoney = (value: number) => {
-    if (value >= 1000000) {
-      return `$${(value / 1000000).toFixed(1)}M`;
-    } else if (value >= 1000) {
-      return `$${(value / 1000).toFixed(0)}K`;
-    } else {
-      return `$${value.toFixed(0)}`;
-    }
-  };
-
   // Função para calcular dead money estimado
   const calculateDeadMoney = (contract: any) => {
     const remainingSalary = contract.currentSalary * contract.yearsRemaining;
@@ -69,7 +59,7 @@ export function PlayerContractsTable({
   const getContractStatusColor = (status: ContractStatus, yearsRemaining: number) => {
     if (yearsRemaining === 1) return 'bg-yellow-100 text-yellow-800';
     if (status === ContractStatus.ACTIVE) return 'bg-green-100 text-green-800';
-    if (status === ContractStatus.FRANCHISE_TAG) return 'bg-purple-100 text-purple-800';
+    if (status === ContractStatus.TAGGED) return 'bg-purple-100 text-purple-800';
     if (status === ContractStatus.EXTENDED) return 'bg-blue-100 text-blue-800';
     return 'bg-gray-100 text-gray-800';
   };
@@ -80,7 +70,7 @@ export function PlayerContractsTable({
     switch (status) {
       case ContractStatus.ACTIVE:
         return 'Ativo';
-      case ContractStatus.FRANCHISE_TAG:
+      case ContractStatus.TAGGED:
         return 'Franchise Tag';
       case ContractStatus.EXTENDED:
         return 'Estendido';
@@ -249,7 +239,7 @@ export function PlayerContractsTable({
                       {player.nflTeam}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {formatMoney(contract.currentSalary)}
+                      {formatCurrency(contract.currentSalary)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {contract.yearsRemaining} ano(s)
@@ -262,7 +252,7 @@ export function PlayerContractsTable({
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatMoney(deadMoney)}
+                      {formatCurrency(deadMoney)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">

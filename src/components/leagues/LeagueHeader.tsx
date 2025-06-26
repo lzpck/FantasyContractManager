@@ -1,55 +1,22 @@
 'use client';
 
-import { League, LeagueStatus } from '@/types';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { League } from '@/types';
+import {
+  ArrowLeftIcon,
+  CalendarIcon,
+  CurrencyDollarIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline';
+import { formatCurrency, getStatusColor, getStatusText } from '@/utils/formatUtils';
 
 interface LeagueHeaderProps {
-  /** Liga a ser exibida */
   league: League;
-  /** Função chamada ao clicar no botão voltar */
+  totalTeams: number;
+  onSync: () => void;
   onBack: () => void;
 }
 
-/**
- * Componente de cabeçalho da página de detalhes da liga
- *
- * Exibe informações principais da liga como nome, temporada, status,
- * salary cap e configurações básicas.
- */
-export function LeagueHeader({ league, onBack }: LeagueHeaderProps) {
-  // Função para obter a cor do status da liga
-  const getStatusColor = (status: LeagueStatus) => {
-    switch (status) {
-      case LeagueStatus.ACTIVE:
-        return 'bg-green-100 text-green-800';
-      case LeagueStatus.OFFSEASON:
-        return 'bg-blue-100 text-blue-800';
-      case LeagueStatus.ARCHIVED:
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  // Função para obter o texto do status
-  const getStatusText = (status: LeagueStatus) => {
-    switch (status) {
-      case LeagueStatus.ACTIVE:
-        return 'Ativa';
-      case LeagueStatus.OFFSEASON:
-        return 'Off-season';
-      case LeagueStatus.ARCHIVED:
-        return 'Arquivada';
-      default:
-        return 'Desconhecido';
-    }
-  };
-
-  // Função para formatar valores monetários
-  const formatMoney = (value: number) => {
-    return `$${(value / 1000000).toFixed(0)}M`;
-  };
-
+export default function LeagueHeader({ league, totalTeams, onSync, onBack }: LeagueHeaderProps) {
   return (
     <div className="mb-8">
       {/* Botão voltar e título */}
@@ -99,7 +66,7 @@ export function LeagueHeader({ league, onBack }: LeagueHeaderProps) {
               <div>
                 <p className="text-sm text-gray-600">Salary Cap</p>
                 <p className="text-xl font-semibold text-gray-900">
-                  {formatMoney(league.salaryCap)}
+                  {formatCurrency(league.salaryCap)}
                 </p>
               </div>
             </div>
@@ -137,7 +104,9 @@ export function LeagueHeader({ league, onBack }: LeagueHeaderProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-gray-600">Salário Mínimo:</span>
-              <span className="ml-2 font-medium">{formatMoney(league.settings.minimumSalary)}</span>
+              <span className="ml-2 font-medium">
+                {formatCurrency(league.settings.minimumSalary)}
+              </span>
             </div>
             <div>
               <span className="text-gray-600">Virada de Temporada:</span>

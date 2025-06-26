@@ -2,6 +2,7 @@
 
 import { TeamFinancialSummary } from '@/types';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import { formatCurrency, getCurrencyClasses } from '@/utils/formatUtils';
 
 interface TeamsTableProps {
   /** Lista de resumos financeiros dos times */
@@ -16,18 +17,7 @@ interface TeamsTableProps {
  * Exibe lista de times com salary cap, valores usados/disponíveis,
  * contratos expirando e ações para acessar detalhes do time.
  */
-export function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
-  // Função para formatar valores monetários
-  const formatMoney = (value: number) => {
-    if (value >= 1000000) {
-      return `$${(value / 1000000).toFixed(1)}M`;
-    } else if (value >= 1000) {
-      return `$${(value / 1000).toFixed(0)}K`;
-    } else {
-      return `$${value.toFixed(0)}`;
-    }
-  };
-
+export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
   // Função para calcular percentual do cap usado
   const getCapUsagePercentage = (totalSalaries: number, salaryCap: number = 279000000) => {
     return ((totalSalaries / salaryCap) * 100).toFixed(1);
@@ -118,7 +108,7 @@ export function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
                 {/* Salary Cap Usado */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
-                    {formatMoney(teamSummary.totalSalaries)}
+                    {formatCurrency(teamSummary.totalSalaries)}
                   </div>
                   <div className={`text-sm ${getCapUsageColor(capUsagePercentage)}`}>
                     {capUsagePercentage}% do cap
@@ -127,8 +117,10 @@ export function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
 
                 {/* Cap Disponível */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {formatMoney(teamSummary.availableCap)}
+                  <div
+                    className={`text-sm font-medium ${getCurrencyClasses(teamSummary.availableCap)}`}
+                  >
+                    {formatCurrency(teamSummary.availableCap)}
                   </div>
                   <div className="text-sm text-gray-500">
                     {((teamSummary.availableCap / 279000000) * 100).toFixed(1)}% livre
@@ -138,11 +130,11 @@ export function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
                 {/* Dead Money */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {formatMoney(teamSummary.currentDeadMoney)}
+                    {formatCurrency(teamSummary.currentDeadMoney)}
                   </div>
                   {teamSummary.nextSeasonDeadMoney > 0 && (
                     <div className="text-sm text-gray-500">
-                      +{formatMoney(teamSummary.nextSeasonDeadMoney)} próx.
+                      +{formatCurrency(teamSummary.nextSeasonDeadMoney)} próx.
                     </div>
                   )}
                 </td>
@@ -187,11 +179,15 @@ export function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
           <div className="flex space-x-6">
             <span>
               Cap médio usado:{' '}
-              {formatMoney(teams.reduce((acc, team) => acc + team.totalSalaries, 0) / teams.length)}
+              {formatCurrency(
+                teams.reduce((acc, team) => acc + team.totalSalaries, 0) / teams.length,
+              )}
             </span>
             <span>
               Cap médio disponível:{' '}
-              {formatMoney(teams.reduce((acc, team) => acc + team.availableCap, 0) / teams.length)}
+              {formatCurrency(
+                teams.reduce((acc, team) => acc + team.availableCap, 0) / teams.length,
+              )}
             </span>
           </div>
         </div>

@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
 import { League, Team, TeamFinancialSummary } from '@/types';
 import { createMockLeagueWithTeams, createMockTeamFinancialSummary } from '@/types/mocks';
-import { LeagueHeader } from '@/components/leagues/LeagueHeader';
-import { TeamsTable } from '@/components/leagues/TeamsTable';
+import LeagueHeader from '@/components/leagues/LeagueHeader';
+import TeamsTable from '@/components/leagues/TeamsTable';
 import { SyncButton } from '@/components/leagues/SyncButton';
 import { FilterSortBar } from '@/components/leagues/FilterSortBar';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -181,7 +181,15 @@ export default function LeagueDetailsPage() {
       <div className="lg:pl-64">
         <div className="px-4 sm:px-6 lg:px-8 py-8">
           {/* Header da liga */}
-          <LeagueHeader league={league} onBack={() => router.push('/dashboard')} />
+          <LeagueHeader
+            league={league}
+            totalTeams={teamsFinancialSummary.length}
+            onSync={async () => {
+              // TODO: Implementar sincronização com Sleeper
+              console.log('Sincronizando dados da liga...');
+            }}
+            onBack={() => router.push('/dashboard')}
+          />
 
           {/* Botão de sincronização */}
           <div className="mb-6">

@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
+import { formatCurrency, CURRENCY_CONSTANTS } from '@/utils/formatUtils';
 
 interface CapProjectionChartProps {
   /** Time para projeção */
@@ -27,18 +28,7 @@ interface CapProjectionChartProps {
  */
 export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
   const currentYear = new Date().getFullYear();
-  const salaryCap = 279000000; // $279M padrão
-
-  // Função para formatar valores monetários
-  const formatMoney = (value: number) => {
-    if (value >= 1000000) {
-      return `$${(value / 1000000).toFixed(1)}M`;
-    } else if (value >= 1000) {
-      return `$${(value / 1000).toFixed(0)}K`;
-    } else {
-      return `$${value.toFixed(0)}`;
-    }
-  };
+  const salaryCap = CURRENCY_CONSTANTS.DEFAULT_SALARY_CAP;
 
   // Calcular projeções para os próximos 4 anos
   const projectionData = [];
@@ -93,19 +83,19 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
         <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-900 mb-2">{label}</p>
           <div className="space-y-1 text-sm">
-            <p className="text-blue-600">Salários: {formatMoney(data.totalSalaries)}</p>
+            <p className="text-blue-600">Salários: {formatCurrency(data.totalSalaries)}</p>
             {data.deadMoney > 0 && (
-              <p className="text-red-600">Dead Money: {formatMoney(data.deadMoney)}</p>
+              <p className="text-red-600">Dead Money: {formatCurrency(data.deadMoney)}</p>
             )}
             <p className="text-gray-900 font-medium">
-              Total Comprometido: {formatMoney(data.totalCommitted)}
+              Total Comprometido: {formatCurrency(data.totalCommitted)}
             </p>
             <p
               className={`font-medium ${
                 data.availableCap >= 0 ? 'text-green-600' : 'text-red-600'
               }`}
             >
-              Cap Disponível: {formatMoney(data.availableCap)}
+              Cap Disponível: {formatCurrency(data.availableCap)}
             </p>
             <p className="text-gray-600">Uso do Cap: {data.capUsagePercentage}%</p>
             <p className="text-gray-600">Contratos Ativos: {data.contractsCount}</p>
@@ -135,7 +125,7 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
             <YAxis
               tick={{ fontSize: 12 }}
               stroke="#6b7280"
-              tickFormatter={value => formatMoney(value)}
+              tickFormatter={value => formatCurrency(value)}
             />
             <Tooltip content={<CustomTooltip />} />
 
@@ -144,7 +134,7 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
               y={salaryCap}
               stroke="#ef4444"
               strokeDasharray="5 5"
-              label={{ value: 'Salary Cap', position: 'topRight' }}
+              label={{ value: 'Salary Cap', position: 'top' }}
             />
 
             {/* Barras */}
@@ -205,19 +195,19 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
                   {data.year} {index === 0 && '(Atual)'}
                 </td>
                 <td className="py-2 text-sm text-gray-900">{data.contractsCount}</td>
-                <td className="py-2 text-sm text-gray-900">{formatMoney(data.totalSalaries)}</td>
+                <td className="py-2 text-sm text-gray-900">{formatCurrency(data.totalSalaries)}</td>
                 <td className="py-2 text-sm text-gray-900">
-                  {data.deadMoney > 0 ? formatMoney(data.deadMoney) : '-'}
+                  {data.deadMoney > 0 ? formatCurrency(data.deadMoney) : '-'}
                 </td>
                 <td className="py-2 text-sm font-medium text-gray-900">
-                  {formatMoney(data.totalCommitted)}
+                  {formatCurrency(data.totalCommitted)}
                 </td>
                 <td
                   className={`py-2 text-sm font-medium ${
                     data.availableCap >= 0 ? 'text-green-600' : 'text-red-600'
                   }`}
                 >
-                  {formatMoney(data.availableCap)}
+                  {formatCurrency(data.availableCap)}
                 </td>
                 <td
                   className={`py-2 text-sm font-medium ${
