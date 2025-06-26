@@ -173,10 +173,23 @@ export function createMockUser(overrides: Partial<User> = {}): User {
     name: 'João Silva',
     email: 'joao@example.com',
     avatar: undefined,
+    isCommissioner: false,
     createdAt: now,
     updatedAt: now,
     ...overrides,
   };
+}
+
+/**
+ * Gera um usuário comissário mock para testes
+ */
+export function createMockCommissioner(overrides: Partial<User> = {}): User {
+  return createMockUser({
+    name: 'Comissário da Liga',
+    email: 'commissioner@example.com',
+    isCommissioner: true,
+    ...overrides,
+  });
 }
 
 /**

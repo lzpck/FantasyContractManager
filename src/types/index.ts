@@ -105,6 +105,8 @@ export interface User {
   email: string;
   /** URL do avatar (opcional) */
   avatar?: string;
+  /** Se o usuário é comissário da liga atual */
+  isCommissioner?: boolean;
   /** Data de criação da conta */
   createdAt: Date;
   /** Data da última atualização */
