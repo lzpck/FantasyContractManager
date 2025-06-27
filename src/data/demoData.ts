@@ -223,6 +223,44 @@ export const DEMO_CONTRACTS: Contract[] = [
     createdAt: new Date('2022-04-01'),
     updatedAt: new Date(),
   },
+  {
+    id: 'demo-contract-3',
+    playerId: 'demo-player-3',
+    teamId: 'demo-team-1',
+    leagueId: 'demo-league-1',
+    currentSalary: 29000000, // $29M
+    originalSalary: 25000000, // $25M
+    yearsRemaining: 2,
+    originalYears: 3,
+    acquisitionType: AcquisitionType.AUCTION,
+    status: ContractStatus.ACTIVE,
+    signedSeason: 2023,
+    hasBeenExtended: false,
+    hasBeenTagged: false,
+    hasFourthYearOption: false,
+    fourthYearOptionActivated: false,
+    createdAt: new Date('2023-05-01'),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'demo-contract-4',
+    playerId: 'demo-player-4',
+    teamId: 'demo-team-1',
+    leagueId: 'demo-league-1',
+    currentSalary: 30000000, // $30M
+    originalSalary: 20000000, // $20M
+    yearsRemaining: 1,
+    originalYears: 4,
+    acquisitionType: AcquisitionType.AUCTION,
+    status: ContractStatus.ACTIVE,
+    signedSeason: 2020,
+    hasBeenExtended: true,
+    hasBeenTagged: false,
+    hasFourthYearOption: false,
+    fourthYearOptionActivated: false,
+    createdAt: new Date('2020-04-01'),
+    updatedAt: new Date(),
+  },
 ];
 
 // ============================================================================
