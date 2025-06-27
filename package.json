@@ -12,7 +12,9 @@
     "format:check": "prettier --check .",
     "prepare": "husky install",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma migrate reset --force && npm run db:seed"
+    "db:reset": "prisma migrate reset --force && npm run db:seed",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -30,6 +32,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -38,9 +41,11 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.1",
     "husky": "^9.1.7",
+    "jest": "^30.0.3",
     "lint-staged": "^16.1.2",
     "prettier": "^3.6.1",
     "tailwindcss": "^4",
+    "ts-jest": "^29.4.0",
     "tsx": "^4.7.0",
     "typescript": "^5"
   },
