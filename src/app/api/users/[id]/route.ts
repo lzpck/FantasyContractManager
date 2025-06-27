@@ -7,7 +7,7 @@ import { UserRole } from '@/types/database';
 /**
  * API para atualizar usuário específico (apenas comissários)
  */
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -16,7 +16,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     const { name, email, role, isActive } = await request.json();
-    const userId = params.id;
+    const { id: userId } = await params;
 
     // Verificar se o usuário existe
     const existingUser = await prisma.user.findUnique({
@@ -78,7 +78,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 /**
  * API para deletar usuário (apenas comissários)
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -86,7 +89,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
 
     // Não permitir que o usuário delete a si mesmo
     if (userId === session.user.id) {

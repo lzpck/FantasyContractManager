@@ -15,7 +15,7 @@ export default function SignUpPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: UserRole.VIEWER,
+    role: UserRole.USER,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -134,8 +134,7 @@ export default function SignUpPage() {
                 value={formData.role}
                 onChange={handleChange}
               >
-                <option value={UserRole.VIEWER}>Visualizador</option>
-                <option value={UserRole.MANAGER}>Manager</option>
+                <option value={UserRole.USER}>Usuário</option>
                 <option value={UserRole.COMMISSIONER}>Comissário</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">

@@ -112,10 +112,8 @@ export default function AdminPage() {
     switch (role) {
       case UserRole.COMMISSIONER:
         return <ShieldCheckIcon className="h-5 w-5 text-purple-600" />;
-      case UserRole.MANAGER:
+      case UserRole.USER:
         return <UserIcon className="h-5 w-5 text-blue-600" />;
-      case UserRole.VIEWER:
-        return <EyeIcon className="h-5 w-5 text-gray-600" />;
       default:
         return <UserIcon className="h-5 w-5 text-gray-400" />;
     }
@@ -126,10 +124,8 @@ export default function AdminPage() {
     switch (role) {
       case UserRole.COMMISSIONER:
         return 'bg-purple-100 text-purple-800';
-      case UserRole.MANAGER:
+      case UserRole.USER:
         return 'bg-blue-100 text-blue-800';
-      case UserRole.VIEWER:
-        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -229,8 +225,7 @@ export default function AdminPage() {
                             )}`}
                           >
                             {user.role === UserRole.COMMISSIONER && 'Comissário'}
-                            {user.role === UserRole.MANAGER && 'Manager'}
-                            {user.role === UserRole.VIEWER && 'Visualizador'}
+                            {user.role === UserRole.USER && 'Usuário'}
                           </span>
                         </div>
                       </td>
@@ -323,8 +318,7 @@ export default function AdminPage() {
                     defaultValue={editingUser.role}
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value={UserRole.VIEWER}>Visualizador</option>
-                    <option value={UserRole.MANAGER}>Manager</option>
+                    <option value={UserRole.USER}>Usuário</option>
                     <option value={UserRole.COMMISSIONER}>Comissário</option>
                   </select>
                 </div>

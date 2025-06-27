@@ -25,7 +25,7 @@ export default withAuth(
 
     // Verificar se é uma rota de manager
     if (managerRoutes.some(route => pathname.startsWith(route))) {
-      if (!token?.role || token.role === UserRole.VIEWER) {
+      if (!token?.role || token.role === UserRole.USER) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }

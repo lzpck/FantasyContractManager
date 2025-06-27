@@ -26,7 +26,7 @@ model User {
   password      String?   // Para autenticação local
   
   // Perfis e permissões
-  role          UserRole  @default(VIEWER)
+  role          UserRole  @default(USER)
   isActive      Boolean   @default(true)
   
   // Timestamps
@@ -48,9 +48,9 @@ model User {
  * Tipos de perfil de usuário
  */
 enum UserRole {
-  COMMISSIONER  // Comissário - acesso total
-  MANAGER      // Manager - gerencia seus times
-  VIEWER       // Visualizador - apenas leitura
+  ADMIN        // Admin - acesso total ao sistema
+  COMMISSIONER // Comissário - acesso total à liga
+  USER         // Usuário - acesso básico
 }
 
 /**

@@ -13,15 +13,14 @@ export function useAuth() {
 
   // Verificações de permissão
   const isCommissioner = user?.role === UserRole.COMMISSIONER;
-  const isManager = user?.role === UserRole.MANAGER;
-  const isViewer = user?.role === UserRole.VIEWER;
+  const isUser = user?.role === UserRole.USER;
 
   // Funções de verificação de permissão
   const canManageUsers = isCommissioner;
   const canManageLeagues = isCommissioner;
   const canImportLeague = isCommissioner;
   const canEditSettings = isCommissioner;
-  const canManageTeam = isCommissioner || isManager;
+  const canManageTeam = isCommissioner || isUser;
   const canViewData = isAuthenticated; // Todos os usuários autenticados podem visualizar
 
   return {
@@ -32,8 +31,7 @@ export function useAuth() {
 
     // Tipos de usuário
     isCommissioner,
-    isManager,
-    isViewer,
+    isUser,
 
     // Permissões específicas
     canManageUsers,

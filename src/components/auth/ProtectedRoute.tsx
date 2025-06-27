@@ -36,7 +36,7 @@ export function ProtectedRoute({
     // Verificar role específico
     if (requiredRole && user?.role !== requiredRole) {
       // Para comissário, verificar se é pelo menos manager
-      if (requiredRole === UserRole.MANAGER && user?.role === UserRole.COMMISSIONER) {
+      if (requiredRole === UserRole.USER && user?.role === UserRole.COMMISSIONER) {
         return; // Comissário pode acessar rotas de manager
       }
 
@@ -61,7 +61,7 @@ export function ProtectedRoute({
 
   if (requiredRole && user?.role !== requiredRole) {
     // Permitir comissário acessar rotas de manager
-    if (!(requiredRole === UserRole.MANAGER && user?.role === UserRole.COMMISSIONER)) {
+    if (!(requiredRole === UserRole.USER && user?.role === UserRole.COMMISSIONER)) {
       return null;
     }
   }
@@ -96,5 +96,5 @@ export function withCommissionerAuth<P extends object>(Component: React.Componen
  * HOC para proteger páginas que requerem pelo menos role de manager
  */
 export function withManagerAuth<P extends object>(Component: React.ComponentType<P>) {
-  return withAuth(Component, { requiredRole: UserRole.MANAGER });
+  return withAuth(Component, { requiredRole: UserRole.USER });
 }

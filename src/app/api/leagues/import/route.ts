@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { UserRole } from '@/types/database';
+import { UserRole, LeagueStatus } from '@/types/database';
 import { prisma } from '@/lib/prisma';
 import { importLeagueFromSleeper, validateSleeperLeagueId } from '@/services/sleeperService';
 import { League } from '@/types';
@@ -66,7 +66,6 @@ async function importLeague(leagueId: string, commissionerId: string): Promise<I
         season: importedData.league.season,
         salaryCap: importedData.league.salaryCap,
         totalTeams: importedData.league.totalTeams,
-        status: importedData.league.status,
         sleeperLeagueId: importedData.league.sleeperLeagueId,
         commissionerId: importedData.league.commissionerId,
         maxFranchiseTags: importedData.league.settings.maxFranchiseTags,

@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password);
 
     // Determinar o role (apenas comissários podem criar outros comissários)
-    let userRole = UserRole.VIEWER;
+    let userRole = UserRole.USER;
     if (role && Object.values(UserRole).includes(role)) {
       userRole = role;
     }

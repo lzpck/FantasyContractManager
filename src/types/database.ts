@@ -10,6 +10,12 @@ export enum UserRole {
   USER = 'USER',
 }
 
+export enum LeagueStatus {
+  ACTIVE = 'active',
+  OFFSEASON = 'offseason',
+  ARCHIVED = 'archived',
+}
+
 export interface User {
   id: string;
   name?: string | null;
@@ -27,11 +33,15 @@ export interface League {
   sleeperLeagueId: string;
   season: number;
   salaryCap: number;
+  totalTeams: number;
+  status: LeagueStatus;
+  maxFranchiseTags: number;
   annualIncreasePercentage: number;
   minimumSalary: number;
+  seasonTurnoverDate: string;
+  commissionerId: string;
   createdAt: Date;
   updatedAt: Date;
-  userId: string;
 }
 
 export interface Team {
