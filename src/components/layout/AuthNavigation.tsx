@@ -29,15 +29,9 @@ export function AuthNavigation() {
       <div className="flex items-center space-x-4">
         <Link
           href="/auth/signin"
-          className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
-        >
-          Entrar
-        </Link>
-        <Link
-          href="/auth/signup"
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
         >
-          Cadastrar
+          Entrar
         </Link>
       </div>
     );

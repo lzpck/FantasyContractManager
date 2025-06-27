@@ -119,10 +119,7 @@ export default function SignInPage() {
 
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Não tem uma conta?{' '}
-              <Link href="/auth/signup" className="font-medium text-blue-600 hover:text-blue-500">
-                Cadastre-se
-              </Link>
+              Entre em contato com o administrador para criar uma conta.
             </p>
           </div>
         </form>
