@@ -48,6 +48,17 @@ npm run dev
 
 4. Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
 
+## 👥 Usuários Padrão
+
+Após executar `npm run db:seed`, o sistema cria automaticamente dois usuários
+para facilitar o primeiro acesso:
+
+- **Administrador**: `admin@admin.com` / senha `admin`
+- **Demonstração**: `demo@demo.com` / senha `demo`
+
+Utilize a conta de administrador para realizar o primeiro login e cadastrar
+novos usuários reais.
+
 ## 📁 Estrutura do Projeto
 
 ```
