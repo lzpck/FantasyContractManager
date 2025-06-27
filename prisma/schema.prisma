@@ -129,6 +129,10 @@ model League {
   commissioner      User        @relation("LeagueCommissioner", fields: [commissionerId], references: [id])
   teams             Team[]
   
+  // Relacionamentos inversos
+  contracts         Contract[]
+  draftPicks        DraftPick[]
+  
   // Timestamps
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
@@ -166,6 +170,15 @@ model Team {
   ownerId   String
   owner     User     @relation(fields: [ownerId], references: [id])
   
+  // Relacionamentos inversos
+  contracts             Contract[]
+  franchiseTags         FranchiseTag[]
+  contractExtensions    ContractExtension[]
+  deadMoneyRecords      DeadMoney[]
+  capMovements          CapMovement[]
+  originalDraftPicks    DraftPick[]           @relation("OriginalDraftPicks")
+  currentDraftPicks     DraftPick[]           @relation("CurrentDraftPicks")
+  
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -190,9 +203,269 @@ model Player {
   // Status
   isActive          Boolean  @default(true)
   
+  // Relacionamentos inversos
+  contracts         Contract[]
+  franchiseTags     FranchiseTag[]
+  contractExtensions ContractExtension[]
+  deadMoneyRecords  DeadMoney[]
+  capMovements      CapMovement[]
+  draftPicks        DraftPick[]
+  
   // Timestamps
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   
   @@map("players")
+}
+
+// ============================================================================
+// CONTRATOS E GESTÃO FINANCEIRA
+// ============================================================================
+
+/**
+ * Contrato de um jogador com um time
+ */
+model Contract {
+  id                        String          @id @default(cuid())
+  
+  // Relacionamentos
+  playerId                  String
+  player                    Player          @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  teamId                    String
+  team                      Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  leagueId                  String
+  league                    League          @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  
+  // Dados financeiros
+  currentSalary             Float           // Salário atual em milhões
+  originalSalary            Float           // Salário original (quando foi contratado)
+  
+  // Dados do contrato
+  yearsRemaining            Int             // Anos restantes no contrato
+  originalYears             Int             // Anos totais do contrato original
+  status                    ContractStatus  @default(ACTIVE)
+  acquisitionType           AcquisitionType
+  signedSeason              Int             // Temporada em que o contrato foi assinado
+  
+  // Flags de controle
+  hasBeenTagged             Boolean         @default(false)
+  hasBeenExtended           Boolean         @default(false)
+  hasFourthYearOption       Boolean         @default(false)
+  fourthYearOptionActivated Boolean         @default(false)
+  
+  // Timestamps com formato amigável
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  signedAt                  DateTime        @default(now()) // Data de assinatura do contrato
+  
+  // Relacionamentos inversos
+  franchiseTags             FranchiseTag[]
+  extensions                ContractExtension[]
+  deadMoneyRecords          DeadMoney[]
+  capMovements              CapMovement[]
+  
+  @@unique([playerId, teamId, signedSeason])
+  @@map("contracts")
+}
+
+/**
+ * Status do contrato
+ */
+enum ContractStatus {
+  ACTIVE    // Contrato ativo
+  EXPIRED   // Contrato expirado
+  CUT       // Jogador foi cortado
+  TAGGED    // Jogador com Franchise Tag
+  EXTENDED  // Contrato foi estendido
+}
+
+/**
+ * Tipo de aquisição do jogador
+ */
+enum AcquisitionType {
+  AUCTION       // Leilão inicial
+  WAIVER        // Waiver/FAAB
+  ROOKIE_DRAFT  // Rookie Draft
+  TRADE         // Trade
+  FREE_AGENT    // Agente livre
+}
+
+/**
+ * Franchise Tag aplicada a um jogador
+ */
+model FranchiseTag {
+  id                String   @id @default(cuid())
+  
+  // Relacionamentos
+  contractId        String
+  contract          Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  
+  playerId          String
+  player            Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  teamId            String
+  team              Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  // Dados da tag
+  season            Int      // Temporada em que a tag foi aplicada
+  tagValue          Float    // Valor da tag em milhões
+  previousSalary    Float    // Salário anterior do jogador
+  positionAverage   Float    // Média dos top 10 da posição (usado no cálculo)
+  
+  // Timestamps com formato amigável
+  appliedAt         DateTime @default(now()) // Data de aplicação da tag
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([contractId, season])
+  @@map("franchise_tags")
+}
+
+/**
+ * Extensão de contrato negociada
+ */
+model ContractExtension {
+  id                    String   @id @default(cuid())
+  
+  // Relacionamentos
+  originalContractId    String
+  originalContract      Contract @relation(fields: [originalContractId], references: [id], onDelete: Cascade)
+  
+  playerId              String
+  player                Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  teamId                String
+  team                  Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  // Dados da extensão
+  newSalary             Float    // Novo salário negociado
+  newYears              Int      // Novos anos adicionados
+  negotiatedSeason      Int      // Temporada em que a extensão foi negociada
+  effectiveSeason       Int      // Temporada em que a extensão entra em vigor
+  
+  // Timestamps com formato amigável
+  negotiatedAt          DateTime @default(now()) // Data da negociação
+  effectiveAt           DateTime // Data em que a extensão entra em vigor
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@unique([originalContractId])
+  @@map("contract_extensions")
+}
+
+/**
+ * Registro de dead money por jogador cortado
+ */
+model DeadMoney {
+  id                    String   @id @default(cuid())
+  
+  // Relacionamentos
+  contractId            String
+  contract              Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  
+  playerId              String
+  player                Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  teamId                String
+  team                  Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  // Dados do dead money
+  totalAmount           Float    // Valor total do dead money
+  currentSeasonAmount   Float    // Valor que afeta a temporada atual
+  nextSeasonAmount      Float    // Valor que afeta a próxima temporada
+  cutSeason             Int      // Temporada em que o jogador foi cortado
+  wasPracticeSquad      Boolean  @default(false) // Se o jogador estava no practice squad
+  
+  // Timestamps com formato amigável
+  cutAt                 DateTime @default(now()) // Data em que o jogador foi cortado
+  expiresAt             DateTime // Data em que o dead money expira
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("dead_money")
+}
+
+/**
+ * Movimentação no salary cap de um time
+ */
+model CapMovement {
+  id            String          @id @default(cuid())
+  
+  // Relacionamentos
+  teamId        String
+  team          Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  playerId      String?
+  player        Player?         @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  
+  contractId    String?
+  contract      Contract?       @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  
+  // Dados da movimentação
+  type          CapMovementType
+  amount        Float           // Valor da movimentação (positivo = gasto, negativo = economia)
+  description   String          // Descrição da movimentação
+  season        Int             // Temporada da movimentação
+  
+  // Timestamps com formato amigável
+  occurredAt    DateTime        @default(now()) // Data em que a movimentação ocorreu
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  
+  @@map("cap_movements")
+}
+
+/**
+ * Tipos de movimentação no salary cap
+ */
+enum CapMovementType {
+  SIGNING           // Assinatura de contrato
+  ANNUAL_INCREASE   // Aumento anual automático
+  FRANCHISE_TAG     // Aplicação de Franchise Tag
+  CONTRACT_EXTENSION // Extensão de contrato
+  DEAD_MONEY        // Dead money por corte
+  TRADE_ACQUISITION // Aquisição via trade
+  TRADE_RELEASE     // Liberação via trade
+  WAIVER_CLAIM      // Contratação via waiver
+  ROOKIE_SIGNING    // Assinatura de rookie
+  CUT_PLAYER        // Corte de jogador
+  SALARY_ADJUSTMENT // Ajuste manual de salário
+}
+
+/**
+ * Pick do rookie draft
+ */
+model DraftPick {
+  id                String   @id @default(cuid())
+  
+  // Relacionamentos
+  leagueId          String
+  league            League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  
+  originalTeamId    String
+  originalTeam      Team     @relation("OriginalDraftPicks", fields: [originalTeamId], references: [id], onDelete: Cascade)
+  
+  currentTeamId     String
+  currentTeam       Team     @relation("CurrentDraftPicks", fields: [currentTeamId], references: [id], onDelete: Cascade)
+  
+  selectedPlayerId  String?
+  selectedPlayer    Player?  @relation(fields: [selectedPlayerId], references: [id], onDelete: SetNull)
+  
+  // Dados do pick
+  season            Int      // Temporada do draft
+  round             Int      // Rodada do pick
+  pick              Int      // Posição na rodada
+  overallPick       Int      // Posição geral no draft
+  isUsed            Boolean  @default(false) // Se o pick já foi usado
+  
+  // Timestamps com formato amigável
+  draftDate         DateTime? // Data do draft (quando programado)
+  selectedAt        DateTime? // Data em que o pick foi usado
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([leagueId, season, overallPick])
+  @@map("draft_picks")
 }
