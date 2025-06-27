@@ -11,7 +11,13 @@ export default withAuth(
     const { pathname } = req.nextUrl;
 
     // Rotas que requerem autenticação de comissário
-    const commissionerRoutes = ['/admin', '/settings', '/leagues/import', '/api/leagues/import'];
+    const commissionerRoutes = [
+      '/admin',
+      '/settings',
+      '/leagues/import',
+      '/api/leagues/import',
+      '/auth/signup',
+    ];
 
     // Rotas que requerem pelo menos manager ou comissário
     const managerRoutes = ['/dashboard', '/leagues', '/teams'];
@@ -37,8 +43,8 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
 
-        // Permitir acesso às rotas de autenticação
-        if (pathname.startsWith('/auth/')) {
+        // Permitir acesso às rotas de autenticação (exceto signup)
+        if (pathname.startsWith('/auth/') && !pathname.startsWith('/auth/signup')) {
           return true;
         }
 

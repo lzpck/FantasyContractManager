@@ -1,13 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 import { UserRole } from '@/types/database';
 
 /**
  * API para registro de novos usuários
+ * Requer autenticação e perfil COMMISSIONER ou ADMIN
  */
 export async function POST(request: NextRequest) {
   try {
+    // Verificar autenticação
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    // Verificar se é comissário ou admin
+    if (session.user.role !== UserRole.COMMISSIONER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { error: 'Acesso negado. Apenas administradores e comissários podem criar usuários.' },
+        { status: 403 },
+      );
+    }
+
     const { name, email, password, role } = await request.json();
 
     // Validação básica
