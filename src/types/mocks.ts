@@ -5,16 +5,12 @@
 
 import {
   User,
-  League,
   Team,
   Player,
   Contract,
-  FranchiseTag,
   ContractExtension,
-  DeadMoney,
   DraftPick,
   PlayerWithContract,
-  TeamFinancialSummary,
   LeagueStatus,
   ContractStatus,
   PlayerPosition,
@@ -22,6 +18,11 @@ import {
   LeagueSettings,
   RookieDraftSettings,
   RookieSalaryTable,
+  UserRole,
+  League,
+  FranchiseTag,
+  DeadMoney,
+  TeamFinancialSummary,
 } from './index';
 
 // ============================================================================
@@ -174,6 +175,8 @@ export function createMockUser(overrides: Partial<User> = {}): User {
     name: `Usuário ${randomId.toUpperCase()}`,
     email: `user${randomId}@example.com`,
     avatar: undefined,
+    role: UserRole.USER,
+    isActive: true,
     isCommissioner: false,
     createdAt: now,
     updatedAt: now,

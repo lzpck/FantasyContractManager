@@ -13,7 +13,6 @@ import {
   updateContractForNewSeason,
   projectTeamCap,
   validateCapSpace,
-  runBasicTests,
 } from './contractUtils';
 
 import { Contract, Player, Team, ContractStatus, PlayerPosition, AcquisitionType } from '../types';

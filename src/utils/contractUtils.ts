@@ -12,15 +12,12 @@
 
 import {
   Contract,
-  Player,
   Team,
-  League,
-  DeadMoney,
-  FranchiseTag,
-  PlayerPosition,
+  Player,
   ContractStatus,
+  PlayerPosition,
+  AcquisitionType,
   FranchiseTagCalculation,
-  TeamFinancialSummary,
 } from '../types';
 
 // ============================================================================
@@ -254,11 +251,8 @@ export function calculateFranchiseTagValue(
   const salaryWith15Percent = currentSalary * 1.15;
 
   // Filtra contratos ativos da mesma posição
-  const samePositionContracts = allContracts.filter(contract => {
-    // Aqui assumimos que temos acesso aos dados do jogador
-    // Em implementação real, seria necessário fazer join com tabela de jogadores
-    return contract.status === ContractStatus.ACTIVE;
-  });
+  // Em implementação real, seria necessário fazer join com tabela de jogadores
+  // para calcular a média dos top 10 da posição
 
   // Para este exemplo, vamos usar um valor mock para a média da posição
   // Em implementação real, seria calculado dinamicamente
@@ -306,7 +300,7 @@ export function createContract(
   leagueId: string,
   salary: number,
   years: number,
-  acquisitionType: any,
+  acquisitionType: AcquisitionType,
   season: number,
 ): Omit<Contract, 'id' | 'createdAt' | 'updatedAt'> {
   return {
@@ -449,7 +443,7 @@ export function runBasicTests(): void {
     yearsRemaining: 3,
     originalYears: 4,
     status: ContractStatus.ACTIVE,
-    acquisitionType: 'auction' as any,
+    acquisitionType: AcquisitionType.AUCTION,
     signedSeason: 2024,
     hasBeenTagged: false,
     hasBeenExtended: false,

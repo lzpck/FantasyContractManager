@@ -10,7 +10,6 @@ interface PositionDistributionChartProps {
 
 export default function PositionDistributionChart({ players }: PositionDistributionChartProps) {
   // Filtrar jogadores com contratos
-  const playersWithContracts = players.filter(player => player.contract);
 
   // Cores para cada posição
   const POSITION_COLORS: Record<string, string> = {
@@ -65,8 +64,28 @@ export default function PositionDistributionChart({ players }: PositionDistribut
     }))
     .sort((a, b) => b.totalSalary - a.totalSalary);
 
+  // Tipos para componentes customizados
+  interface TooltipProps {
+    active?: boolean;
+    payload?: Array<{
+      payload: {
+        position: string;
+        count: number;
+        totalSalary: number;
+        percentage: string;
+      };
+    }>;
+  }
+
+  interface LegendProps {
+    payload?: Array<{
+      value: string;
+      color: string;
+    }>;
+  }
+
   // Componente customizado para tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -82,9 +101,9 @@ export default function PositionDistributionChart({ players }: PositionDistribut
   };
 
   // Componente customizado para legenda
-  const CustomLegend = ({ payload }: any) => (
+  const CustomLegend = ({ payload }: LegendProps) => (
     <div className="flex flex-wrap justify-center gap-4 mt-4">
-      {payload.map((entry: any, index: number) => (
+      {payload?.map((entry, index: number) => (
         <div key={index} className="flex items-center space-x-2">
           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
           <span className="text-sm text-gray-600">

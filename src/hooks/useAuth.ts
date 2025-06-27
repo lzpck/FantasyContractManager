@@ -1,5 +1,6 @@
 import { useSession } from 'next-auth/react';
 import { UserRole } from '@/types/database';
+import { isDemoUser } from '@/data/demoData';
 
 /**
  * Hook personalizado para gerenciar autenticação e permissões
@@ -10,6 +11,7 @@ export function useAuth() {
   const isLoading = status === 'loading';
   const isAuthenticated = !!session;
   const user = session?.user;
+  const isDemo = isDemoUser(user?.email);
 
   // Verificações de permissão
   const isCommissioner = user?.role === UserRole.COMMISSIONER;
@@ -28,6 +30,7 @@ export function useAuth() {
     isLoading,
     isAuthenticated,
     user,
+    isDemoUser: isDemo,
 
     // Tipos de usuário
     isCommissioner,

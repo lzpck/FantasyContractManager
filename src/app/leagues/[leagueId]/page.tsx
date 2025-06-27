@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
-import { League, Team, TeamFinancialSummary } from '@/types';
+import { League, TeamFinancialSummary, Team } from '@/types';
 import { createMockLeagueWithTeams, createMockTeamFinancialSummary } from '@/types/mocks';
 import LeagueHeader from '@/components/leagues/LeagueHeader';
 import TeamsTable from '@/components/leagues/TeamsTable';
@@ -50,7 +50,7 @@ export default function LeagueDetailsPage() {
 
         // Gerar resumos financeiros para cada time
         const financialSummaries = mockData.teams.map(
-          team => createMockTeamFinancialSummary(team, 15), // 15 jogadores por time
+          (team: Team) => createMockTeamFinancialSummary(team, 15), // 15 jogadores por time
         );
         setTeamsFinancialSummary(financialSummaries);
       } else {
@@ -58,7 +58,7 @@ export default function LeagueDetailsPage() {
 
         // Gerar dados mock de times para a liga encontrada
         const mockData = createMockLeagueWithTeams(foundLeague.totalTeams);
-        const teamsWithCorrectLeagueId = mockData.teams.map(team => ({
+        const teamsWithCorrectLeagueId = mockData.teams.map((team: Team) => ({
           ...team,
           leagueId: foundLeague.id,
         }));
@@ -66,7 +66,7 @@ export default function LeagueDetailsPage() {
         // Teams são usados apenas para gerar os resumos financeiros
 
         // Gerar resumos financeiros
-        const financialSummaries = teamsWithCorrectLeagueId.map(team =>
+        const financialSummaries = teamsWithCorrectLeagueId.map((team: Team) =>
           createMockTeamFinancialSummary(team, 15),
         );
         setTeamsFinancialSummary(financialSummaries);
@@ -126,8 +126,44 @@ export default function LeagueDetailsPage() {
 
   // Função para sincronizar com Sleeper
   const handleSync = async () => {
-    // Mock da sincronização - em produção, faria chamada para API do Sleeper
-    alert('Sincronização com Sleeper iniciada! (Funcionalidade em desenvolvimento)');
+    try {
+      // Verificar se a liga tem ID do Sleeper
+      if (!league?.sleeperLeagueId) {
+        alert('Esta liga não possui integração com o Sleeper');
+        return;
+      }
+
+      // Chamar a API de sincronização
+      const response = await fetch('/api/leagues/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ leagueId: league.id }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Atualizar dados locais
+        setLeague(data.league);
+
+        // Atualizar resumos financeiros com os novos times
+        if (data.league.teams) {
+          const updatedFinancialSummaries = data.league.teams.map((team: Team) =>
+            createMockTeamFinancialSummary(team, 15),
+          );
+          setTeamsFinancialSummary(updatedFinancialSummaries);
+        }
+
+        alert(data.message);
+      } else {
+        alert(`Erro: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar com Sleeper:', error);
+      alert('Ocorreu um erro ao sincronizar com o Sleeper. Tente novamente mais tarde.');
+    }
   };
 
   // Função para navegar para detalhes do time

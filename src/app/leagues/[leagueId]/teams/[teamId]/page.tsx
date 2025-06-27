@@ -73,7 +73,7 @@ export default function TeamDetailsPage() {
         setPlayersWithContracts(teamFinancialSummary.playersWithContracts);
       }
 
-      setLeague(foundLeague);
+      setLeague(foundLeague || null);
       setTeam(foundTeam);
       setLoading(false);
     };
@@ -108,8 +108,8 @@ export default function TeamDetailsPage() {
 
     // Aplicar ordenação
     filtered.sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+      let aValue: string | number;
+      let bValue: string | number;
 
       switch (sortBy) {
         case 'name':
@@ -133,11 +133,11 @@ export default function TeamDetailsPage() {
           bValue = b.player.name;
       }
 
-      if (typeof aValue === 'string') {
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
         const comparison = aValue.localeCompare(bValue);
         return sortOrder === 'asc' ? comparison : -comparison;
       } else {
-        const comparison = aValue - bValue;
+        const comparison = (aValue as number) - (bValue as number);
         return sortOrder === 'asc' ? comparison : -comparison;
       }
     });
@@ -150,7 +150,7 @@ export default function TeamDetailsPage() {
     router.push(`/leagues/${leagueId}`);
   };
 
-  const handlePlayerAction = (player: PlayerWithContract, action: string) => {
+  const handlePlayerAction = (player: PlayerWithContract) => {
     setSelectedPlayer(player);
     setShowActionsModal(true);
   };

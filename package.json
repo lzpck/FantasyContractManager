@@ -10,7 +10,9 @@
     "lint:check": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset": "prisma migrate reset --force && npm run db:seed"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -39,6 +41,7 @@
     "lint-staged": "^16.1.2",
     "prettier": "^3.6.1",
     "tailwindcss": "^4",
+    "tsx": "^4.7.0",
     "typescript": "^5"
   },
   "lint-staged": {
@@ -49,5 +52,8 @@
     "*.{json,md,css,scss}": [
       "prettier --write"
     ]
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }

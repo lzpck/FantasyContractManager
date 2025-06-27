@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { formatCurrency, getCurrencyClasses, useCurrencyDisplay } from '@/utils/formatUtils';
+import { useCurrencyDisplay, formatCurrency } from '@/utils/formatUtils';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 export interface CurrencyDisplayProps {
@@ -48,14 +48,11 @@ export function CurrencyDisplay({
   size = 'base',
   showTooltip = false,
 }: CurrencyDisplayProps) {
-  const { formattedValue, cssClasses, isNegative, isWarning, isDanger } = useCurrencyDisplay(
-    value,
-    {
-      abbreviated,
-      showCents,
-      thresholds,
-    },
-  );
+  const { formattedValue, cssClasses, isNegative } = useCurrencyDisplay(value, {
+    abbreviated,
+    showCents,
+    thresholds,
+  });
 
   // Classes de tamanho
   const sizeClasses = {

@@ -3,13 +3,28 @@
 import { useState } from 'react';
 import { PlayerWithContract } from '@/types';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { formatCurrency, getCurrencyClasses } from '@/utils/formatUtils';
+import { formatCurrency } from '@/utils/formatUtils';
+
+interface ContractActionData {
+  action: string;
+  player: PlayerWithContract;
+  formData: {
+    newSalary: string;
+    newYears: string;
+    extensionSalary: string;
+    extensionYears: string;
+  };
+  calculatedValues: {
+    deadMoney: number;
+    tagValue: number;
+  };
+}
 
 interface ContractActionsModalProps {
   isOpen: boolean;
   onClose: () => void;
   player: PlayerWithContract | null;
-  onAction: (action: string, data: any) => void;
+  onAction: (action: string, data: ContractActionData) => void;
 }
 
 export default function ContractActionsModal({

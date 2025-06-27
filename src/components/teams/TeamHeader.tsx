@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowLeftIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { Team, League, PlayerWithContract, ContractStatus } from '@/types';
+import { Team, League, PlayerWithContract } from '@/types';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatCapUsage, getCurrencyClasses } from '@/utils/formatUtils';
 
@@ -24,10 +24,6 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
   const availableCap = league.salaryCap - totalSalaries - team.currentDeadMoney;
   const contractsExpiring = playersWithContracts.filter(
     p => p.contract?.yearsRemaining === 1,
-  ).length;
-
-  const franchiseTagsUsed = playersWithContracts.filter(
-    p => p.contract?.status === ContractStatus.TAGGED,
   ).length;
 
   // Calcula informações do salary cap

@@ -5,9 +5,11 @@
  * - Buscar dados de ligas, rosters e jogadores da Sleeper API
  * - Transformar dados da Sleeper para o modelo local
  * - Mapear estruturas de dados entre as duas plataformas
+ * - Sincronizar dados de ligas existentes
  */
 
-import { League, Team, Player, LeagueSettings, RookieDraftSettings } from '@/types';
+import { League, Team, Player, LeagueSettings, PlayerPosition } from '@/types';
+import { LeagueStatus } from '@/types/database';
 
 // ============================================================================
 // TIPOS DA SLEEPER API
@@ -48,7 +50,7 @@ export interface SleeperLeague {
   metadata?: {
     auto_continue?: string;
     keeper_deadline?: string;
-    [key: string]: any;
+    [key: string]: string | number | boolean | undefined;
   };
 }
 
@@ -77,7 +79,7 @@ export interface SleeperRoster {
   metadata?: {
     streak?: string;
     record?: string;
-    [key: string]: any;
+    [key: string]: string | number | boolean | undefined;
   };
 }
 
@@ -118,7 +120,7 @@ export interface SleeperUser {
   avatar?: string;
   metadata?: {
     team_name?: string;
-    [key: string]: any;
+    [key: string]: string | number | boolean | undefined;
   };
 }
 
@@ -203,7 +205,7 @@ export function transformSleeperLeagueToLocal(
     seasonTurnoverDate: '04-01',
     rookieDraft: {
       rounds: 3,
-      fourthYearOption: true,
+      firstRoundFourthYearOption: true,
       salaryTable: [
         // Round 1 picks
         {
@@ -340,6 +342,11 @@ export function transformSleeperLeagueToLocal(
     status: mapSleeperStatusToLocal(sleeperLeague.status),
     sleeperLeagueId: sleeperLeague.league_id,
     commissionerId,
+    // Adicionar propriedades obrigatórias do tipo League
+    maxFranchiseTags: defaultSettings.maxFranchiseTags,
+    annualIncreasePercentage: defaultSettings.annualIncreasePercentage,
+    minimumSalary: defaultSettings.minimumSalary,
+    seasonTurnoverDate: defaultSettings.seasonTurnoverDate,
     settings: defaultSettings,
   };
 }
@@ -361,8 +368,12 @@ export function transformSleeperRostersToTeams(
       leagueId,
       ownerId: roster.owner_id, // Será mapeado para o usuário local posteriormente
       sleeperTeamId: roster.roster_id.toString(),
-      currentSalaryCap: 0, // Será calculado baseado nos contratos
+      // Propriedades obrigatórias do tipo Team
+      abbreviation: teamName.substring(0, 3).toUpperCase(), // Gera uma abreviação a partir do nome
+      availableCap: 0, // Será calculado baseado nos contratos
       currentDeadMoney: 0,
+      nextSeasonDeadMoney: 0,
+      franchiseTagsUsed: 0,
     };
   });
 }
@@ -382,7 +393,7 @@ export function transformSleeperPlayersToLocal(
       return {
         name: sleeperPlayer.full_name || `${sleeperPlayer.first_name} ${sleeperPlayer.last_name}`,
         position: mapSleeperPositionToLocal(sleeperPlayer.position),
-        team: sleeperPlayer.team || 'FA',
+        nflTeam: sleeperPlayer.team || 'FA',
         age: sleeperPlayer.age,
         sleeperPlayerId: sleeperPlayer.player_id,
         isActive: sleeperPlayer.status !== 'Inactive',
@@ -398,38 +409,38 @@ export function transformSleeperPlayersToLocal(
 /**
  * Mapeia status da liga da Sleeper para o modelo local
  */
-function mapSleeperStatusToLocal(sleeperStatus: string): 'ACTIVE' | 'OFFSEASON' | 'ARCHIVED' {
+function mapSleeperStatusToLocal(sleeperStatus: string): LeagueStatus {
   switch (sleeperStatus.toLowerCase()) {
     case 'in_season':
     case 'drafting':
-      return 'ACTIVE';
+      return LeagueStatus.ACTIVE;
     case 'pre_draft':
     case 'complete':
-      return 'OFFSEASON';
+      return LeagueStatus.OFFSEASON;
     default:
-      return 'ARCHIVED';
+      return LeagueStatus.ARCHIVED;
   }
 }
 
 /**
  * Mapeia posições da Sleeper para o modelo local
  */
-function mapSleeperPositionToLocal(sleeperPosition: string): string {
-  const positionMap: Record<string, string> = {
-    QB: 'QB',
-    RB: 'RB',
-    WR: 'WR',
-    TE: 'TE',
-    K: 'K',
-    DEF: 'DL', // Mapeamento aproximado
-    DL: 'DL',
-    LB: 'LB',
-    DB: 'DB',
-    CB: 'DB',
-    S: 'DB',
+function mapSleeperPositionToLocal(sleeperPosition: string): PlayerPosition {
+  const positionMap: Record<string, PlayerPosition> = {
+    QB: PlayerPosition.QB,
+    RB: PlayerPosition.RB,
+    WR: PlayerPosition.WR,
+    TE: PlayerPosition.TE,
+    K: PlayerPosition.K,
+    DEF: PlayerPosition.DL, // Mapeamento aproximado
+    DL: PlayerPosition.DL,
+    LB: PlayerPosition.LB,
+    DB: PlayerPosition.DB,
+    CB: PlayerPosition.DB,
+    S: PlayerPosition.DB,
   };
 
-  return positionMap[sleeperPosition] || sleeperPosition;
+  return positionMap[sleeperPosition] || PlayerPosition.DB; // Valor padrão para posições desconhecidas
 }
 
 // ============================================================================
@@ -487,5 +498,60 @@ export async function validateSleeperLeagueId(leagueId: string): Promise<boolean
     return true;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Sincroniza uma liga existente com dados atualizados da Sleeper API
+ *
+ * @param league Liga existente no sistema local
+ * @returns Dados atualizados da liga, times e jogadores
+ */
+export async function syncLeagueWithSleeper(league: League) {
+  try {
+    // Verificar se a liga tem ID do Sleeper
+    if (!league.sleeperLeagueId) {
+      throw new Error('Esta liga não possui integração com o Sleeper');
+    }
+
+    // Buscar dados atualizados da liga
+    const [sleeperLeague, sleeperRosters, sleeperUsers, sleeperPlayers] = await Promise.all([
+      fetchSleeperLeague(league.sleeperLeagueId),
+      fetchSleeperRosters(league.sleeperLeagueId),
+      fetchSleeperUsers(league.sleeperLeagueId),
+      fetchSleeperPlayers(),
+    ]);
+
+    // Transformar dados para o modelo local
+    const updatedLeagueData = transformSleeperLeagueToLocal(sleeperLeague, league.commissionerId);
+    const updatedTeams = transformSleeperRostersToTeams(sleeperRosters, sleeperUsers, league.id);
+
+    // Coletar todos os jogadores dos rosters
+    const allPlayerIds = sleeperRosters.flatMap(roster => roster.players || []);
+    const updatedPlayers = transformSleeperPlayersToLocal(sleeperPlayers, allPlayerIds);
+
+    return {
+      league: {
+        ...league,
+        name: updatedLeagueData.name,
+        season: updatedLeagueData.season,
+        totalTeams: updatedLeagueData.totalTeams,
+        status: updatedLeagueData.status,
+      },
+      teams: updatedTeams,
+      players: updatedPlayers,
+      sleeperData: {
+        league: sleeperLeague,
+        rosters: sleeperRosters,
+        users: sleeperUsers,
+      },
+    };
+  } catch (error) {
+    console.error('Erro ao sincronizar liga com Sleeper:', error);
+    throw new Error(
+      error instanceof Error
+        ? `Falha na sincronização: ${error.message}`
+        : 'Erro desconhecido durante a sincronização',
+    );
   }
 }

@@ -37,7 +37,7 @@ export interface ImportResult {
  */
 export default function SettingsPage() {
   const { state, addLeague, setCurrentLeague } = useAppContext();
-  const { user, currentLeague } = state;
+  const { currentLeague } = state;
   const { isCommissioner } = useAuth();
 
   // Estados para os formulários
@@ -61,11 +61,13 @@ export default function SettingsPage() {
         message: 'Por favor, insira um ID de liga válido',
         type: 'error',
       });
+      setImportMessage('Por favor, insira um ID de liga válido');
       return;
     }
 
     setIsImporting(true);
     setImportProgress({ step: 'validating', message: 'Iniciando importação...', progress: 0 });
+    setImportMessage('');
 
     try {
       // Primeiro, validar o ID da liga
@@ -75,18 +77,22 @@ export default function SettingsPage() {
       const validateData = await validateResponse.json();
 
       if (!validateResponse.ok) {
+        const errorMsg = validateData.error || 'Erro ao validar ID da liga';
         addToast({
-          message: validateData.error || 'Erro ao validar ID da liga',
+          message: errorMsg,
           type: 'error',
         });
+        setImportMessage(errorMsg);
         return;
       }
 
       if (validateData.exists) {
+        const warningMsg = 'Esta liga já foi importada anteriormente';
         addToast({
-          message: 'Esta liga já foi importada anteriormente',
+          message: warningMsg,
           type: 'warning',
         });
+        setImportMessage(warningMsg);
         return;
       }
 
@@ -104,10 +110,12 @@ export default function SettingsPage() {
       const importData: ImportResult = await importResponse.json();
 
       if (!importResponse.ok) {
+        const errorMsg = importData.message || 'Erro ao importar liga';
         addToast({
-          message: importData.message || 'Erro ao importar liga',
+          message: errorMsg,
           type: 'error',
         });
+        setImportMessage(errorMsg);
         return;
       }
 
@@ -115,23 +123,29 @@ export default function SettingsPage() {
         // Atualizar o contexto da aplicação
         addLeague(importData.league);
         setCurrentLeague(importData.league);
+        const successMsg = `Liga "${importData.league.name}" importada com sucesso!`;
         addToast({
-          message: `Liga "${importData.league.name}" importada com sucesso!`,
+          message: successMsg,
           type: 'success',
         });
+        setImportMessage(successMsg);
         setLeagueId('');
       } else {
+        const errorMsg = importData.message;
         addToast({
-          message: importData.message,
+          message: errorMsg,
           type: 'error',
         });
+        setImportMessage(errorMsg);
       }
     } catch (error) {
       console.error('Erro ao importar liga:', error);
+      const errorMsg = 'Erro inesperado ao importar liga';
       addToast({
-        message: 'Erro inesperado ao importar liga',
+        message: errorMsg,
         type: 'error',
       });
+      setImportMessage(errorMsg);
     } finally {
       setIsImporting(false);
       setImportProgress(null);
@@ -157,7 +171,8 @@ export default function SettingsPage() {
 
       // Simular sucesso
       setSaveMessage('Configuração salva com sucesso!');
-    } catch (error) {
+    } catch {
+      // Removendo variável 'error' não utilizada
       setSaveMessage('Erro ao salvar configuração. Tente novamente.');
     } finally {
       setIsSaving(false);

@@ -76,7 +76,20 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
   }
 
   // Componente customizado para tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface TooltipProps {
+    active?: boolean;
+    payload?: Array<{
+      payload: {
+        totalSalaries: number;
+        deadMoney: number;
+        totalCap: number;
+        availableCap: number;
+      };
+    }>;
+    label?: string;
+  }
+
+  const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -88,7 +101,7 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
               <p className="text-red-600">Dead Money: {formatCurrency(data.deadMoney)}</p>
             )}
             <p className="text-gray-900 font-medium">
-              Total Comprometido: {formatCurrency(data.totalCommitted)}
+              Total Comprometido: {formatCurrency(data.totalSalaries + data.deadMoney)}
             </p>
             <p
               className={`font-medium ${
@@ -97,20 +110,19 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
             >
               Cap Disponível: {formatCurrency(data.availableCap)}
             </p>
-            <p className="text-gray-600">Uso do Cap: {data.capUsagePercentage}%</p>
-            <p className="text-gray-600">Contratos Ativos: {data.contractsCount}</p>
+            <p className="text-gray-600">
+              Uso do Cap:{' '}
+              {(((data.totalSalaries + data.deadMoney) / data.totalCap) * 100).toFixed(1)}%
+            </p>
+            <p className="text-gray-600">
+              Contratos Ativos: {players.filter(p => p.contract.yearsRemaining > 0).length}
+            </p>
           </div>
         </div>
       );
     }
     return null;
   };
-
-  // Encontrar o valor máximo para ajustar a escala
-  const maxValue = Math.max(
-    salaryCap,
-    ...projectionData.map(d => Math.max(d.totalCommitted, salaryCap)),
-  );
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

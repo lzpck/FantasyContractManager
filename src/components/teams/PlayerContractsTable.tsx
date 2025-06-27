@@ -1,6 +1,6 @@
 'use client';
 
-import { PlayerWithContract, PlayerPosition, ContractStatus } from '@/types';
+import { PlayerWithContract, ContractStatus, Contract } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
 import {
   ChevronUpIcon,
@@ -50,7 +50,7 @@ export function PlayerContractsTable({
   onPlayerAction,
 }: PlayerContractsTableProps) {
   // Função para calcular dead money estimado
-  const calculateDeadMoney = (contract: any) => {
+  const calculateDeadMoney = (contract: Contract) => {
     const remainingSalary = contract.currentSalary * contract.yearsRemaining;
     return remainingSalary * 0.25; // 25% do salário restante
   };
@@ -80,12 +80,12 @@ export function PlayerContractsTable({
   };
 
   // Função para verificar se jogador é elegível para extensão
-  const isEligibleForExtension = (contract: any) => {
+  const isEligibleForExtension = (contract: Contract) => {
     return contract.yearsRemaining === 1 && !contract.hasBeenExtended;
   };
 
   // Função para verificar se jogador é elegível para franchise tag
-  const isEligibleForTag = (contract: any) => {
+  const isEligibleForTag = (contract: Contract) => {
     return contract.yearsRemaining === 1 && !contract.hasBeenTagged;
   };
 

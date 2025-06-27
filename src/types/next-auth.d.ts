@@ -1,6 +1,4 @@
 import { UserRole } from '@/types/database';
-import NextAuth from 'next-auth';
-
 /**
  * Extensão dos tipos do NextAuth para incluir role do usuário
  */

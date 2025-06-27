@@ -1,22 +1,17 @@
 'use client';
 
 import { League } from '@/types';
-import {
-  ArrowLeftIcon,
-  CalendarIcon,
-  CurrencyDollarIcon,
-  UsersIcon,
-} from '@heroicons/react/24/outline';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { formatCurrency, getStatusColor, getStatusText } from '@/utils/formatUtils';
 
 interface LeagueHeaderProps {
   league: League;
-  totalTeams: number;
-  onSync: () => void;
   onBack: () => void;
+  totalTeams?: number;
+  onSync?: () => Promise<void>;
 }
 
-export default function LeagueHeader({ league, totalTeams, onSync, onBack }: LeagueHeaderProps) {
+export default function LeagueHeader({ league, onBack, totalTeams, onSync }: LeagueHeaderProps) {
   return (
     <div className="mb-8">
       {/* Botão voltar e título */}
@@ -54,7 +49,9 @@ export default function LeagueHeader({ league, totalTeams, onSync, onBack }: Lea
               <div className="text-2xl mr-3">👥</div>
               <div>
                 <p className="text-sm text-gray-600">Total de Times</p>
-                <p className="text-xl font-semibold text-gray-900">{league.totalTeams}</p>
+                <p className="text-xl font-semibold text-gray-900">
+                  {totalTeams ?? league.totalTeams}
+                </p>
               </div>
             </div>
           </div>
@@ -122,11 +119,21 @@ export default function LeagueHeader({ league, totalTeams, onSync, onBack }: Lea
         {/* ID da liga no Sleeper (se disponível) */}
         {league.sleeperLeagueId && (
           <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="flex items-center text-sm text-gray-600">
-              <span>ID Sleeper:</span>
-              <code className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs font-mono">
-                {league.sleeperLeagueId}
-              </code>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center text-sm text-gray-600">
+                <span>ID Sleeper:</span>
+                <code className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs font-mono">
+                  {league.sleeperLeagueId}
+                </code>
+              </div>
+              {onSync && (
+                <button
+                  onClick={onSync}
+                  className="text-sm bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-md transition-colors"
+                >
+                  Sincronizar com Sleeper
+                </button>
+              )}
             </div>
           </div>
         )}
