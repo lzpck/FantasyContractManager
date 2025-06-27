@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@/types/database';
 
 /**
  * API para registro de novos usuários

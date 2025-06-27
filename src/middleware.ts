@@ -1,6 +1,6 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@/types/database';
 
 /**
  * Middleware para proteger rotas baseado em autenticação e permissões
@@ -11,7 +11,7 @@ export default withAuth(
     const { pathname } = req.nextUrl;
 
     // Rotas que requerem autenticação de comissário
-    const commissionerRoutes = ['/admin', '/settings', '/leagues/import'];
+    const commissionerRoutes = ['/admin', '/settings', '/leagues/import', '/api/leagues/import'];
 
     // Rotas que requerem pelo menos manager ou comissário
     const managerRoutes = ['/dashboard', '/leagues', '/teams'];

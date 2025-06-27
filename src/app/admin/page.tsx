@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@/types/database';
 import {
   PencilIcon,
   TrashIcon,

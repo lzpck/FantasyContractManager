@@ -2,6 +2,29 @@
 
 import { useState } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/components/ui/Toast';
+import { League } from '@/types';
+
+// ============================================================================
+// TIPOS E INTERFACES
+// ============================================================================
+
+export interface ImportProgress {
+  step: 'validating' | 'fetching' | 'transforming' | 'saving' | 'complete';
+  message: string;
+  progress: number; // 0-100
+}
+
+export interface ImportResult {
+  success: boolean;
+  league?: League;
+  message: string;
+  details?: {
+    teamsImported: number;
+    playersImported: number;
+  };
+}
 
 /**
  * Página de configurações do sistema
@@ -13,8 +36,9 @@ import { useAppContext } from '@/contexts/AppContext';
  * Usuários não-comissários podem apenas visualizar as configurações atuais.
  */
 export default function SettingsPage() {
-  const { state } = useAppContext();
+  const { state, addLeague, setCurrentLeague } = useAppContext();
   const { user, currentLeague } = state;
+  const { isCommissioner } = useAuth();
 
   // Estados para os formulários
   const [leagueId, setLeagueId] = useState('');
@@ -25,34 +49,92 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [importMessage, setImportMessage] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
-
-  // Verificar se o usuário é comissário
-  const isCommissioner = user?.isCommissioner || false;
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
+  const { addToast, ToastContainer } = useToast();
 
   /**
    * Função para importar liga do Sleeper
    */
   const handleImportLeague = async () => {
     if (!leagueId.trim()) {
-      setImportMessage('Por favor, informe o ID da liga.');
+      addToast({
+        message: 'Por favor, insira um ID de liga válido',
+        type: 'error',
+      });
       return;
     }
 
     setIsImporting(true);
-    setImportMessage('');
+    setImportProgress({ step: 'validating', message: 'Iniciando importação...', progress: 0 });
 
     try {
-      // TODO: Implementar integração real com Sleeper API
-      // Por enquanto, simular o processo
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Primeiro, validar o ID da liga
+      const validateResponse = await fetch(
+        `/api/leagues/import?leagueId=${encodeURIComponent(leagueId.trim())}`,
+      );
+      const validateData = await validateResponse.json();
 
-      // Simular sucesso
-      setImportMessage('Liga importada com sucesso!');
-      setLeagueId('');
+      if (!validateResponse.ok) {
+        addToast({
+          message: validateData.error || 'Erro ao validar ID da liga',
+          type: 'error',
+        });
+        return;
+      }
+
+      if (validateData.exists) {
+        addToast({
+          message: 'Esta liga já foi importada anteriormente',
+          type: 'warning',
+        });
+        return;
+      }
+
+      // Iniciar a importação
+      setImportProgress({ step: 'fetching', message: 'Buscando dados da liga...', progress: 25 });
+
+      const importResponse = await fetch('/api/leagues/import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ leagueId: leagueId.trim() }),
+      });
+
+      const importData: ImportResult = await importResponse.json();
+
+      if (!importResponse.ok) {
+        addToast({
+          message: importData.message || 'Erro ao importar liga',
+          type: 'error',
+        });
+        return;
+      }
+
+      if (importData.success && importData.league) {
+        // Atualizar o contexto da aplicação
+        addLeague(importData.league);
+        setCurrentLeague(importData.league);
+        addToast({
+          message: `Liga "${importData.league.name}" importada com sucesso!`,
+          type: 'success',
+        });
+        setLeagueId('');
+      } else {
+        addToast({
+          message: importData.message,
+          type: 'error',
+        });
+      }
     } catch (error) {
-      setImportMessage('Erro ao importar liga. Verifique o ID e tente novamente.');
+      console.error('Erro ao importar liga:', error);
+      addToast({
+        message: 'Erro inesperado ao importar liga',
+        type: 'error',
+      });
     } finally {
       setIsImporting(false);
+      setImportProgress(null);
     }
   };
 
@@ -140,6 +222,22 @@ export default function SettingsPage() {
                     />
                   </div>
                 </div>
+
+                {/* Barra de progresso da importação */}
+                {importProgress && (
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                      <span>{importProgress.message}</span>
+                      <span>{importProgress.progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${importProgress.progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex items-center space-x-4">
                   <button
@@ -350,6 +448,9 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Container de Toasts */}
+      <ToastContainer />
     </div>
   );
 }

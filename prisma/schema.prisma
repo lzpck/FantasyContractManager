@@ -152,6 +152,13 @@ model Team {
   id        String   @id @default(cuid())
   name      String
   
+  // Integração Sleeper
+  sleeperTeamId     String?
+  
+  // Salary Cap
+  currentSalaryCap  Float   @default(0)
+  currentDeadMoney  Float   @default(0)
+  
   // Relacionamentos
   leagueId  String
   league    League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
@@ -165,4 +172,27 @@ model Team {
   
   @@unique([leagueId, ownerId])
   @@map("teams")
+}
+
+/**
+ * Modelo de jogador
+ */
+model Player {
+  id                String   @id @default(cuid())
+  name              String
+  position          String
+  team              String   // Time da NFL
+  age               Int?
+  
+  // Integração Sleeper
+  sleeperPlayerId   String   @unique
+  
+  // Status
+  isActive          Boolean  @default(true)
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("players")
 }

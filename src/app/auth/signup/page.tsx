@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@/types/database';
 
 /**
  * Página de cadastro de usuários

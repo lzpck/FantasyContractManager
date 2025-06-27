@@ -1,0 +1,58 @@
+// ============================================================================
+// TIPOS DE BANCO DE DADOS
+// ============================================================================
+// Este arquivo contém tipos extraídos do Prisma para uso no frontend,
+// evitando importações diretas do Prisma Client no lado do cliente.
+
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  COMMISSIONER = 'COMMISSIONER',
+  USER = 'USER',
+}
+
+export interface User {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  emailVerified?: Date | null;
+  image?: string | null;
+  role: UserRole;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface League {
+  id: string;
+  name: string;
+  sleeperLeagueId: string;
+  season: number;
+  salaryCap: number;
+  annualIncreasePercentage: number;
+  minimumSalary: number;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  sleeperTeamId?: string | null;
+  currentSalaryCap?: number | null;
+  currentDeadMoney?: number | null;
+  leagueId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Player {
+  id: string;
+  name: string;
+  position: string;
+  team?: string | null;
+  age?: number | null;
+  sleeperPlayerId: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
