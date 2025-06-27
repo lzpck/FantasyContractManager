@@ -30,7 +30,7 @@ interface User {
  * Página administrativa para gerenciamento de usuários
  */
 export default function AdminPage() {
-  const { isCommissioner } = useAuth();
+  const { canManageUsers } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -54,10 +54,10 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (isCommissioner) {
+    if (canManageUsers) {
       fetchUsers();
     }
-  }, [isCommissioner]);
+  }, [canManageUsers]);
 
   // Atualizar usuário
   const handleUpdateUser = async (userId: string, updates: Partial<User>) => {
@@ -131,10 +131,12 @@ export default function AdminPage() {
     }
   };
 
-  if (!isCommissioner) {
+  if (!canManageUsers) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600">Acesso negado. Apenas comissários podem acessar esta página.</p>
+        <p className="text-red-600">
+          Acesso negado. Apenas administradores e comissários podem acessar esta página.
+        </p>
       </div>
     );
   }
