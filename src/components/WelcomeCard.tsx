@@ -1,6 +1,7 @@
 'use client';
 
 import { useAppContext } from '@/contexts/AppContext';
+import { useAuth } from '@/hooks/useAuth';
 import { LeagueStatus } from '@/types';
 
 /**
@@ -8,19 +9,8 @@ import { LeagueStatus } from '@/types';
  * Exibe informações do usuário e das ligas disponíveis
  */
 export function WelcomeCard() {
-  const { state, setUser, addLeague } = useAppContext();
-
-  // Função para simular login de usuário
-  const handleMockLogin = () => {
-    setUser({
-      id: '1',
-      name: 'João Silva',
-      email: 'joao@example.com',
-      avatar: undefined,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-  };
+  const { state, addLeague } = useAppContext();
+  const { user: authUser, isAuthenticated } = useAuth();
 
   // Função para adicionar uma liga de exemplo
   const handleAddMockLeague = () => {
@@ -61,13 +51,16 @@ export function WelcomeCard() {
           </h2>
 
           <div className="mt-4">
-            {state.user ? (
+            {isAuthenticated && authUser ? (
               <div className="space-y-2">
                 <p className="text-gray-600">
-                  <strong>Usuário:</strong> {state.user.name}
+                  <strong>Usuário:</strong> {authUser.name}
                 </p>
                 <p className="text-gray-600">
-                  <strong>Email:</strong> {state.user.email}
+                  <strong>Email:</strong> {authUser.email}
+                </p>
+                <p className="text-gray-600">
+                  <strong>Perfil:</strong> {authUser.role}
                 </p>
               </div>
             ) : (
@@ -92,16 +85,7 @@ export function WelcomeCard() {
             )}
           </div>
 
-          <div className="mt-6 space-x-2">
-            {!state.user && (
-              <button
-                onClick={handleMockLogin}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
-              >
-                Login Simulado
-              </button>
-            )}
-
+          <div className="mt-6">
             <button
               onClick={handleAddMockLeague}
               className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm"

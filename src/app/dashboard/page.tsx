@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
+import { useAuth } from '@/hooks/useAuth';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { createMockLeagueWithTeams } from '@/types/mocks';
 import { SummaryCard } from '@/components/dashboard/SummaryCard';
 import { SalaryCapChart } from '@/components/dashboard/SalaryCapChart';
@@ -9,23 +11,27 @@ import { LeaguesList } from '@/components/dashboard/LeaguesList';
 import { Sidebar } from '@/components/layout/Sidebar';
 
 /**
- * Página principal do Dashboard
+ * Conteúdo principal do Dashboard
  *
  * Exibe uma visão geral das ligas, contratos, salary cap e próximos vencimentos.
  * Utiliza dados mock para validar estrutura, layout e interação.
  */
-export default function DashboardPage() {
+function DashboardContent() {
   const { state, setLeagues, setUser } = useAppContext();
+  const { user: authUser, isAuthenticated } = useAuth();
 
   // Inicializar dados mock na primeira renderização
   useEffect(() => {
-    // Simular usuário logado
-    if (!state.user) {
+    // Usar dados do usuário autenticado
+    if (isAuthenticated && authUser && !state.user) {
       setUser({
-        id: 'user-1',
-        name: 'João Silva',
-        email: 'joao@example.com',
-        avatar: undefined,
+        id: authUser.id,
+        name: authUser.name || 'Usuário',
+        email: authUser.email || '',
+        avatar: authUser.image,
+        role: authUser.role,
+        isActive: true,
+        isCommissioner: authUser.role === 'COMMISSIONER',
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -43,7 +49,7 @@ export default function DashboardPage() {
 
       setLeagues([mockData1.league, mockData2.league]);
     }
-  }, [state.user, state.leagues.length, setUser, setLeagues]);
+  }, [isAuthenticated, authUser, state.user, state.leagues.length, setUser, setLeagues]);
 
   // Calcular estatísticas para os cards de resumo
   const totalLeagues = state.leagues.length;
@@ -121,5 +127,16 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Página principal do Dashboard com proteção de autenticação
+ */
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   );
 }

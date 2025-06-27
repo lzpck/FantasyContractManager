@@ -94,6 +94,18 @@ export enum CapMovementType {
 // ============================================================================
 
 /**
+ * Tipos de perfil de usuário
+ */
+export enum UserRole {
+  /** Comissário - acesso total ao sistema */
+  COMMISSIONER = 'COMMISSIONER',
+  /** Manager - gerencia seus times */
+  MANAGER = 'MANAGER',
+  /** Visualizador - apenas leitura */
+  VIEWER = 'VIEWER',
+}
+
+/**
  * Informações básicas de um usuário/proprietário de time
  */
 export interface User {
@@ -105,7 +117,11 @@ export interface User {
   email: string;
   /** URL do avatar (opcional) */
   avatar?: string;
-  /** Se o usuário é comissário da liga atual */
+  /** Perfil/role do usuário */
+  role: UserRole;
+  /** Se o usuário está ativo */
+  isActive: boolean;
+  /** Se o usuário é comissário da liga atual (deprecated - usar role) */
   isCommissioner?: boolean;
   /** Data de criação da conta */
   createdAt: Date;

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import { SessionProvider } from 'next-auth/react';
 import { User, League } from '../types';
 
 export interface AppState {
@@ -111,7 +112,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     clearError,
   };
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <SessionProvider>
+      <AppContext.Provider value={value}>{children}</AppContext.Provider>
+    </SessionProvider>
+  );
 }
 
 /**

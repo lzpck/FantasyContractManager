@@ -168,10 +168,11 @@ export const DEFAULT_ROOKIE_SALARY_TABLE: RookieSalaryTable[] = [
  */
 export function createMockUser(overrides: Partial<User> = {}): User {
   const now = new Date();
+  const randomId = Math.random().toString(36).substr(2, 9);
   return {
-    id: `user-${Math.random().toString(36).substr(2, 9)}`,
-    name: 'João Silva',
-    email: 'joao@example.com',
+    id: `user-${randomId}`,
+    name: `Usuário ${randomId.toUpperCase()}`,
+    email: `user${randomId}@example.com`,
     avatar: undefined,
     isCommissioner: false,
     createdAt: now,
@@ -184,9 +185,10 @@ export function createMockUser(overrides: Partial<User> = {}): User {
  * Gera um usuário comissário mock para testes
  */
 export function createMockCommissioner(overrides: Partial<User> = {}): User {
+  const randomId = Math.random().toString(36).substr(2, 9);
   return createMockUser({
-    name: 'Comissário da Liga',
-    email: 'commissioner@example.com',
+    name: `Comissário ${randomId.toUpperCase()}`,
+    email: `commissioner${randomId}@example.com`,
     isCommissioner: true,
     ...overrides,
   });
