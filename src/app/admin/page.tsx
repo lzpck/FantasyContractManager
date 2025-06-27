@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types/database';
+import { CreateUserForm } from '@/components/admin/CreateUserForm';
 import {
   PencilIcon,
   TrashIcon,
@@ -10,6 +11,7 @@ import {
   ShieldCheckIcon,
   EyeIcon,
   UserIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 interface User {
@@ -36,6 +38,7 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Carregar usuários
   const fetchUsers = async () => {
@@ -163,19 +166,40 @@ export default function AdminPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <a
-            href="/auth/signup"
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
             className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
           >
-            <UserPlusIcon className="h-4 w-4 mr-2" />
-            Novo Usuário
-          </a>
+            {showCreateForm ? (
+              <>
+                <XMarkIcon className="h-4 w-4 mr-2" />
+                Cancelar
+              </>
+            ) : (
+              <>
+                <UserPlusIcon className="h-4 w-4 mr-2" />
+                Novo Usuário
+              </>
+            )}
+          </button>
         </div>
       </div>
 
       {error && (
         <div className="mt-4 rounded-md bg-red-50 p-4">
           <div className="text-sm text-red-700">{error}</div>
+        </div>
+      )}
+
+      {showCreateForm && (
+        <div className="mt-6">
+          <CreateUserForm
+            onSuccess={() => {
+              setShowCreateForm(false);
+              fetchUsers(); // Recarregar lista de usuários
+            }}
+            onCancel={() => setShowCreateForm(false)}
+          />
         </div>
       )}
 
