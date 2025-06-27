@@ -11,7 +11,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== UserRole.COMMISSIONER) {
+    if (
+      !session ||
+      (session.user.role !== UserRole.COMMISSIONER && session.user.role !== UserRole.ADMIN)
+    ) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
@@ -85,7 +88,10 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== UserRole.COMMISSIONER) {
+    if (
+      !session ||
+      (session.user.role !== UserRole.COMMISSIONER && session.user.role !== UserRole.ADMIN)
+    ) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
