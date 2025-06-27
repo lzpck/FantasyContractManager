@@ -73,6 +73,8 @@ O sistema deve refletir fielmente as regras da liga em toda a lógica de negóci
 - Seguir arquitetura modular, separação de responsabilidades (camadas).
 - **Context API para estado global.**
 - **Commits atômicos e descritivos**, padrão GitFlow (main/dev/feature branches).
+- **Nomenclatura de Branches**: Sempre criar branches seguindo o padrão `tipo/descricao-da-tarefa` (ex: `feature/implementa-autenticacao`, `bugfix/corrige-erro-login`, `refactor/otimiza-calculo-cap`).
+- **Fluxo de Trabalho**: Antes de iniciar qualquer modificação no código, deve-se criar uma nova branch seguindo o padrão estabelecido, garantindo que o trabalho seja realizado de forma isolada da branch principal.
 - **Documentação detalhada no README.md.**
 - **Testes unitários e integração** para funções críticas.
 - Tratar erros e exceções (principalmente nas integrações externas).
