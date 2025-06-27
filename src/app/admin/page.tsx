@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types/database';
+import { CreateUserForm } from '@/components/admin/CreateUserForm';
 import {
   PencilIcon,
   TrashIcon,
@@ -10,6 +11,7 @@ import {
   ShieldCheckIcon,
   EyeIcon,
   UserIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 interface User {
@@ -30,12 +32,13 @@ interface User {
  * Página administrativa para gerenciamento de usuários
  */
 export default function AdminPage() {
-  const { isCommissioner } = useAuth();
+  const { canManageUsers } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Carregar usuários
   const fetchUsers = async () => {
@@ -54,10 +57,10 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (isCommissioner) {
+    if (canManageUsers) {
       fetchUsers();
     }
-  }, [isCommissioner]);
+  }, [canManageUsers]);
 
   // Atualizar usuário
   const handleUpdateUser = async (userId: string, updates: Partial<User>) => {
@@ -110,10 +113,12 @@ export default function AdminPage() {
   // Função para obter ícone do role
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
+      case UserRole.ADMIN:
+        return <ShieldCheckIcon className="h-5 w-5 text-blue-600" />;
       case UserRole.COMMISSIONER:
-        return <ShieldCheckIcon className="h-5 w-5 text-purple-600" />;
+        return <ShieldCheckIcon className="h-5 w-5 text-blue-500" />;
       case UserRole.USER:
-        return <UserIcon className="h-5 w-5 text-blue-600" />;
+        return <UserIcon className="h-5 w-5 text-gray-600" />;
       default:
         return <UserIcon className="h-5 w-5 text-gray-400" />;
     }
@@ -122,19 +127,23 @@ export default function AdminPage() {
   // Função para obter cor do badge do role
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
-      case UserRole.COMMISSIONER:
-        return 'bg-purple-100 text-purple-800';
-      case UserRole.USER:
+      case UserRole.ADMIN:
         return 'bg-blue-100 text-blue-800';
+      case UserRole.COMMISSIONER:
+        return 'bg-blue-50 text-blue-700';
+      case UserRole.USER:
+        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  if (!isCommissioner) {
+  if (!canManageUsers) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600">Acesso negado. Apenas comissários podem acessar esta página.</p>
+        <p className="text-red-600">
+          Acesso negado. Apenas administradores e comissários podem acessar esta página.
+        </p>
       </div>
     );
   }
@@ -157,19 +166,40 @@ export default function AdminPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <a
-            href="/auth/signup"
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
             className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
           >
-            <UserPlusIcon className="h-4 w-4 mr-2" />
-            Novo Usuário
-          </a>
+            {showCreateForm ? (
+              <>
+                <XMarkIcon className="h-4 w-4 mr-2" />
+                Cancelar
+              </>
+            ) : (
+              <>
+                <UserPlusIcon className="h-4 w-4 mr-2" />
+                Novo Usuário
+              </>
+            )}
+          </button>
         </div>
       </div>
 
       {error && (
         <div className="mt-4 rounded-md bg-red-50 p-4">
           <div className="text-sm text-red-700">{error}</div>
+        </div>
+      )}
+
+      {showCreateForm && (
+        <div className="mt-6">
+          <CreateUserForm
+            onSuccess={() => {
+              setShowCreateForm(false);
+              fetchUsers(); // Recarregar lista de usuários
+            }}
+            onCancel={() => setShowCreateForm(false)}
+          />
         </div>
       )}
 
@@ -224,6 +254,7 @@ export default function AdminPage() {
                               user.role,
                             )}`}
                           >
+                            {user.role === UserRole.ADMIN && 'Administrador'}
                             {user.role === UserRole.COMMISSIONER && 'Comissário'}
                             {user.role === UserRole.USER && 'Usuário'}
                           </span>
@@ -320,6 +351,7 @@ export default function AdminPage() {
                   >
                     <option value={UserRole.USER}>Usuário</option>
                     <option value={UserRole.COMMISSIONER}>Comissário</option>
+                    <option value={UserRole.ADMIN}>Administrador</option>
                   </select>
                 </div>
                 <div>
