@@ -16,9 +16,18 @@ async function main() {
     const demoUserEmail = 'demo@demo.com';
     const demoUserPassword = 'demo';
 
+    // Criar usuário administrador
+    const adminUserEmail = 'admin@admin.com';
+    const adminUserPassword = 'admin';
+
     // Verificar se o usuário demo já existe
     const existingDemoUser = await prisma.user.findUnique({
       where: { email: demoUserEmail },
+    });
+
+    // Verificar se o usuário admin já existe
+    const existingAdminUser = await prisma.user.findUnique({
+      where: { email: adminUserEmail },
     });
 
     if (existingDemoUser) {
@@ -44,6 +53,30 @@ async function main() {
         email: demoUser.email,
         name: demoUser.name,
         role: demoUser.role,
+      });
+    }
+
+    if (existingAdminUser) {
+      console.log('✅ Usuário administrador já existe:', adminUserEmail);
+    } else {
+      const hashedPassword = await bcrypt.hash(adminUserPassword, 12);
+
+      const adminUser = await prisma.user.create({
+        data: {
+          name: 'Administrador',
+          email: adminUserEmail,
+          password: hashedPassword,
+          role: 'ADMIN',
+          isActive: true,
+          emailVerified: new Date(),
+        },
+      });
+
+      console.log('✅ Usuário administrador criado:', {
+        id: adminUser.id,
+        email: adminUser.email,
+        name: adminUser.name,
+        role: adminUser.role,
       });
     }
 
