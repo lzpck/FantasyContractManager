@@ -97,12 +97,12 @@ export enum CapMovementType {
  * Tipos de perfil de usuário
  */
 export enum UserRole {
-  /** Comissário - acesso total ao sistema */
+  /** Administrador - acesso total ao sistema */
+  ADMIN = 'ADMIN',
+  /** Comissário - gerencia ligas */
   COMMISSIONER = 'COMMISSIONER',
-  /** Manager - gerencia seus times */
-  MANAGER = 'MANAGER',
-  /** Visualizador - apenas leitura */
-  VIEWER = 'VIEWER',
+  /** Usuário - gerencia seus times */
+  USER = 'USER',
 }
 
 /**
@@ -147,8 +147,20 @@ export interface League {
   status: LeagueStatus;
   /** ID da liga no Sleeper (integração) */
   sleeperLeagueId?: string;
+  /** ID do comissário da liga */
+  commissionerId: string;
+  /** Número máximo de Franchise Tags por temporada */
+  maxFranchiseTags: number;
+  /** Percentual de aumento anual dos contratos */
+  annualIncreasePercentage: number;
+  /** Valor mínimo para contratos não disputados */
+  minimumSalary: number;
+  /** Data de virada da temporada */
+  seasonTurnoverDate: string;
   /** Configurações específicas da liga */
   settings: LeagueSettings;
+  /** Times da liga */
+  teams?: Team[];
   /** Data de criação da liga */
   createdAt: Date;
   /** Data da última atualização */

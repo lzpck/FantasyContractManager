@@ -28,7 +28,7 @@ function DashboardContent() {
         id: authUser.id,
         name: authUser.name || 'Usuário',
         email: authUser.email || '',
-        avatar: authUser.image,
+        avatar: authUser.image || undefined,
         role: authUser.role,
         isActive: true,
         isCommissioner: authUser.role === 'COMMISSIONER',

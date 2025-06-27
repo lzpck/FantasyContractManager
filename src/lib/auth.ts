@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           image: user.image,
-          role: user.role,
+          role: user.role as any, // Conversão necessária entre enums Prisma e tipos customizados
         };
       },
     }),
@@ -72,7 +72,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
   },
 };
 

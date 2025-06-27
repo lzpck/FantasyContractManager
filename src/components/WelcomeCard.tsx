@@ -21,6 +21,11 @@ export function WelcomeCard() {
       salaryCap: 279000000, // $279 milhões
       totalTeams: 12,
       status: LeagueStatus.ACTIVE,
+      commissionerId: authUser?.id || `user-${Date.now()}`,
+      maxFranchiseTags: 1,
+      annualIncreasePercentage: 15,
+      minimumSalary: 1000000,
+      seasonTurnoverDate: '2024-04-01',
       settings: {
         maxFranchiseTags: 1,
         annualIncreasePercentage: 15,

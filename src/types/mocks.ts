@@ -225,6 +225,11 @@ export function createMockLeague(overrides: Partial<League> = {}): League {
     salaryCap: 279000000, // $279M
     totalTeams: 12,
     status: LeagueStatus.ACTIVE,
+    commissionerId: `user-${Math.random().toString(36).substr(2, 9)}`,
+    maxFranchiseTags: 1,
+    annualIncreasePercentage: 15,
+    minimumSalary: 1000000, // $1M
+    seasonTurnoverDate: '2024-04-01',
     settings: createDefaultLeagueSettings(),
     createdAt: now,
     updatedAt: now,
