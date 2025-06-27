@@ -110,10 +110,12 @@ export default function AdminPage() {
   // Função para obter ícone do role
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
+      case UserRole.ADMIN:
+        return <ShieldCheckIcon className="h-5 w-5 text-blue-600" />;
       case UserRole.COMMISSIONER:
-        return <ShieldCheckIcon className="h-5 w-5 text-purple-600" />;
+        return <ShieldCheckIcon className="h-5 w-5 text-blue-500" />;
       case UserRole.USER:
-        return <UserIcon className="h-5 w-5 text-blue-600" />;
+        return <UserIcon className="h-5 w-5 text-gray-600" />;
       default:
         return <UserIcon className="h-5 w-5 text-gray-400" />;
     }
@@ -122,10 +124,12 @@ export default function AdminPage() {
   // Função para obter cor do badge do role
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
-      case UserRole.COMMISSIONER:
-        return 'bg-purple-100 text-purple-800';
-      case UserRole.USER:
+      case UserRole.ADMIN:
         return 'bg-blue-100 text-blue-800';
+      case UserRole.COMMISSIONER:
+        return 'bg-blue-50 text-blue-700';
+      case UserRole.USER:
+        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -226,6 +230,7 @@ export default function AdminPage() {
                               user.role,
                             )}`}
                           >
+                            {user.role === UserRole.ADMIN && 'Administrador'}
                             {user.role === UserRole.COMMISSIONER && 'Comissário'}
                             {user.role === UserRole.USER && 'Usuário'}
                           </span>
@@ -322,6 +327,7 @@ export default function AdminPage() {
                   >
                     <option value={UserRole.USER}>Usuário</option>
                     <option value={UserRole.COMMISSIONER}>Comissário</option>
+                    <option value={UserRole.ADMIN}>Administrador</option>
                   </select>
                 </div>
                 <div>
