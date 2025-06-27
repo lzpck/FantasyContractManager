@@ -6,6 +6,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
+import { DateDisplay } from '@/components/ui/DateDisplay';
 
 interface SyncButtonProps {
   /** Função chamada ao iniciar sincronização */
@@ -58,12 +59,8 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
       if (diffInHours < 24) {
         return `${diffInHours}h atrás`;
       } else {
-        return date.toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
+        // Usa o componente DateDisplay para formatar a data
+        return <DateDisplay date={date} includeTime={true} size="sm" />;
       }
     }
   };

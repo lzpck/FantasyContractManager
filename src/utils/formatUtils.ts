@@ -1,7 +1,104 @@
 /**
- * Utilitários para formatação de valores monetários
+ * Utilitários para formatação de valores monetários e datas
  * Segue padrão pt-BR com separadores corretos e destaque para valores negativos
  */
+
+/**
+ * Formata uma data para o padrão brasileiro (dd/MM/yyyy hh:mm:ss)
+ * @param date - Data a ser formatada (Date ou string ISO)
+ * @param includeTime - Se deve incluir o horário na formatação
+ * @returns String formatada no padrão brasileiro
+ */
+export function formatDate(date: Date | string, includeTime: boolean = true): string {
+  if (!date) return '';
+
+  // Converte para objeto Date se for string
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Verifica se a data é válida
+  if (isNaN(dateObj.getTime())) return '';
+
+  // Formata a data no padrão brasileiro
+  if (includeTime) {
+    // Formata data e hora separadamente e combina para evitar a vírgula
+    const datePart = dateObj.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+
+    const timePart = dateObj.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+
+    return `${datePart} ${timePart}`;
+  } else {
+    // Apenas data
+    return dateObj.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+}
+
+/**
+ * Converte uma string de data no formato brasileiro (dd/MM/yyyy) para objeto Date
+ * @param dateString - String de data no formato brasileiro
+ * @returns Objeto Date ou null se inválido
+ */
+export function parseBrazilianDate(dateString: string): Date | null {
+  if (!dateString) return null;
+
+  // Verifica se a string está no formato esperado (dd/MM/yyyy ou dd/MM/yyyy hh:mm:ss)
+  const hasTime = dateString.includes(':');
+
+  // Verifica o formato básico da string usando regex
+  const dateRegex = hasTime
+    ? /^(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{1,2}):(\d{1,2})$/
+    : /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+
+  if (!dateRegex.test(dateString)) return null;
+
+  let day,
+    month,
+    year,
+    hours = 0,
+    minutes = 0,
+    seconds = 0;
+
+  if (hasTime) {
+    // Formato com hora (dd/MM/yyyy hh:mm:ss)
+    const [datePart, timePart] = dateString.split(' ');
+    [day, month, year] = datePart.split('/').map(Number);
+    [hours, minutes, seconds] = timePart.split(':').map(Number);
+  } else {
+    // Formato apenas data (dd/MM/yyyy)
+    [day, month, year] = dateString.split('/').map(Number);
+  }
+
+  // Validação básica de valores
+  if (month < 1 || month > 12) return null;
+  if (day < 1 || day > 31) return null;
+  if (year < 1000 || year > 9999) return null;
+
+  // Validação de dias por mês
+  const daysInMonth = new Date(year, month, 0).getDate();
+  if (day > daysInMonth) return null;
+
+  // Validação de horas, minutos e segundos
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59 || seconds < 0 || seconds > 59)
+    return null;
+
+  // Mês em JavaScript é 0-indexed (0-11)
+  const date = new Date(year, month - 1, day, hours, minutes, seconds);
+
+  // Verificação final se a data é válida
+  return isNaN(date.getTime()) ? null : date;
+}
 
 /**
  * Formata valores monetários de forma consistente
