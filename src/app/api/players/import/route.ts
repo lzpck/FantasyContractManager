@@ -23,27 +23,31 @@ export async function POST() {
     const allowed = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
     const players = transformSleeperPlayersToLocal(sleeperPlayers, allowed);
 
-    for (const p of players) {
-      await prisma.player.upsert({
-        where: { sleeperPlayerId: p.sleeperPlayerId },
-        update: {
-          name: p.name,
-          position: p.position,
-          fantasyPositions: p.fantasyPositions.join(','),
-          team: p.nflTeam,
-          age: p.age,
-          isActive: p.isActive,
-        },
-        create: {
-          name: p.name,
-          position: p.position,
-          fantasyPositions: p.fantasyPositions.join(','),
-          team: p.nflTeam,
-          age: p.age,
-          sleeperPlayerId: p.sleeperPlayerId,
-          isActive: p.isActive,
-        },
-      });
+    const batchSize = 100;
+    for (let i = 0; i < players.length; i += batchSize) {
+      const operations = players.slice(i, i + batchSize).map(p =>
+        prisma.player.upsert({
+          where: { sleeperPlayerId: p.sleeperPlayerId },
+          update: {
+            name: p.name,
+            position: p.position,
+            fantasyPositions: p.fantasyPositions.join(','),
+            team: p.nflTeam,
+            age: p.age,
+            isActive: p.isActive,
+          },
+          create: {
+            name: p.name,
+            position: p.position,
+            fantasyPositions: p.fantasyPositions.join(','),
+            team: p.nflTeam,
+            age: p.age,
+            sleeperPlayerId: p.sleeperPlayerId,
+            isActive: p.isActive,
+          },
+        }),
+      );
+      await prisma.$transaction(operations);
     }
 
     return NextResponse.json({ success: true, imported: players.length });

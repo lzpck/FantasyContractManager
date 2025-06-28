@@ -23,7 +23,10 @@ export function usePlayers() {
         const data = await response.json();
         const parsed: Player[] = (data.players || []).map((p: any) => ({
           ...p,
-          fantasyPositions: p.fantasyPositions.split(',').filter((s: string) => s),
+          nflTeam: p.nflTeam ?? p.team,
+          fantasyPositions: Array.isArray(p.fantasyPositions)
+            ? p.fantasyPositions
+            : p.fantasyPositions.split(',').filter((s: string) => s),
         }));
         setPlayers(parsed);
       }
