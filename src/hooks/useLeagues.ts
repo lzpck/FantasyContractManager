@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
+import { useAppContext } from '@/contexts/AppContext';
 import { League } from '@/types';
 import { getDemoLeagues } from '@/data/demoData';
 
@@ -11,6 +12,7 @@ import { getDemoLeagues } from '@/data/demoData';
  */
 export function useLeagues() {
   const { isDemoUser } = useAuth();
+  const { setLeagues: setGlobalLeagues } = useAppContext();
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +27,7 @@ export function useLeagues() {
           // Usuário demo: retorna dados fictícios
           const demoLeagues = getDemoLeagues();
           setLeagues(demoLeagues);
+          setGlobalLeagues(demoLeagues);
         } else {
           // Usuários reais: carrega dados da API
           const response = await fetch('/api/leagues');
@@ -35,6 +38,7 @@ export function useLeagues() {
 
           const data = await response.json();
           setLeagues(data.leagues || []);
+          setGlobalLeagues(data.leagues || []);
         }
       } catch (err) {
         console.error('Erro ao carregar ligas:', err);
@@ -53,6 +57,7 @@ export function useLeagues() {
       // Para usuário demo, apenas recarrega os dados fictícios
       const demoLeagues = getDemoLeagues();
       setLeagues(demoLeagues);
+      setGlobalLeagues(demoLeagues);
     } else {
       // Para usuários reais, recarrega da API
       // Implementar lógica de refresh da API aqui
