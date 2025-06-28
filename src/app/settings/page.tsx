@@ -181,12 +181,12 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
             Gerencie as configurações da liga e integrações do sistema.
           </p>
         </div>
@@ -210,9 +210,9 @@ export default function SettingsPage() {
 
         <div className="space-y-8">
           {/* Seção: Importação de Liga */}
-          <div className="bg-white shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+              <h2 className="text-xl font-semibold text-foreground flex items-center">
                 <span className="mr-2">🔗</span>
                 Importação de Liga
               </h2>
@@ -307,9 +307,9 @@ export default function SettingsPage() {
           </div>
 
           {/* Seção: Configuração de Aumento Anual */}
-          <div className="bg-white shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+              <h2 className="text-xl font-semibold text-foreground flex items-center">
                 <span className="mr-2">📈</span>
                 Aumento Anual dos Contratos
               </h2>
@@ -398,9 +398,9 @@ export default function SettingsPage() {
           </div>
 
           {/* Seção: Informações Gerais */}
-          <div className="bg-white shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+              <h2 className="text-xl font-semibold text-foreground flex items-center">
                 <span className="mr-2">ℹ️</span>
                 Configurações Atuais
               </h2>
