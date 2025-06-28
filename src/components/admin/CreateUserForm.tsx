@@ -91,7 +91,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
       <div className="mb-6">
         <h3 className="text-lg font-medium text-gray-900">Criar Novo Usuário</h3>
         <p className="mt-1 text-sm text-gray-600">
@@ -121,7 +121,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
             name="name"
             type="text"
             required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
             placeholder="Nome completo do usuário"
             value={formData.name}
             onChange={handleChange}
@@ -137,7 +137,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
             name="email"
             type="email"
             required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
             placeholder="email@exemplo.com"
             value={formData.email}
             onChange={handleChange}
@@ -151,7 +151,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
           <select
             id="role"
             name="role"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-gray-100"
             value={formData.role}
             onChange={handleChange}
           >
@@ -173,7 +173,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
             name="password"
             type={showPassword ? 'text' : 'password'}
             required
-            className="mt-1 block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900"
+            className="mt-1 block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
             placeholder="Mínimo 6 caracteres"
             value={formData.password}
             onChange={handleChange}
@@ -200,7 +200,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
             name="confirmPassword"
             type={showConfirmPassword ? 'text' : 'password'}
             required
-            className="mt-1 block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900"
+            className="mt-1 block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
             placeholder="Confirme a senha"
             value={formData.confirmPassword}
             onChange={handleChange}
@@ -223,7 +223,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Cancelar
             </button>
