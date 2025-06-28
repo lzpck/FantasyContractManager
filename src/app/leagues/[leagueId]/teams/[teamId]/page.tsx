@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAppContext } from '@/contexts/AppContext';
 import { Team, PlayerWithContract, League } from '@/types';
-import { createMockTeamFinancialSummary, createMockLeagueWithTeams } from '@/types/mocks';
+import { useTeam } from '@/hooks/useTeams';
+import { useLeague } from '@/hooks/useLeagues';
+import { useTeamRoster } from '@/hooks/useRoster';
 import TeamHeader from '@/components/teams/TeamHeader';
-import { PlayerContractsTable } from '@/components/teams/PlayerContractsTable';
+import { RosterTable } from '@/components/teams/RosterTable';
 import { CapProjectionChart } from '@/components/teams/CapProjectionChart';
 import PositionDistributionChart from '@/components/teams/PositionDistributionChart';
 import ContractActionsModal from '@/components/teams/ContractActionsModal';
@@ -21,7 +22,6 @@ import { Sidebar } from '@/components/layout/Sidebar';
 export default function TeamDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { state } = useAppContext();
   const leagueId = params.leagueId as string;
   const teamId = params.teamId as string;
 
@@ -29,121 +29,41 @@ export default function TeamDetailsPage() {
   const [team, setTeam] = useState<Team | null>(null);
   const [league, setLeague] = useState<League | null>(null);
   const [playersWithContracts, setPlayersWithContracts] = useState<PlayerWithContract[]>([]);
-  const [filteredPlayers, setFilteredPlayers] = useState<PlayerWithContract[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<'name' | 'position' | 'salary' | 'yearsRemaining'>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [filterText, setFilterText] = useState('');
-  const [filterPosition, setFilterPosition] = useState<string>('all');
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
   const [showActionsModal, setShowActionsModal] = useState(false);
 
-  // Carregar dados do time
+  const { team: fetchedTeam, loading: teamLoading } = useTeam(teamId);
+  const { league: fetchedLeague, loading: leagueLoading } = useLeague(leagueId);
+  const { roster, loading: rosterLoading } = useTeamRoster(leagueId, teamId);
+
+  // Definir time e liga quando carregados
   useEffect(() => {
-    const loadTeamData = () => {
-      setLoading(true);
+    if (!teamLoading) {
+      setTeam(fetchedTeam || null);
+    }
+  }, [fetchedTeam, teamLoading]);
 
-      // Buscar liga no contexto global
-      let foundLeague = state.leagues.find(l => l.id === leagueId);
-      let foundTeam: Team | null = null;
+  useEffect(() => {
+    if (!leagueLoading) {
+      setLeague(fetchedLeague || null);
+    }
+  }, [fetchedLeague, leagueLoading]);
 
-      if (!foundLeague) {
-        // Se não encontrar, gerar dados mock para demonstração
-        const mockData = createMockLeagueWithTeams(12);
-        mockData.league.id = leagueId;
-        mockData.league.name = 'Liga The Bad Place';
-        foundLeague = mockData.league;
+  // Definir jogadores quando roster carregado
+  useEffect(() => {
+    if (!rosterLoading) {
+      const players = [...roster.active, ...roster.reserve, ...roster.taxi];
+      setPlayersWithContracts(players);
+    }
+  }, [roster, rosterLoading]);
 
-        // Encontrar o time específico
-        foundTeam = mockData.teams.find(t => t.id === teamId) || mockData.teams[0];
-        foundTeam.id = teamId;
-
-        // Gerar jogadores para o time
-        const teamFinancialSummary = createMockTeamFinancialSummary(foundTeam, 20);
-        setPlayersWithContracts(teamFinancialSummary.playersWithContracts);
-      } else {
-        // Buscar time na liga encontrada
-        // Em produção, aqui faria uma busca no banco de dados
-        const mockData = createMockLeagueWithTeams(12);
-        foundTeam = mockData.teams.find(t => t.id === teamId) || mockData.teams[0];
-        foundTeam.id = teamId;
-        foundTeam.leagueId = leagueId;
-
-        const teamFinancialSummary = createMockTeamFinancialSummary(foundTeam, 20);
-        setPlayersWithContracts(teamFinancialSummary.playersWithContracts);
-      }
-
-      setLeague(foundLeague || null);
-      setTeam(foundTeam);
+  // Finalizar carregamento
+  useEffect(() => {
+    if (!teamLoading && !leagueLoading && !rosterLoading) {
       setLoading(false);
-    };
-
-    if (leagueId && teamId) {
-      loadTeamData();
     }
-  }, [leagueId, teamId, state.leagues]);
-
-  // Aplicar filtros e ordenação
-  useEffect(() => {
-    if (!playersWithContracts.length) {
-      setFilteredPlayers([]);
-      return;
-    }
-
-    let filtered = [...playersWithContracts];
-
-    // Aplicar filtro de texto
-    if (filterText) {
-      filtered = filtered.filter(
-        p =>
-          p.player.name.toLowerCase().includes(filterText.toLowerCase()) ||
-          p.player.nflTeam.toLowerCase().includes(filterText.toLowerCase()),
-      );
-    }
-
-    // Aplicar filtro de posição
-    if (filterPosition !== 'all') {
-      filtered = filtered.filter(p => p.player.position === filterPosition);
-    }
-
-    // Aplicar ordenação
-    filtered.sort((a, b) => {
-      let aValue: string | number;
-      let bValue: string | number;
-
-      switch (sortBy) {
-        case 'name':
-          aValue = a.player.name;
-          bValue = b.player.name;
-          break;
-        case 'position':
-          aValue = a.player.position;
-          bValue = b.player.position;
-          break;
-        case 'salary':
-          aValue = a.contract.currentSalary;
-          bValue = b.contract.currentSalary;
-          break;
-        case 'yearsRemaining':
-          aValue = a.contract.yearsRemaining;
-          bValue = b.contract.yearsRemaining;
-          break;
-        default:
-          aValue = a.player.name;
-          bValue = b.player.name;
-      }
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        const comparison = aValue.localeCompare(bValue);
-        return sortOrder === 'asc' ? comparison : -comparison;
-      } else {
-        const comparison = (aValue as number) - (bValue as number);
-        return sortOrder === 'asc' ? comparison : -comparison;
-      }
-    });
-
-    setFilteredPlayers(filtered);
-  }, [playersWithContracts, filterText, filterPosition, sortBy, sortOrder]);
+  }, [teamLoading, leagueLoading, rosterLoading]);
 
   // Handlers
   const handleBack = () => {
@@ -153,11 +73,6 @@ export default function TeamDetailsPage() {
   const handlePlayerAction = (player: PlayerWithContract) => {
     setSelectedPlayer(player);
     setShowActionsModal(true);
-  };
-
-  const handleAddPlayer = () => {
-    // Mock da adição de jogador
-    alert('Funcionalidade de adicionar jogador em desenvolvimento!');
   };
 
   // Estados de carregamento e erro
@@ -201,12 +116,7 @@ export default function TeamDetailsPage() {
       <div className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header do Time */}
-          <TeamHeader
-            team={team}
-            league={league}
-            players={playersWithContracts}
-            onAddPlayer={handleAddPlayer}
-          />
+          <TeamHeader team={team} league={league} players={playersWithContracts} />
 
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -215,22 +125,10 @@ export default function TeamDetailsPage() {
           </div>
 
           {/* Tabela de Jogadores */}
-          <PlayerContractsTable
-            players={filteredPlayers}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            filterText={filterText}
-            filterPosition={filterPosition}
-            onSortChange={field => {
-              if (sortBy === field) {
-                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-              } else {
-                setSortBy(field);
-                setSortOrder('asc');
-              }
-            }}
-            onFilterTextChange={setFilterText}
-            onFilterPositionChange={setFilterPosition}
+          <RosterTable
+            active={roster.active}
+            reserve={roster.reserve}
+            taxi={roster.taxi}
             onPlayerAction={handlePlayerAction}
           />
         </div>

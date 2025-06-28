@@ -9,7 +9,7 @@ interface TeamHeaderProps {
   team: Team;
   league: League;
   players: PlayerWithContract[];
-  onAddPlayer: () => void;
+  onAddPlayer?: () => void;
 }
 
 export default function TeamHeader({ team, league, players, onAddPlayer }: TeamHeaderProps) {
@@ -49,13 +49,15 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
             </p>
           </div>
         </div>
-        <button
-          onClick={onAddPlayer}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Adicionar Jogador
-        </button>
+        {onAddPlayer && (
+          <button
+            onClick={onAddPlayer}
+            className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Adicionar Jogador
+          </button>
+        )}
       </div>
 
       {/* Informações Principais */}
