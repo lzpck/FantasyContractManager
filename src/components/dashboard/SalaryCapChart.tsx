@@ -55,8 +55,8 @@ export function SalaryCapChart({ leagues }: SalaryCapChartProps) {
   }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-900">{label}</p>
+        <div className="bg-slate-800 p-3 border border-slate-700 rounded-xl shadow-xl">
+          <p className="font-semibold text-slate-100">{label}</p>
           <p className="text-blue-600">
             <span className="inline-block w-3 h-3 bg-blue-500 rounded mr-2"></span>
             Cap Usado: ${payload[0].value}M
@@ -65,7 +65,7 @@ export function SalaryCapChart({ leagues }: SalaryCapChartProps) {
             <span className="inline-block w-3 h-3 bg-green-500 rounded mr-2"></span>
             Cap Disponível: ${payload[1].value}M
           </p>
-          <p className="text-gray-600 text-sm mt-1">
+          <p className="text-slate-400 text-sm mt-1">
             Total: ${payload[0].value + payload[1].value}M
           </p>
         </div>
@@ -76,7 +76,7 @@ export function SalaryCapChart({ leagues }: SalaryCapChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
+      <div className="flex items-center justify-center h-64 text-slate-400">
         <div className="text-center">
           <div className="text-4xl mb-2">📊</div>
           <p>Nenhuma liga disponível</p>
@@ -121,11 +121,11 @@ export function SalaryCapChart({ leagues }: SalaryCapChartProps) {
       <div className="flex justify-center mt-4 space-x-6">
         <div className="flex items-center">
           <div className="w-3 h-3 bg-blue-500 rounded mr-2"></div>
-          <span className="text-sm text-gray-600">Cap Usado</span>
+          <span className="text-sm text-slate-400">Cap Usado</span>
         </div>
         <div className="flex items-center">
           <div className="w-3 h-3 bg-green-500 rounded mr-2"></div>
-          <span className="text-sm text-gray-600">Cap Disponível</span>
+          <span className="text-sm text-slate-400">Cap Disponível</span>
         </div>
       </div>
     </div>

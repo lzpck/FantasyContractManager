@@ -89,7 +89,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
           <p className="font-medium text-gray-900">{data.position}</p>
           <p className="text-sm text-gray-600">{data.count} jogador(es)</p>
           <p className="text-sm text-gray-600">{formatCurrency(data.totalSalary)} total</p>
@@ -116,7 +116,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
 
   if (players.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Distribuição por Posição</h3>
         <div className="flex items-center justify-center h-64">
           <div className="text-center text-gray-500">
@@ -129,7 +129,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
       <h3 className="text-lg font-medium text-gray-900 mb-4">Distribuição por Posição</h3>
 
       {/* Gráfico */}
@@ -160,8 +160,8 @@ export default function PositionDistributionChart({ players }: PositionDistribut
         <h4 className="text-sm font-medium text-gray-900 mb-3">Resumo por Posição</h4>
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
+            <thead className="bg-gray-50 dark:bg-gray-800">
+              <tr className="border-b border-gray-200 dark:border-gray-700">
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
                   Posição
                 </th>
@@ -179,7 +179,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
               {chartData.map(data => (
                 <tr key={data.position}>
                   <td className="py-2">

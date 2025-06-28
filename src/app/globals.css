@@ -1,29 +1,43 @@
 @import 'tailwindcss';
 
+/* Modo escuro fixo - Fantasy Contract Manager */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-.dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Reset global para modo escuro */
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #0f172a;
+  color: #f1f5f9;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Scrollbar personalizada para modo escuro */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }

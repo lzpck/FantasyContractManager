@@ -30,28 +30,28 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
   const capInfo = formatCapUsage(totalSalaries + team.currentDeadMoney, league.salaryCap);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+    <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-6 mb-8">
       {/* Navegação e Título */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
           <button
             onClick={() => router.push(`/leagues/${league.id}`)}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            className="flex items-center text-slate-400 hover:text-slate-100 transition-colors"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             Voltar para Liga
           </button>
-          <div className="h-6 border-l border-gray-300"></div>
+          <div className="h-6 border-l border-slate-600"></div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
-            <p className="text-gray-600">
+            <h1 className="text-3xl font-bold text-slate-100">{team.name}</h1>
+            <p className="text-slate-400">
               {league.name} • {league.season}
             </p>
           </div>
         </div>
         <button
           onClick={onAddPlayer}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           Adicionar Jogador
@@ -61,36 +61,36 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
       {/* Informações Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Salary Cap */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Salary Cap Total</h3>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(league.salaryCap)}</p>
+        <div className="bg-slate-700 rounded-xl p-4">
+          <h3 className="text-sm font-medium text-slate-400 mb-2">Salary Cap Total</h3>
+          <p className="text-2xl font-bold text-slate-100">{formatCurrency(league.salaryCap)}</p>
         </div>
 
         {/* Cap Usado */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Cap Usado</h3>
+        <div className="bg-slate-700 rounded-xl p-4">
+          <h3 className="text-sm font-medium text-slate-400 mb-2">Cap Usado</h3>
           <p className={`text-2xl font-bold ${capInfo.statusClass}`}>{capInfo.formattedUsed}</p>
-          <p className="text-sm font-medium text-gray-500">
+          <p className="text-sm font-medium text-slate-400">
             {capInfo.formattedPercentage} usado • {capInfo.statusText}
           </p>
         </div>
 
         {/* Cap Disponível */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Cap Disponível</h3>
+        <div className="bg-slate-700 rounded-xl p-4">
+          <h3 className="text-sm font-medium text-slate-400 mb-2">Cap Disponível</h3>
           <p className={`text-2xl font-bold ${getCurrencyClasses(availableCap)}`}>
             {formatCurrency(availableCap)}
           </p>
         </div>
 
         {/* Dead Money */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Dead Money</h3>
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="bg-slate-700 rounded-xl p-4">
+          <h3 className="text-sm font-medium text-slate-400 mb-2">Dead Money</h3>
+          <p className="text-2xl font-bold text-slate-100">
             {formatCurrency(team.currentDeadMoney)}
           </p>
           {team.nextSeasonDeadMoney > 0 && (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-400">
               Próxima temporada: {formatCurrency(team.nextSeasonDeadMoney)}
             </p>
           )}
@@ -98,25 +98,25 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
       </div>
 
       {/* Estatísticas do Elenco */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
+      <div className="mt-6 pt-6 border-t border-slate-700">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">{playersWithContracts.length}</p>
-            <p className="text-sm text-gray-600">Jogadores Contratados</p>
+            <p className="text-2xl font-bold text-blue-400">{playersWithContracts.length}</p>
+            <p className="text-sm text-slate-400">Jogadores Contratados</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-yellow-600">{contractsExpiring}</p>
-            <p className="text-sm text-gray-600">Contratos Expirando</p>
+            <p className="text-2xl font-bold text-yellow-400">{contractsExpiring}</p>
+            <p className="text-sm text-slate-400">Contratos Expirando</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-purple-600">{team.franchiseTagsUsed}</p>
-            <p className="text-sm text-gray-600">Franchise Tags Usadas</p>
+            <p className="text-2xl font-bold text-purple-400">{team.franchiseTagsUsed}</p>
+            <p className="text-sm text-slate-400">Franchise Tags Usadas</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-600">
+            <p className="text-2xl font-bold text-slate-100">
               {formatCurrency(totalSalaries / playersWithContracts.length || 0)}
             </p>
-            <p className="text-sm text-gray-600">Salário Médio</p>
+            <p className="text-sm text-slate-400">Salário Médio</p>
           </div>
         </div>
       </div>

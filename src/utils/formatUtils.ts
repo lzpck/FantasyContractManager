@@ -222,7 +222,7 @@ export function getCurrencyClasses(
     warningClass = 'text-yellow-600',
     danger,
     dangerClass = 'text-red-600',
-    positive = 'text-gray-900',
+    positive = 'text-slate-100',
   } = thresholds;
 
   if (value < 0) {
@@ -361,12 +361,12 @@ export function getStatusColor(status: string): string {
       return 'bg-blue-100 text-blue-800';
     case 'complete':
     case 'completa':
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-slate-700 text-slate-100';
     case 'pre_draft':
     case 'pre-draft':
       return 'bg-yellow-100 text-yellow-800';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-slate-700 text-slate-100';
   }
 }
 

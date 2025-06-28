@@ -66,11 +66,11 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 p-4">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h3 className="text-lg font-medium text-gray-900 mb-1">Sincronização com Sleeper</h3>
-          <p className="text-sm text-gray-600">
+          <h3 className="text-lg font-medium text-slate-100 mb-1">Sincronização com Sleeper</h3>
+          <p className="text-sm text-slate-400">
             Sincronize dados da liga, times e jogadores com a plataforma Sleeper
           </p>
 
@@ -80,7 +80,7 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
               {lastSyncStatus === 'success' && (
                 <>
                   <CheckCircleIcon className="h-4 w-4 text-green-500 mr-1" />
-                  <span className="text-green-600">
+                  <span className="text-green-400">
                     Última sincronização: {formatLastSyncTime(lastSyncTime)}
                   </span>
                 </>
@@ -88,7 +88,7 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
               {lastSyncStatus === 'error' && (
                 <>
                   <ExclamationTriangleIcon className="h-4 w-4 text-red-500 mr-1" />
-                  <span className="text-red-600">
+                  <span className="text-red-400">
                     Erro na sincronização: {formatLastSyncTime(lastSyncTime)}
                   </span>
                 </>
@@ -103,11 +103,11 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
             onClick={handleSync}
             disabled={isLoading || disabled}
             className={`
-              inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md
-              transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+              inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl
+              transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md
               ${
                 isLoading || disabled
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
                   : 'bg-blue-600 text-white hover:bg-blue-700'
               }
             `}
@@ -128,8 +128,8 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
       </div>
 
       {/* Informações adicionais sobre sincronização */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+      <div className="mt-4 pt-4 border-t border-slate-600">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-400">
           <div>
             <span className="font-medium">Dados sincronizados:</span>
             <ul className="mt-1 space-y-1">
@@ -158,11 +158,11 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
       </div>
 
       {/* Nota informativa sobre a sincronização */}
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+      <div className="mt-4 p-3 bg-blue-900/20 border border-blue-800 rounded-xl">
         <div className="flex items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-blue-400 mr-2"
+            className="h-5 w-5 text-blue-300 mr-2"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -172,7 +172,7 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-sm text-blue-800">
+          <span className="text-sm text-blue-200">
             <strong>Nota:</strong> A sincronização atualiza apenas informações básicas da liga e
             times. Contratos, salários e configurações financeiras não são afetados.
           </span>

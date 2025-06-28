@@ -34,79 +34,79 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
     return (
       <div className="text-center py-12">
         <div className="text-4xl mb-4">👥</div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum time encontrado</h3>
-        <p className="text-gray-600">Não há times que correspondam aos filtros aplicados.</p>
+        <h3 className="text-lg font-medium text-slate-100 mb-2">Nenhum time encontrado</h3>
+        <p className="text-slate-400">Não há times que correspondam aos filtros aplicados.</p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-slate-600">
+        <thead className="bg-slate-700">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
               Time
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
               Manager
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
               Salary Cap Usado
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
               Cap Disponível
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
               Dead Money
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
               Contratos Expirando
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
               Ações
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-slate-800 divide-y divide-slate-600">
           {teams.map(teamSummary => {
             const capUsagePercentage = parseFloat(getCapUsagePercentage(teamSummary.totalSalaries));
 
             return (
               <tr
                 key={teamSummary.team.id}
-                className="hover:bg-gray-50 transition-colors cursor-pointer"
+                className="hover:bg-slate-700 transition-colors cursor-pointer"
                 onClick={() => onTeamClick(teamSummary.team.id)}
               >
                 {/* Time */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-sm font-medium text-blue-800">
+                      <div className="h-10 w-10 rounded-full bg-blue-900/30 flex items-center justify-center">
+                        <span className="text-sm font-medium text-blue-200">
                           {teamSummary.team.abbreviation}
                         </span>
                       </div>
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-slate-100">
                         {teamSummary.team.name}
                       </div>
-                      <div className="text-sm text-gray-500">{teamSummary.team.abbreviation}</div>
+                      <div className="text-sm text-slate-400">{teamSummary.team.abbreviation}</div>
                     </div>
                   </div>
                 </td>
 
                 {/* Manager */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-slate-100">
                     {teamSummary.team.ownerDisplayName || '—'}
                   </div>
                 </td>
 
                 {/* Salary Cap Usado */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-slate-100">
                     {formatCurrency(teamSummary.totalSalaries)}
                   </div>
                   <div className={`text-sm ${getCapUsageColor(capUsagePercentage)}`}>
@@ -115,24 +115,24 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
                 </td>
 
                 {/* Cap Disponível */}
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div
-                    className={`text-sm font-medium ${getCurrencyClasses(teamSummary.availableCap)}`}
-                  >
-                    {formatCurrency(teamSummary.availableCap)}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {((teamSummary.availableCap / 279000000) * 100).toFixed(1)}% livre
+                <td className="px-4 py-2 whitespace-nowrap text-center">
+                  <div className="flex flex-col">
+                    <span className="text-slate-100 font-medium">
+                      {formatCurrency(teamSummary.availableCap)}
+                    </span>
+                    <span className="text-slate-400 text-sm">
+                      {((teamSummary.availableCap / 279000000) * 100).toFixed(1)}% livre
+                    </span>
                   </div>
                 </td>
 
                 {/* Dead Money */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
+                  <div className="text-sm text-slate-100">
                     {formatCurrency(teamSummary.currentDeadMoney)}
                   </div>
                   {teamSummary.nextSeasonDeadMoney > 0 && (
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-slate-400">
                       +{formatCurrency(teamSummary.nextSeasonDeadMoney)} próx.
                     </div>
                   )}
@@ -141,11 +141,11 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
                 {/* Contratos Expirando */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-slate-100">
                       {teamSummary.contractsExpiring}
                     </span>
                     {teamSummary.contractsExpiring > 0 && (
-                      <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-900/30 text-yellow-200">
                         ⚠️ Atenção
                       </span>
                     )}
@@ -159,7 +159,7 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
                       e.stopPropagation();
                       onTeamClick(teamSummary.team.id);
                     }}
-                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors"
+                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-xl text-blue-200 bg-blue-900/30 hover:bg-blue-800/50 transition-colors shadow-md"
                   >
                     Ver Time
                     <ChevronRightIcon className="ml-1 h-4 w-4" />
@@ -172,8 +172,8 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
       </table>
 
       {/* Resumo da tabela */}
-      <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm text-gray-600">
+      <div className="bg-slate-700 px-6 py-3 border-t border-slate-600">
+        <div className="flex items-center justify-between text-sm text-slate-400">
           <span>Total de {teams.length} times</span>
           <div className="flex space-x-6">
             <span>

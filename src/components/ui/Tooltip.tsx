@@ -56,7 +56,7 @@ export function Tooltip({
       {children}
       {isVisible && (
         <div
-          className={`absolute z-50 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-nowrap ${positionClasses} ${className}`}
+          className={`absolute z-50 px-2 py-1 text-xs text-white bg-slate-800 rounded shadow-lg whitespace-nowrap ${positionClasses} ${className}`}
         >
           {content}
         </div>

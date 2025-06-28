@@ -25,7 +25,7 @@ export function Toast({ message, type, duration = 5000, onClose }: ToastProps) {
 
   const getToastStyles = () => {
     const baseStyles =
-      'fixed top-4 right-4 max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden transition-all duration-300 z-50';
+      'fixed top-4 right-4 max-w-sm w-full bg-slate-800 shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden transition-all duration-300 z-50';
 
     if (!isVisible) {
       return `${baseStyles} transform translate-x-full opacity-0`;
