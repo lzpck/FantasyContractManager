@@ -9,7 +9,6 @@ import LeagueHeader from '@/components/leagues/LeagueHeader';
 import TeamsTable from '@/components/leagues/TeamsTable';
 import { SyncButton } from '@/components/leagues/SyncButton';
 import { FilterSortBar } from '@/components/leagues/FilterSortBar';
-import { Sidebar } from '@/components/layout/Sidebar';
 
 /**
  * Página de detalhes da liga
@@ -192,8 +191,7 @@ export default function LeagueDetailsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f172a]">
-        <Sidebar />
-        <div className="lg:pl-64">
+        <div>
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
@@ -208,8 +206,7 @@ export default function LeagueDetailsPage() {
   if (!league) {
     return (
       <div className="min-h-screen bg-[#0f172a]">
-        <Sidebar />
-        <div className="lg:pl-64">
+        <div>
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="text-4xl mb-4">❌</div>
@@ -230,9 +227,7 @@ export default function LeagueDetailsPage() {
 
   return (
     <div className="min-h-screen bg-[#0f172a]">
-      <Sidebar />
-
-      <div className="lg:pl-64">
+      <div>
         <div className="px-4 sm:px-6 lg:px-8 py-8">
           {/* Header da liga */}
           <LeagueHeader
