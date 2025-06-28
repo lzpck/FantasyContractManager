@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { isDemoUser } from '@/data/demoData';
 
 export async function GET(request: NextRequest, context: { params: { leagueId: string } }) {
-  const { leagueId } = context.params;
+  const { leagueId } = await context.params;
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
