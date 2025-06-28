@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAppContext } from '@/contexts/AppContext';
 import { League, TeamFinancialSummary, Team } from '@/types';
 import { useTeams } from '@/hooks/useTeams';
+import { useLeague } from '@/hooks/useLeagues';
 import LeagueHeader from '@/components/leagues/LeagueHeader';
 import TeamsTable from '@/components/leagues/TeamsTable';
 import { SyncButton } from '@/components/leagues/SyncButton';
@@ -20,8 +20,8 @@ import { Sidebar } from '@/components/layout/Sidebar';
 export default function LeagueDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { state } = useAppContext();
   const leagueId = params.leagueId as string;
+  const { league: fetchedLeague, loading: leagueLoading } = useLeague(leagueId);
 
   // Estados locais
   const [league, setLeague] = useState<League | null>(null);
@@ -34,15 +34,16 @@ export default function LeagueDetailsPage() {
 
   const { teams, loading: teamsLoading } = useTeams(leagueId);
 
-  // Buscar liga no contexto global
+  // Definir liga quando carregada
   useEffect(() => {
-    const foundLeague = state.leagues.find(l => l.id === leagueId) || null;
-    setLeague(foundLeague);
-  }, [leagueId, state.leagues]);
+    if (!leagueLoading) {
+      setLeague(fetchedLeague || null);
+    }
+  }, [fetchedLeague, leagueLoading]);
 
   // Gerar resumo financeiro com dados reais
   useEffect(() => {
-    if (!league || teamsLoading) return;
+    if (leagueLoading || teamsLoading || !league) return;
 
     const summaries = teams.map(team => {
       const totalSalaries = team.currentSalaryCap ?? 0;
@@ -70,7 +71,14 @@ export default function LeagueDetailsPage() {
 
     setTeamsFinancialSummary(summaries);
     setLoading(false);
-  }, [league, teams, teamsLoading]);
+  }, [league, teams, teamsLoading, leagueLoading]);
+
+  // Finalizar carregamento quando dados foram buscados
+  useEffect(() => {
+    if (!leagueLoading && !teamsLoading && !league) {
+      setLoading(false);
+    }
+  }, [leagueLoading, teamsLoading, league]);
 
   // Aplicar filtros e ordenação
   useEffect(() => {
