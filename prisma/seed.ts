@@ -30,14 +30,16 @@ async function main() {
       where: { email: adminUserEmail },
     });
 
+    let demoUser;
     if (existingDemoUser) {
+      demoUser = existingDemoUser;
       console.log('✅ Usuário de demonstração já existe:', demoUserEmail);
     } else {
       // Hash da senha
       const hashedPassword = await bcrypt.hash(demoUserPassword, 12);
 
       // Criar usuário demo
-      const demoUser = await prisma.user.create({
+      demoUser = await prisma.user.create({
         data: {
           name: 'Usuário Demonstração',
           email: demoUserEmail,
@@ -56,12 +58,14 @@ async function main() {
       });
     }
 
+    let adminUser;
     if (existingAdminUser) {
+      adminUser = existingAdminUser;
       console.log('✅ Usuário administrador já existe:', adminUserEmail);
     } else {
       const hashedPassword = await bcrypt.hash(adminUserPassword, 12);
 
-      const adminUser = await prisma.user.create({
+      adminUser = await prisma.user.create({
         data: {
           name: 'Administrador',
           email: adminUserEmail,
@@ -77,6 +81,49 @@ async function main() {
         email: adminUser.email,
         name: adminUser.name,
         role: adminUser.role,
+      });
+    }
+
+    // Garantir que exista uma liga de demonstração vinculada ao usuário demo
+    const demoLeagueName = 'Liga The Bad Place - Demo';
+    let demoLeague = await prisma.league.findFirst({
+      where: { name: demoLeagueName },
+    });
+
+    if (demoLeague) {
+      if (demoLeague.commissionerId !== demoUser.id) {
+        await prisma.league.update({
+          where: { id: demoLeague.id },
+          data: { commissionerId: demoUser.id },
+        });
+        console.log('✅ Liga de demonstração atualizada para o usuário demo.');
+      } else {
+        console.log('✅ Liga de demonstração já vinculada ao usuário demo.');
+      }
+    } else {
+      demoLeague = await prisma.league.create({
+        data: {
+          name: demoLeagueName,
+          season: new Date().getFullYear(),
+          salaryCap: 279_000_000,
+          totalTeams: 12,
+          status: 'ACTIVE',
+          sleeperLeagueId: 'demo-sleeper-1',
+          commissionerId: demoUser.id,
+          maxFranchiseTags: 1,
+          annualIncreasePercentage: 15,
+          minimumSalary: 1_000_000,
+          seasonTurnoverDate: '04-01',
+        },
+      });
+      console.log('✅ Liga de demonstração criada e vinculada ao usuário demo');
+    }
+
+    // Caso existam times da liga vinculados ao administrador, transferir para o usuário demo
+    if (demoLeague) {
+      await prisma.team.updateMany({
+        where: { leagueId: demoLeague.id, ownerId: adminUser.id },
+        data: { ownerId: demoUser.id },
       });
     }
 
