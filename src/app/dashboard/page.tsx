@@ -50,7 +50,7 @@ function DashboardContent() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando dados...</p>
+          <p className="text-slate-400">Carregando dados...</p>
         </div>
       </div>
     );
@@ -61,8 +61,8 @@ function DashboardContent() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Nenhuma liga encontrada</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Nenhuma liga encontrada</h2>
+          <p className="text-slate-400 mb-6">
             Você ainda não possui ligas cadastradas. Importe uma liga do Sleeper para começar!
           </p>
           <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
@@ -78,7 +78,7 @@ function DashboardContent() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center max-w-md">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Erro ao carregar dados</h2>
-          <p className="text-gray-600 mb-6">{leaguesError}</p>
+          <p className="text-slate-400 mb-6">{leaguesError}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -114,7 +114,7 @@ function DashboardContent() {
   ) : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Sidebar de navegação */}
       <Sidebar />
 
@@ -126,8 +126,8 @@ function DashboardContent() {
 
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="mt-2 text-gray-600">
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="mt-2 text-slate-400">
               Visão geral do seu gerenciamento de contratos e salary cap
             </p>
           </div>
@@ -164,8 +164,8 @@ function DashboardContent() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Gráfico de distribuição do salary cap */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-4">
                   Distribuição do Salary Cap por Time
                 </h2>
                 <SalaryCapChart leagues={leagues} />
@@ -174,8 +174,8 @@ function DashboardContent() {
 
             {/* Lista de ligas */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Suas Ligas</h2>
+              <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-4">Suas Ligas</h2>
                 <LeaguesList leagues={leagues} />
               </div>
             </div>

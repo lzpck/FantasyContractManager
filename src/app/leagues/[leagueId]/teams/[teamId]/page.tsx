@@ -163,12 +163,12 @@ export default function TeamDetailsPage() {
   // Estados de carregamento e erro
   if (loading) {
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-background">
         <Sidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Carregando dados do time...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Carregando dados do time...</p>
           </div>
         </div>
       </div>
@@ -177,12 +177,14 @@ export default function TeamDetailsPage() {
 
   if (!team || !league) {
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-background">
         <Sidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Time não encontrado</h2>
-            <p className="text-gray-600 mb-6">O time solicitado não foi encontrado.</p>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Time não encontrado</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              O time solicitado não foi encontrado.
+            </p>
             <button
               onClick={handleBack}
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -196,7 +198,7 @@ export default function TeamDetailsPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

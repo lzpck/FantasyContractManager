@@ -181,12 +181,12 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-[#0f172a] py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-slate-100">Configurações</h1>
+          <p className="mt-2 text-slate-400">
             Gerencie as configurações da liga e integrações do sistema.
           </p>
         </div>
@@ -210,20 +210,20 @@ export default function SettingsPage() {
 
         <div className="space-y-8">
           {/* Seção: Importação de Liga */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+          <div className="bg-slate-800 shadow-xl rounded-xl">
+            <div className="px-6 py-4 border-b border-slate-700">
+              <h2 className="text-xl font-semibold text-slate-100 flex items-center">
                 <span className="mr-2">🔗</span>
                 Importação de Liga
               </h2>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm text-slate-400">
                 Importe uma liga existente do Sleeper usando o ID da liga.
               </p>
             </div>
             <div className="px-6 py-4">
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="leagueId" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="leagueId" className="block text-sm font-medium text-slate-100">
                     ID da Liga (Sleeper)
                   </label>
                   <div className="mt-1">
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                       onChange={e => setLeagueId(e.target.value)}
                       disabled={!isCommissioner}
                       placeholder="Ex: 123456789"
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="block w-full px-3 py-2 border border-slate-700 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed bg-slate-800 text-slate-100 placeholder-slate-500"
                     />
                   </div>
                 </div>
@@ -242,11 +242,11 @@ export default function SettingsPage() {
                 {/* Barra de progresso da importação */}
                 {importProgress && (
                   <div className="mb-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                    <div className="flex justify-between text-sm text-slate-400 mb-1">
                       <span>{importProgress.message}</span>
                       <span>{importProgress.progress}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-slate-700 rounded-full h-2">
                       <div
                         className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                         style={{ width: `${importProgress.progress}%` }}
@@ -259,7 +259,7 @@ export default function SettingsPage() {
                   <button
                     onClick={handleImportLeague}
                     disabled={!isCommissioner || isImporting}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-slate-600 disabled:cursor-not-allowed"
                   >
                     {isImporting ? (
                       <>
@@ -307,13 +307,13 @@ export default function SettingsPage() {
           </div>
 
           {/* Seção: Configuração de Aumento Anual */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+          <div className="bg-slate-800 shadow-xl rounded-xl">
+            <div className="px-6 py-4 border-b border-slate-700">
+              <h2 className="text-xl font-semibold text-slate-100 flex items-center">
                 <span className="mr-2">📈</span>
                 Aumento Anual dos Contratos
               </h2>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm text-slate-400">
                 Configure o percentual de aumento automático aplicado aos contratos a cada virada de
                 temporada.
               </p>
@@ -323,7 +323,7 @@ export default function SettingsPage() {
                 <div>
                   <label
                     htmlFor="annualIncrease"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-slate-100"
                   >
                     Percentual de Aumento Anual (%)
                   </label>
@@ -337,11 +337,11 @@ export default function SettingsPage() {
                       min="0"
                       max="100"
                       step="0.1"
-                      className="block w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="block w-32 px-3 py-2 border border-slate-700 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed bg-slate-800 text-slate-100"
                     />
-                    <span className="text-gray-500">%</span>
+                    <span className="text-slate-400">%</span>
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-slate-400">
                     Valor padrão: 15%. Este aumento é aplicado automaticamente em 1º de abril.
                   </p>
                 </div>
@@ -350,7 +350,7 @@ export default function SettingsPage() {
                   <button
                     onClick={handleSaveAnnualIncrease}
                     disabled={!isCommissioner || isSaving}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-slate-600 disabled:cursor-not-allowed"
                   >
                     {isSaving ? (
                       <>
@@ -398,36 +398,36 @@ export default function SettingsPage() {
           </div>
 
           {/* Seção: Informações Gerais */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+          <div className="bg-slate-800 shadow-xl rounded-xl">
+            <div className="px-6 py-4 border-b border-slate-700">
+              <h2 className="text-xl font-semibold text-slate-100 flex items-center">
                 <span className="mr-2">ℹ️</span>
                 Configurações Atuais
               </h2>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm text-slate-400">
                 Visualize as configurações atuais da liga.
               </p>
             </div>
             <div className="px-6 py-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Liga Atual</h3>
+                  <h3 className="text-sm font-medium text-slate-100 mb-2">Liga Atual</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Nome:</span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm text-slate-400">Nome:</span>
+                      <span className="text-sm font-medium text-slate-100">
                         {currentLeague?.name || 'Nenhuma liga selecionada'}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">ID Sleeper:</span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm text-slate-400">ID Sleeper:</span>
+                      <span className="text-sm font-medium text-slate-100">
                         {currentLeague?.sleeperLeagueId || 'Não configurado'}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Temporada:</span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm text-slate-400">Temporada:</span>
+                      <span className="text-sm font-medium text-slate-100">
                         {currentLeague?.season || 'N/A'}
                       </span>
                     </div>
@@ -435,25 +435,25 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  <h3 className="text-sm font-medium text-slate-100 mb-2">
                     Configurações Financeiras
                   </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Salary Cap:</span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm text-slate-400">Salary Cap:</span>
+                      <span className="text-sm font-medium text-slate-100">
                         ${currentLeague?.salaryCap?.toLocaleString() || 'N/A'} milhões
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Aumento Anual:</span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm text-slate-400">Aumento Anual:</span>
+                      <span className="text-sm font-medium text-slate-100">
                         {currentLeague?.settings.annualIncreasePercentage || 15}%
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Salário Mínimo:</span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm text-slate-400">Salário Mínimo:</span>
+                      <span className="text-sm font-medium text-slate-100">
                         ${currentLeague?.settings.minimumSalary?.toLocaleString() || 'N/A'} milhões
                       </span>
                     </div>

@@ -78,7 +78,7 @@ export function Sidebar() {
           isCollapsed ? 'lg:w-16' : 'lg:w-64'
         }`}
       >
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-background border-r border-gray-200 dark:border-gray-800 px-4 py-6">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-slate-900 border-r border-slate-700 px-4 py-6">
           {/* Logo/Header */}
           <div className="flex items-center">
             <div className="flex-shrink-0">
@@ -86,19 +86,19 @@ export function Sidebar() {
             </div>
             {!isCollapsed && (
               <div className="ml-3">
-                <h1 className="text-lg font-semibold text-foreground">Fantasy CM</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Contract Manager</p>
+                <h1 className="text-lg font-semibold text-slate-100">Fantasy CM</h1>
+                <p className="text-xs text-slate-400">Contract Manager</p>
               </div>
             )}
 
             {/* Botão de colapsar */}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className={`ml-auto p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+              className={`ml-auto p-1 rounded-md hover:bg-slate-700 transition-colors ${
                 isCollapsed ? 'ml-0' : ''
               }`}
             >
-              <span className="text-gray-500 dark:text-gray-400">{isCollapsed ? '→' : '←'}</span>
+              <span className="text-slate-400">{isCollapsed ? '→' : '←'}</span>
             </button>
           </div>
 
@@ -109,10 +109,10 @@ export function Sidebar() {
                 <li key={item.name}>
                   <Link
                     href={item.href}
-                    className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold transition-colors ${
+                    className={`group flex gap-x-3 rounded-xl p-2 text-sm leading-6 font-semibold transition-colors ${
                       isActiveItem(item.href)
-                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                        : 'text-foreground hover:text-blue-700 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-100 hover:text-blue-400 hover:bg-slate-800'
                     }`}
                     title={isCollapsed ? item.name : undefined}
                   >
@@ -120,9 +120,7 @@ export function Sidebar() {
                     {!isCollapsed && (
                       <div className="flex-1 min-w-0">
                         <div className="truncate">{item.name}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {item.description}
-                        </div>
+                        <div className="text-xs text-slate-400 truncate">{item.description}</div>
                       </div>
                     )}
                   </Link>
@@ -135,14 +133,12 @@ export function Sidebar() {
 
       {/* Navegação mobile (placeholder) */}
       <div className="lg:hidden">
-        <div className="flex items-center justify-between bg-background border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+        <div className="flex items-center justify-between bg-slate-900 border-b border-slate-700 px-4 py-3">
           <div className="flex items-center">
             <span className="text-2xl mr-2">🏈</span>
-            <h1 className="text-lg font-semibold text-foreground">Fantasy CM</h1>
+            <h1 className="text-lg font-semibold text-slate-100">Fantasy CM</h1>
           </div>
-          <button className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
-            ☰
-          </button>
+          <button className="p-2 rounded-md text-slate-400 hover:bg-slate-700">☰</button>
         </div>
       </div>
     </>
