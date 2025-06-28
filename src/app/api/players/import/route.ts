@@ -1,0 +1,54 @@
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { UserRole } from '@/types/database';
+import { fetchSleeperPlayers, transformSleeperPlayersToLocal } from '@/services/sleeperService';
+
+export async function POST() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+    }
+
+    if (session.user.role !== UserRole.COMMISSIONER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { error: 'Acesso negado. Apenas comissários podem importar jogadores.' },
+        { status: 403 },
+      );
+    }
+
+    const sleeperPlayers = await fetchSleeperPlayers();
+    const allowed = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
+    const players = transformSleeperPlayersToLocal(sleeperPlayers, allowed);
+
+    for (const p of players) {
+      await prisma.player.upsert({
+        where: { sleeperPlayerId: p.sleeperPlayerId },
+        update: {
+          name: p.name,
+          position: p.position,
+          fantasyPositions: p.fantasyPositions.join(','),
+          team: p.nflTeam,
+          age: p.age,
+          isActive: p.isActive,
+        },
+        create: {
+          name: p.name,
+          position: p.position,
+          fantasyPositions: p.fantasyPositions.join(','),
+          team: p.nflTeam,
+          age: p.age,
+          sleeperPlayerId: p.sleeperPlayerId,
+          isActive: p.isActive,
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true, imported: players.length });
+  } catch (error) {
+    console.error('Erro ao importar jogadores:', error);
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
+  }
+}
