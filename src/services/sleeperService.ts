@@ -10,6 +10,8 @@
 
 import { League, Team, Player, LeagueSettings, PlayerPosition, TeamRoster } from '@/types';
 import { LeagueStatus } from '@/types/database';
+import fs from 'fs/promises';
+import path from 'path';
 
 // ============================================================================
 // TIPOS DA SLEEPER API
@@ -179,13 +181,36 @@ export async function fetchSleeperUsers(leagueId: string): Promise<SleeperUser[]
  * Busca dados de todos os jogadores da NFL na Sleeper API
  */
 export async function fetchSleeperPlayers(): Promise<Record<string, SleeperPlayer>> {
+  const cacheDir = path.join(process.cwd(), '.cache');
+  const cacheFile = path.join(cacheDir, 'sleeperPlayers.json');
+
+  try {
+    const stat = await fs.stat(cacheFile);
+    // Use cache if file is newer than 24h
+    if (Date.now() - stat.mtimeMs < 24 * 60 * 60 * 1000) {
+      const cached = await fs.readFile(cacheFile, 'utf-8');
+      return JSON.parse(cached) as Record<string, SleeperPlayer>;
+    }
+  } catch {
+    // cache file doesn't exist - ignore
+  }
+
   const response = await fetch(`${SLEEPER_API_BASE}/players/nfl`);
 
   if (!response.ok) {
     throw new Error(`Erro ao buscar jogadores: ${response.status} - ${response.statusText}`);
   }
 
-  return response.json();
+  const players = await response.json();
+
+  try {
+    await fs.mkdir(cacheDir, { recursive: true });
+    await fs.writeFile(cacheFile, JSON.stringify(players));
+  } catch {
+    // ignore cache write errors
+  }
+
+  return players;
 }
 
 // ============================================================================
