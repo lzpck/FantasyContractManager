@@ -99,10 +99,9 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
 
                 {/* Manager */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    Manager {teamSummary.team.ownerId.slice(-2)}
+                  <div className="text-sm font-medium text-gray-900">
+                    {teamSummary.team.ownerDisplayName || '—'}
                   </div>
-                  <div className="text-sm text-gray-500">owner@example.com</div>
                 </td>
 
                 {/* Salary Cap Usado */}
