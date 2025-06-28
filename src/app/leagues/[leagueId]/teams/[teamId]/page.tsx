@@ -10,7 +10,6 @@ import { PlayerRosterSections } from '@/components/teams/PlayerRosterSections';
 import { CapProjectionChart } from '@/components/teams/CapProjectionChart';
 import PositionDistributionChart from '@/components/teams/PositionDistributionChart';
 import ContractActionsModal from '@/components/teams/ContractActionsModal';
-import { Sidebar } from '@/components/layout/Sidebar';
 
 /**
  * Página de detalhes do time
@@ -218,7 +217,6 @@ export default function TeamDetailsPage() {
   if (loading) {
     return (
       <div className="flex h-screen bg-background">
-        <Sidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -232,7 +230,6 @@ export default function TeamDetailsPage() {
   if (error) {
     return (
       <div className="flex h-screen bg-background">
-        <Sidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-red-600 mb-4">Erro ao carregar dados</h2>
@@ -252,7 +249,6 @@ export default function TeamDetailsPage() {
   if (!team || !league) {
     return (
       <div className="flex h-screen bg-background">
-        <Sidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-foreground mb-4">Time não encontrado</h2>
@@ -273,7 +269,6 @@ export default function TeamDetailsPage() {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
       <div className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header do Time */}

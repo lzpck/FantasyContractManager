@@ -105,9 +105,73 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Apenas comissários podem criar ligas' }, { status: 403 });
     }
 
-    // Implementar criação de liga aqui
-    // Por enquanto, retorna não implementado
-    return NextResponse.json({ error: 'Criação de liga ainda não implementada' }, { status: 501 });
+    // Obter dados do corpo da requisição
+    const body = await request.json();
+    const {
+      name,
+      salaryCap,
+      totalTeams,
+      season,
+      status,
+      sleeperLeagueId,
+      maxFranchiseTags,
+      minimumSalary,
+      annualIncreasePercentage,
+      seasonTurnoverDate,
+    } = body;
+
+    // Validar dados obrigatórios
+    if (!name || !salaryCap || !totalTeams || !season) {
+      return NextResponse.json(
+        { error: 'Campos obrigatórios: name, salaryCap, totalTeams, season' },
+        { status: 400 },
+      );
+    }
+
+    // Criar a liga
+    const newLeague = await prisma.league.create({
+      data: {
+        name,
+        salaryCap,
+        totalTeams,
+        season,
+        status: status || 'ACTIVE',
+        sleeperLeagueId: sleeperLeagueId || null,
+        commissionerId: user.id,
+        maxFranchiseTags: maxFranchiseTags || 1,
+        minimumSalary: minimumSalary || 1000000,
+        annualIncreasePercentage: annualIncreasePercentage || 15.0,
+        seasonTurnoverDate: seasonTurnoverDate || '04-01',
+      },
+      include: {
+        teams: {
+          include: {
+            owner: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        commissioner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(
+      {
+        league: newLeague,
+        message: 'Liga criada com sucesso',
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error('Erro ao criar liga:', error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
