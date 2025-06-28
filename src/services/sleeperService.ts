@@ -10,8 +10,6 @@
 
 import { League, Team, Player, LeagueSettings, PlayerPosition, TeamRoster } from '@/types';
 import { LeagueStatus } from '@/types/database';
-import fs from 'fs/promises';
-import path from 'path';
 
 // ============================================================================
 // TIPOS DA SLEEPER API
@@ -181,20 +179,6 @@ export async function fetchSleeperUsers(leagueId: string): Promise<SleeperUser[]
  * Busca dados de todos os jogadores da NFL na Sleeper API
  */
 export async function fetchSleeperPlayers(): Promise<Record<string, SleeperPlayer>> {
-  const cacheDir = path.join(process.cwd(), '.cache');
-  const cacheFile = path.join(cacheDir, 'sleeperPlayers.json');
-
-  try {
-    const stat = await fs.stat(cacheFile);
-    // Use cache if file is newer than 24h
-    if (Date.now() - stat.mtimeMs < 24 * 60 * 60 * 1000) {
-      const cached = await fs.readFile(cacheFile, 'utf-8');
-      return JSON.parse(cached) as Record<string, SleeperPlayer>;
-    }
-  } catch {
-    // cache file doesn't exist - ignore
-  }
-
   const response = await fetch(`${SLEEPER_API_BASE}/players/nfl`);
 
   if (!response.ok) {
@@ -202,13 +186,6 @@ export async function fetchSleeperPlayers(): Promise<Record<string, SleeperPlaye
   }
 
   const players = await response.json();
-
-  try {
-    await fs.mkdir(cacheDir, { recursive: true });
-    await fs.writeFile(cacheFile, JSON.stringify(players));
-  } catch {
-    // ignore cache write errors
-  }
 
   return players;
 }
@@ -616,5 +593,63 @@ export async function syncLeagueWithSleeper(league: League) {
         ? `Falha na sincronização: ${error.message}`
         : 'Erro desconhecido durante a sincronização',
     );
+  }
+}
+
+// ============================================================================
+// CLASSE SLEEPER SERVICE
+// ============================================================================
+
+/**
+ * Classe que agrupa todos os serviços relacionados à integração com a Sleeper API
+ */
+export class SleeperService {
+  /**
+   * Busca dados de uma liga específica na Sleeper API
+   */
+  static async fetchLeague(leagueId: string): Promise<SleeperLeague> {
+    return fetchSleeperLeague(leagueId);
+  }
+
+  /**
+   * Busca rosters de uma liga específica na Sleeper API
+   */
+  static async fetchRosters(leagueId: string): Promise<SleeperRoster[]> {
+    return fetchSleeperRosters(leagueId);
+  }
+
+  /**
+   * Busca dados de usuários de uma liga específica na Sleeper API
+   */
+  static async fetchUsers(leagueId: string): Promise<SleeperUser[]> {
+    return fetchSleeperUsers(leagueId);
+  }
+
+  /**
+   * Busca dados de todos os jogadores da NFL na Sleeper API
+   */
+  static async fetchPlayers(): Promise<Record<string, SleeperPlayer>> {
+    return fetchSleeperPlayers();
+  }
+
+  /**
+   * Importa uma liga completa da Sleeper API
+   */
+  static async importLeague(leagueId: string, commissionerId: string) {
+    return importLeagueFromSleeper(leagueId, commissionerId);
+  }
+
+  /**
+   * Valida se um ID de liga da Sleeper é válido
+   */
+  static async validateLeagueId(leagueId: string): Promise<boolean> {
+    return validateSleeperLeagueId(leagueId);
+  }
+
+  /**
+   * Sincroniza uma liga existente com dados atualizados da Sleeper API
+   */
+  static async syncLeague(league: League) {
+    return syncLeagueWithSleeper(league);
   }
 }

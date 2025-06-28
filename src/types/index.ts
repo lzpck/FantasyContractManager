@@ -40,6 +40,11 @@ export enum PlayerPosition {
 }
 
 /**
+ * Status do jogador no roster
+ */
+export type PlayerRosterStatus = 'active' | 'ir' | 'taxi' | 'cut';
+
+/**
  * Tipos de aquisição de jogadores
  */
 export enum AcquisitionType {
@@ -450,10 +455,11 @@ export interface DraftPick {
  */
 export interface PlayerWithContract {
   player: Player;
-  contract: Contract;
+  contract: Contract | null;
   franchiseTag?: FranchiseTag;
   extension?: ContractExtension;
   deadMoney?: DeadMoney;
+  rosterStatus?: PlayerRosterStatus;
 }
 
 /**

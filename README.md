@@ -46,7 +46,56 @@ npm install
 npm run dev
 ```
 
-4. Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
+4. Configure o banco de dados:
+
+```bash
+# Gerar cliente Prisma
+npx prisma generate
+
+# Executar migrações
+npx prisma migrate dev
+
+# Popular banco com dados iniciais (opcional)
+npm run db:seed
+```
+
+5. Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
+
+## 🔄 Sincronização com Sleeper
+
+Para manter os dados atualizados com a plataforma Sleeper:
+
+```bash
+# Sincronizar dados de ligas, times e jogadores
+npm run sync-sleeper
+```
+
+**Recomendação**: Execute este comando regularmente (diário ou semanal) para manter os dados sincronizados.
+
+## 📊 Gerenciamento de Times
+
+### Página de Detalhes do Time
+
+A página `/leagues/[leagueId]/teams/[teamId]` oferece:
+
+- **Cabeçalho Financeiro**: Salary Cap Total, Cap Usado, Cap Disponível, Dead Money
+- **Estatísticas**: Jogadores Contratados, Contratos Expirando, Franchise Tags, Salário Médio
+- **Gráficos**: Distribuição por Posição e Projeção de Salary Cap
+- **Tabela de Jogadores**: Organizada por posição e status (Ativo, IR, Taxi Squad)
+- **Ações de Contrato**: Editar, Adicionar Contrato, Liberar Jogador
+
+### Filtros Disponíveis
+
+- **Por Nome**: Busca por nome do jogador ou time NFL
+- **Por Posição**: QB, RB, WR, TE, K, DL, LB, DB
+- **Por Status**: Elenco Ativo, IR (Injured Reserve), Taxi Squad
+
+### Ações de Contrato
+
+1. **Editar Contrato**: Modificar salário e anos restantes
+2. **Liberar Jogador**: Cortar jogador (gera dead money automaticamente)
+3. **Estender Contrato**: Disponível apenas no último ano do contrato
+4. **Franchise Tag**: Aplicar tag de franquia (limitado por temporada)
 
 ## 👥 Usuários Padrão
 
