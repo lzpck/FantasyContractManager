@@ -23,9 +23,9 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
       case LeagueStatus.OFFSEASON:
         return 'bg-blue-100 text-blue-800';
       case LeagueStatus.ARCHIVED:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-700 text-slate-100';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-700 text-slate-100';
     }
   };
 
@@ -52,8 +52,8 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
     return (
       <div className="text-center py-8">
         <div className="text-4xl mb-2">🏆</div>
-        <p className="text-gray-500 mb-2">Nenhuma liga encontrada</p>
-        <p className="text-sm text-gray-400">Crie ou participe de uma liga para começar</p>
+        <p className="text-slate-400 mb-2">Nenhuma liga encontrada</p>
+        <p className="text-sm text-slate-500">Crie ou participe de uma liga para começar</p>
         <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
           Criar Liga
         </button>
@@ -66,13 +66,13 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
       {leagues.map(league => (
         <div
           key={league.id}
-          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+          className="border border-slate-700 rounded-xl p-4 hover:shadow-xl transition-shadow bg-slate-800"
         >
           {/* Header da liga */}
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 text-sm">{league.name}</h3>
-              <p className="text-xs text-gray-500 mt-1">Temporada {league.season}</p>
+              <h3 className="font-semibold text-slate-100 text-sm">{league.name}</h3>
+              <p className="text-xs text-slate-400 mt-1">Temporada {league.season}</p>
             </div>
             <span
               className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
@@ -86,11 +86,11 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
           {/* Informações da liga */}
           <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
             <div>
-              <span className="text-gray-500">Times:</span>
+              <span className="text-slate-400">Times:</span>
               <span className="ml-1 font-medium">{league.totalTeams}</span>
             </div>
             <div>
-              <span className="text-gray-500">Salary Cap:</span>
+              <span className="text-slate-400">Salary Cap:</span>
               <span className="ml-1 font-medium">{formatSalaryCap(league.salaryCap)}</span>
             </div>
           </div>
@@ -103,7 +103,7 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
             >
               Ver Liga
             </button>
-            <button className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 text-xs rounded-md hover:bg-gray-50 transition-colors">
+            <button className="flex-1 px-3 py-2 border border-slate-700 text-slate-100 text-xs rounded-xl hover:bg-slate-700 transition-colors bg-slate-800">
               Gerenciar
             </button>
           </div>
@@ -111,8 +111,8 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
       ))}
 
       {/* Botão para adicionar nova liga */}
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
-        <button className="w-full text-gray-500 hover:text-gray-700 transition-colors">
+      <div className="border-2 border-dashed border-slate-700 rounded-xl p-4 text-center hover:border-slate-600 transition-colors bg-slate-800">
+        <button className="w-full text-slate-400 hover:text-slate-100 transition-colors">
           <div className="text-2xl mb-1">+</div>
           <p className="text-sm">Adicionar Nova Liga</p>
         </button>
