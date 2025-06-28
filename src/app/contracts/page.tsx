@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useContracts } from '@/hooks/useContracts';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Sidebar } from '@/components/layout/Sidebar';
+
 import { Contract } from '@/types';
 
 function ContractsContent() {
@@ -89,8 +89,6 @@ function ContractsContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
-        <Sidebar />
-
         <div className="flex-1 p-8">
           {/* Header */}
           <div className="mb-8">

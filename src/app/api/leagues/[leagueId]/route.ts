@@ -151,7 +151,15 @@ export async function PUT(
 
     // Obter dados do corpo da requisição
     const body = await request.json();
-    const { name, salaryCap, maxFranchiseTags, annualIncreasePercentage } = body;
+    const {
+      name,
+      salaryCap,
+      sleeperLeagueId,
+      maxFranchiseTags,
+      minimumSalary,
+      annualIncreasePercentage,
+      seasonTurnoverDate,
+    } = body;
 
     // Atualizar a liga
     const updatedLeague = await prisma.league.update({
@@ -159,8 +167,11 @@ export async function PUT(
       data: {
         ...(name && { name }),
         ...(salaryCap && { salaryCap }),
+        ...(sleeperLeagueId !== undefined && { sleeperLeagueId }),
         ...(maxFranchiseTags !== undefined && { maxFranchiseTags }),
+        ...(minimumSalary && { minimumSalary }),
         ...(annualIncreasePercentage !== undefined && { annualIncreasePercentage }),
+        ...(seasonTurnoverDate && { seasonTurnoverDate }),
       },
       include: {
         teams: {
