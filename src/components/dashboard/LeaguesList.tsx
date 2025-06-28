@@ -21,7 +21,7 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
       case LeagueStatus.ACTIVE:
         return 'bg-green-100 text-green-800';
       case LeagueStatus.OFFSEASON:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-slate-600 text-slate-200';
       case LeagueStatus.ARCHIVED:
         return 'bg-slate-700 text-slate-100';
       default:
@@ -54,7 +54,7 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
         <div className="text-4xl mb-2">🏆</div>
         <p className="text-slate-400 mb-2">Nenhuma liga encontrada</p>
         <p className="text-sm text-slate-500">Crie ou participe de uma liga para começar</p>
-        <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <button className="mt-4 px-4 py-2 bg-slate-700 text-slate-100 rounded-lg hover:bg-slate-600 transition-colors border border-slate-600">
           Criar Liga
         </button>
       </div>
