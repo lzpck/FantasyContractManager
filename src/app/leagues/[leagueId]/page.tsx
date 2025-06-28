@@ -191,13 +191,13 @@ export default function LeagueDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#0f172a]">
         <Sidebar />
         <div className="lg:pl-64">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-400">Carregando dados da liga...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-slate-300">Carregando dados da liga...</p>
             </div>
           </div>
         </div>
@@ -207,19 +207,17 @@ export default function LeagueDetailsPage() {
 
   if (!league) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#0f172a]">
         <Sidebar />
         <div className="lg:pl-64">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="text-4xl mb-4">❌</div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">Liga não encontrada</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                A liga solicitada não foi encontrada.
-              </p>
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">Liga não encontrada</h2>
+              <p className="text-slate-400 mb-4">A liga solicitada não foi encontrada.</p>
               <button
                 onClick={() => router.push('/dashboard')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-md"
               >
                 Voltar ao Dashboard
               </button>
@@ -231,7 +229,7 @@ export default function LeagueDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#0f172a]">
       <Sidebar />
 
       <div className="lg:pl-64">
@@ -253,17 +251,19 @@ export default function LeagueDetailsPage() {
           </div>
 
           {/* Barra de filtros e ordenação */}
-          <FilterSortBar
-            filterText={filterText}
-            onFilterChange={setFilterText}
-            sortBy={sortBy}
-            onSortByChange={setSortBy}
-            sortOrder={sortOrder}
-            onSortOrderChange={setSortOrder}
-          />
+          <div className="mb-6">
+            <FilterSortBar
+              filterText={filterText}
+              onFilterChange={setFilterText}
+              sortBy={sortBy}
+              onSortByChange={setSortBy}
+              sortOrder={sortOrder}
+              onSortOrderChange={setSortOrder}
+            />
+          </div>
 
           {/* Tabela de times */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700">
             <TeamsTable teams={filteredTeams} onTeamClick={handleTeamClick} />
           </div>
         </div>

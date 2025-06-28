@@ -56,7 +56,7 @@ export function FilterSortBar({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+    <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 p-4 mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         {/* Seção de filtro */}
         <div className="flex-1 max-w-md">
@@ -65,14 +65,14 @@ export function FilterSortBar({
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+              <MagnifyingGlassIcon className="h-5 w-5 text-slate-400" />
             </div>
             <input
               type="text"
               id="filter"
               value={filterText}
               onChange={e => onFilterChange(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full pl-10 pr-3 py-2 border border-slate-600 rounded-xl leading-5 bg-slate-700 text-slate-100 placeholder-slate-400 focus:outline-none focus:placeholder-slate-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Filtrar por nome do time..."
             />
           </div>
@@ -81,7 +81,7 @@ export function FilterSortBar({
         {/* Seção de ordenação */}
         <div className="flex items-center space-x-4">
           {/* Ícone de filtro */}
-          <div className="flex items-center text-sm text-gray-600">
+          <div className="flex items-center text-sm text-slate-400">
             <FunnelIcon className="h-4 w-4 mr-1" />
             <span>Ordenar por:</span>
           </div>
@@ -90,7 +90,7 @@ export function FilterSortBar({
           <select
             value={sortBy}
             onChange={e => onSortByChange(e.target.value as typeof sortBy)}
-            className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            className="block w-full pl-3 pr-10 py-2 text-base border border-slate-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-xl bg-slate-700 text-slate-100"
           >
             {sortOptions.map(option => (
               <option key={option.value} value={option.value}>
@@ -102,7 +102,7 @@ export function FilterSortBar({
           {/* Botão de ordem de ordenação */}
           <button
             onClick={toggleSortOrder}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-3 py-2 border border-slate-600 shadow-md text-sm leading-4 font-medium rounded-xl text-slate-100 bg-slate-700 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             title={`Ordenar ${sortOrder === 'asc' ? 'decrescente' : 'crescente'}`}
           >
             {sortOrder === 'asc' ? (
@@ -116,7 +116,7 @@ export function FilterSortBar({
           {(filterText || sortBy !== 'name' || sortOrder !== 'asc') && (
             <button
               onClick={clearFilters}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-3 py-2 border border-slate-600 shadow-md text-sm leading-4 font-medium rounded-xl text-slate-100 bg-slate-700 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Limpar
             </button>
@@ -126,16 +126,16 @@ export function FilterSortBar({
 
       {/* Indicadores de filtros ativos */}
       {(filterText || sortBy !== 'name' || sortOrder !== 'asc') && (
-        <div className="mt-3 pt-3 border-t border-gray-200">
+        <div className="mt-3 pt-3 border-t border-slate-600">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-gray-600">Filtros ativos:</span>
+            <span className="text-sm text-slate-400">Filtros ativos:</span>
 
             {filterText && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-900/30 text-blue-200">
                 Texto: &quot;{filterText}&quot;
                 <button
                   onClick={() => onFilterChange('')}
-                  className="ml-1 text-blue-600 hover:text-blue-800"
+                  className="ml-1 text-blue-300 hover:text-blue-100"
                 >
                   ×
                 </button>
@@ -143,7 +143,7 @@ export function FilterSortBar({
             )}
 
             {(sortBy !== 'name' || sortOrder !== 'asc') && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-900/30 text-green-200">
                 Ordenação: {sortOptions.find(opt => opt.value === sortBy)?.label}(
                 {sortOrder === 'asc' ? 'Crescente' : 'Decrescente'})
                 <button
@@ -151,7 +151,7 @@ export function FilterSortBar({
                     onSortByChange('name');
                     onSortOrderChange('asc');
                   }}
-                  className="ml-1 text-green-600 hover:text-green-800"
+                  className="ml-1 text-green-300 hover:text-green-100"
                 >
                   ×
                 </button>

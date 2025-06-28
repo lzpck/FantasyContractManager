@@ -82,28 +82,28 @@ export default function ContractActionsModal({
   ] as const;
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl bg-white rounded-lg shadow-lg">
+    <div className="fixed inset-0 bg-slate-900 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl bg-slate-800 rounded-xl shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-700">
           <div>
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-medium text-slate-100">
               Ações de Contrato - {player.player.name}
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-400">
               {player.player.position} • {player.player.nflTeam} •{' '}
               {formatCurrency(player.contract.currentSalary)} • {player.contract.yearsRemaining}{' '}
               ano(s)
             </p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-300">
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
 
         {/* Tabs */}
         <div className="mt-4">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-slate-700">
             <nav className="-mb-px flex space-x-8">
               {tabs.map(tab => (
                 <button
@@ -114,8 +114,8 @@ export default function ContractActionsModal({
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : tab.enabled
-                        ? 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        : 'border-transparent text-gray-400 cursor-not-allowed'
+                        ? 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-600'
+                        : 'border-transparent text-slate-500 cursor-not-allowed'
                   }`}
                 >
                   {tab.label}
@@ -132,7 +132,7 @@ export default function ContractActionsModal({
           {activeTab === 'edit' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-100 mb-2">
                   Salário Atual (em milhões)
                 </label>
                 <input
@@ -140,21 +140,21 @@ export default function ContractActionsModal({
                   step="0.1"
                   value={formData.newSalary}
                   onChange={e => setFormData({ ...formData, newSalary: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-800 text-slate-100"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-100 mb-2">
                   Anos Restantes
                 </label>
                 <select
                   value={player.contract.yearsRemaining}
                   disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
+                  className="w-full px-3 py-2 border border-slate-700 rounded-xl bg-slate-700 text-slate-400"
                 >
                   <option>{player.contract.yearsRemaining}</option>
                 </select>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   Anos restantes não podem ser alterados diretamente
                 </p>
               </div>
@@ -180,7 +180,7 @@ export default function ContractActionsModal({
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-100 mb-2">
                       Novo Salário (em milhões)
                     </label>
                     <input
@@ -188,17 +188,17 @@ export default function ContractActionsModal({
                       step="0.1"
                       value={formData.newSalary}
                       onChange={e => setFormData({ ...formData, extensionSalary: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-800 text-slate-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-100 mb-2">
                       Novos Anos
                     </label>
                     <select
                       value={formData.newYears}
                       onChange={e => setFormData({ ...formData, extensionYears: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-800 text-slate-100"
                     >
                       <option value={1}>1 ano</option>
                       <option value={2}>2 anos</option>
@@ -214,9 +214,11 @@ export default function ContractActionsModal({
                   </button>
                 </>
               ) : (
-                <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <p className="text-gray-600">Jogador não é elegível para extensão de contrato.</p>
-                  <p className="text-sm text-gray-500 mt-1">
+                <div className="bg-slate-700 p-4 rounded-xl text-center">
+                  <p className="text-slate-300">
+                    Jogador não é elegível para extensão de contrato.
+                  </p>
+                  <p className="text-sm text-slate-400 mt-1">
                     Apenas jogadores no último ano que nunca foram estendidos são elegíveis.
                   </p>
                 </div>
@@ -236,21 +238,21 @@ export default function ContractActionsModal({
                       entre salário +15% ou média dos top 10 da posição.
                     </p>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="bg-slate-700 p-4 rounded-xl">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p className="text-gray-600">Salário Atual + 15%:</p>
+                        <p className="text-slate-300">Salário Atual + 15%:</p>
                         <p className="font-medium">
                           {formatCurrency(player.contract.currentSalary * 1.15)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-600">Média Top 10 {player.player.position}:</p>
+                        <p className="text-slate-300">Média Top 10 {player.player.position}:</p>
                         <p className="font-medium">{formatCurrency(calculateTagValue())}</p>
                       </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <p className="text-gray-600">Valor da Tag:</p>
+                    <div className="mt-4 pt-4 border-t border-slate-600">
+                      <p className="text-slate-300">Valor da Tag:</p>
                       <p className="text-lg font-bold text-purple-600">
                         {formatCurrency(calculateTagValue())}
                       </p>
@@ -264,9 +266,9 @@ export default function ContractActionsModal({
                   </button>
                 </>
               ) : (
-                <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <p className="text-gray-600">Jogador não é elegível para franchise tag.</p>
-                  <p className="text-sm text-gray-500 mt-1">
+                <div className="bg-slate-700 p-4 rounded-xl text-center">
+                  <p className="text-slate-300">Jogador não é elegível para franchise tag.</p>
+                  <p className="text-sm text-slate-400 mt-1">
                     Apenas jogadores no último ano que nunca foram tagueados são elegíveis.
                   </p>
                 </div>
@@ -284,27 +286,27 @@ export default function ContractActionsModal({
                   ação não pode ser desfeita.
                 </p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-slate-700 p-4 rounded-xl">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Salário Atual:</span>
+                    <span className="text-slate-300">Salário Atual:</span>
                     <span className="font-medium">
                       {formatCurrency(player.contract.currentSalary)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Anos Restantes:</span>
+                    <span className="text-slate-300">Anos Restantes:</span>
                     <span className="font-medium">{player.contract.yearsRemaining}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Salário Total Restante:</span>
+                    <span className="text-slate-300">Salário Total Restante:</span>
                     <span className="font-medium">
                       {formatCurrency(
                         player.contract.currentSalary * player.contract.yearsRemaining,
                       )}
                     </span>
                   </div>
-                  <div className="pt-2 border-t border-gray-200">
+                  <div className="pt-2 border-t border-slate-600">
                     <div className="flex justify-between">
                       <span className="text-red-600 font-medium">Dead Money Estimado:</span>
                       <span className="font-bold text-red-600">
@@ -331,10 +333,10 @@ export default function ContractActionsModal({
         </div>
 
         {/* Footer */}
-        <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
+        <div className="mt-6 pt-4 border-t border-slate-700 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            className="px-4 py-2 text-slate-400 hover:text-slate-300 transition-colors"
           >
             Cancelar
           </button>
