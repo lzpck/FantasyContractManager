@@ -21,8 +21,11 @@ export default function PositionDistributionChart({ players }: PositionDistribut
     DEF: '#6B7280', // Gray
   };
 
+  // Filtrar jogadores que têm contratos válidos
+  const playersWithValidContracts = players.filter(p => p.contract && p.contract.currentSalary);
+
   // Agrupar dados por posição
-  const positionData = players.reduce(
+  const positionData = playersWithValidContracts.reduce(
     (acc, playerWithContract) => {
       const position = playerWithContract.player.position;
       const salary = playerWithContract.contract.currentSalary;
@@ -54,13 +57,15 @@ export default function PositionDistributionChart({ players }: PositionDistribut
   );
 
   // Converter para array e ordenar por total de salário
+  const totalSalarySum = playersWithValidContracts.reduce(
+    (sum, p) => sum + p.contract.currentSalary,
+    0,
+  );
   const chartData = Object.values(positionData)
     .map(data => ({
       ...data,
-      percentage: (
-        (data.totalSalary / players.reduce((sum, p) => sum + p.contract.currentSalary, 0)) *
-        100
-      ).toFixed(1),
+      percentage:
+        totalSalarySum > 0 ? ((data.totalSalary / totalSalarySum) * 100).toFixed(1) : '0.0',
     }))
     .sort((a, b) => b.totalSalary - a.totalSalary);
 
@@ -89,11 +94,11 @@ export default function PositionDistributionChart({ players }: PositionDistribut
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900">{data.position}</p>
-          <p className="text-sm text-gray-600">{data.count} jogador(es)</p>
-          <p className="text-sm text-gray-600">{formatCurrency(data.totalSalary)} total</p>
-          <p className="text-sm text-gray-600">{data.percentage}% do cap</p>
+        <div className="bg-slate-800 p-3 border border-slate-700 rounded-xl shadow-xl">
+          <p className="font-medium text-slate-100">{data.position}</p>
+          <p className="text-sm text-slate-400">{data.count} jogador(es)</p>
+          <p className="text-sm text-slate-400">{formatCurrency(data.totalSalary)} total</p>
+          <p className="text-sm text-slate-400">{data.percentage}% do cap</p>
         </div>
       );
     }
@@ -106,7 +111,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
       {payload?.map((entry, index: number) => (
         <div key={index} className="flex items-center space-x-2">
           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-slate-400">
             {entry.value} ({chartData.find(d => d.position === entry.value)?.count})
           </span>
         </div>
@@ -114,14 +119,18 @@ export default function PositionDistributionChart({ players }: PositionDistribut
     </div>
   );
 
-  if (players.length === 0) {
+  if (players.length === 0 || playersWithValidContracts.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Distribuição por Posição</h3>
+      <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-6">
+        <h3 className="text-lg font-medium text-slate-100 mb-4">Distribuição por Posição</h3>
         <div className="flex items-center justify-center h-64">
-          <div className="text-center text-gray-500">
+          <div className="text-center text-slate-400">
             <p className="text-lg font-medium mb-2">Nenhum dado disponível</p>
-            <p className="text-sm">Adicione jogadores para ver a distribuição por posição.</p>
+            <p className="text-sm">
+              {players.length === 0
+                ? 'Carregue os jogadores para ver a distribuição por posição.'
+                : 'Nenhum jogador possui contrato válido.'}
+            </p>
           </div>
         </div>
       </div>
@@ -129,8 +138,8 @@ export default function PositionDistributionChart({ players }: PositionDistribut
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Distribuição por Posição</h3>
+    <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-6">
+      <h3 className="text-lg font-medium text-slate-100 mb-4">Distribuição por Posição</h3>
 
       {/* Gráfico */}
       <div className="h-64">

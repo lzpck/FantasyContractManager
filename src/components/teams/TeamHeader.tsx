@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeftIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Team, League, PlayerWithContract } from '@/types';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatCapUsage, getCurrencyClasses } from '@/utils/formatUtils';
@@ -9,10 +9,10 @@ interface TeamHeaderProps {
   team: Team;
   league: League;
   players: PlayerWithContract[];
-  onAddPlayer: () => void;
+  onBack?: () => void;
 }
 
-export default function TeamHeader({ team, league, players, onAddPlayer }: TeamHeaderProps) {
+export default function TeamHeader({ team, league, players, onBack }: TeamHeaderProps) {
   const router = useRouter();
 
   // Calcula estatísticas do time
@@ -49,13 +49,6 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
             </p>
           </div>
         </div>
-        <button
-          onClick={onAddPlayer}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Adicionar Jogador
-        </button>
       </div>
 
       {/* Informações Principais */}
