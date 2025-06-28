@@ -150,6 +150,39 @@ export async function fetchSleeperLeague(leagueId: string): Promise<SleeperLeagu
 }
 
 /**
+ * Busca informações de uma liga específica do Sleeper
+ */
+export async function getSleeperLeague(leagueId: string): Promise<SleeperLeague | null> {
+  try {
+    const response = await fetch(`https://api.sleeper.app/v1/league/${leagueId}`);
+
+    if (!response.ok) {
+      console.error('Erro ao buscar liga do Sleeper:', response.status);
+      return null;
+    }
+
+    const league: SleeperLeague = await response.json();
+    return league;
+  } catch (error) {
+    console.error('Erro ao buscar liga do Sleeper:', error);
+    return null;
+  }
+}
+
+/**
+ * Busca o status de uma liga específica do Sleeper
+ */
+export async function getSleeperLeagueStatus(leagueId: string): Promise<string | null> {
+  try {
+    const league = await getSleeperLeague(leagueId);
+    return league?.status || null;
+  } catch (error) {
+    console.error('Erro ao buscar status da liga do Sleeper:', error);
+    return null;
+  }
+}
+
+/**
  * Busca rosters de uma liga específica na Sleeper API
  */
 export async function fetchSleeperRosters(leagueId: string): Promise<SleeperRoster[]> {
