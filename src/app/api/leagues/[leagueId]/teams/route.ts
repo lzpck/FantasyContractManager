@@ -4,7 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { isDemoUser } from '@/data/demoData';
 
-export async function GET(request: NextRequest, { params }: { params: { leagueId: string } }) {
+export async function GET(request: NextRequest, context: { params: { leagueId: string } }) {
+  const { leagueId } = context.params;
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
@@ -15,8 +16,6 @@ export async function GET(request: NextRequest, { params }: { params: { leagueId
     if (isDemoUser(userEmail)) {
       return NextResponse.json({ teams: [], message: 'Dados demo gerenciados no frontend' });
     }
-
-    const { leagueId } = params;
 
     const teams = await prisma.team.findMany({
       where: { leagueId },
