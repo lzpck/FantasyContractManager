@@ -67,3 +67,39 @@ export interface Player {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export enum ContractStatus {
+  ACTIVE = 'active',
+  EXPIRED = 'expired',
+  TAGGED = 'tagged',
+  EXTENDED = 'extended',
+  CUT = 'cut',
+}
+
+export enum AcquisitionType {
+  AUCTION = 'auction',
+  FAAB = 'faab',
+  ROOKIE_DRAFT = 'rookie_draft',
+  TRADE = 'trade',
+  UNDISPUTED = 'undisputed',
+}
+
+export interface Contract {
+  id: string;
+  playerId: string;
+  teamId: string;
+  leagueId: string;
+  currentSalary: number;
+  originalSalary: number;
+  yearsRemaining: number;
+  originalYears: number;
+  status: ContractStatus;
+  acquisitionType: AcquisitionType;
+  signedSeason: number;
+  hasBeenTagged: boolean;
+  hasBeenExtended: boolean;
+  hasFourthYearOption: boolean;
+  fourthYearOptionActivated: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}

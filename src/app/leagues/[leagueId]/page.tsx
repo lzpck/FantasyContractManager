@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
 import { League, TeamFinancialSummary, Team } from '@/types';
-import { createMockLeagueWithTeams, createMockTeamFinancialSummary } from '@/types/mocks';
+import { useTeams } from '@/hooks/useTeams';
 import LeagueHeader from '@/components/leagues/LeagueHeader';
 import TeamsTable from '@/components/leagues/TeamsTable';
 import { SyncButton } from '@/components/leagues/SyncButton';
@@ -32,51 +32,45 @@ export default function LeagueDetailsPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filterText, setFilterText] = useState('');
 
-  // Carregar dados da liga
+  const { teams, loading: teamsLoading } = useTeams(leagueId);
+
+  // Buscar liga no contexto global
   useEffect(() => {
-    const loadLeagueData = () => {
-      setLoading(true);
-
-      // Buscar liga no contexto global
-      const foundLeague = state.leagues.find(l => l.id === leagueId);
-
-      if (!foundLeague) {
-        // Se não encontrar, gerar dados mock para demonstração
-        const mockData = createMockLeagueWithTeams(12);
-        mockData.league.id = leagueId;
-        mockData.league.name = 'Liga The Bad Place';
-
-        setLeague(mockData.league);
-
-        // Gerar resumos financeiros para cada time
-        const financialSummaries = mockData.teams.map(
-          (team: Team) => createMockTeamFinancialSummary(team, 15), // 15 jogadores por time
-        );
-        setTeamsFinancialSummary(financialSummaries);
-      } else {
-        setLeague(foundLeague);
-
-        // Gerar dados mock de times para a liga encontrada
-        const mockData = createMockLeagueWithTeams(foundLeague.totalTeams);
-        const teamsWithCorrectLeagueId = mockData.teams.map((team: Team) => ({
-          ...team,
-          leagueId: foundLeague.id,
-        }));
-
-        // Teams são usados apenas para gerar os resumos financeiros
-
-        // Gerar resumos financeiros
-        const financialSummaries = teamsWithCorrectLeagueId.map((team: Team) =>
-          createMockTeamFinancialSummary(team, 15),
-        );
-        setTeamsFinancialSummary(financialSummaries);
-      }
-
-      setLoading(false);
-    };
-
-    loadLeagueData();
+    const foundLeague = state.leagues.find(l => l.id === leagueId) || null;
+    setLeague(foundLeague);
   }, [leagueId, state.leagues]);
+
+  // Gerar resumo financeiro com dados reais
+  useEffect(() => {
+    if (!league || teamsLoading) return;
+
+    const summaries = teams.map(team => {
+      const totalSalaries = team.currentSalaryCap ?? 0;
+      const availableCap = league.salaryCap - totalSalaries;
+
+      const formattedTeam: Team = {
+        ...team,
+        abbreviation: team.name.substring(0, 3).toUpperCase(),
+        availableCap,
+        nextSeasonDeadMoney: 0,
+        franchiseTagsUsed: 0,
+      } as Team;
+
+      return {
+        team: formattedTeam,
+        totalSalaries,
+        availableCap,
+        currentDeadMoney: team.currentDeadMoney ?? 0,
+        nextSeasonDeadMoney: 0,
+        projectedNextSeasonCap: availableCap,
+        contractsExpiring: 0,
+        playersWithContracts: [],
+      } as TeamFinancialSummary;
+    });
+
+    setTeamsFinancialSummary(summaries);
+    setLoading(false);
+  }, [league, teams, teamsLoading]);
 
   // Aplicar filtros e ordenação
   useEffect(() => {
@@ -150,9 +144,25 @@ export default function LeagueDetailsPage() {
 
         // Atualizar resumos financeiros com os novos times
         if (data.league.teams) {
-          const updatedFinancialSummaries = data.league.teams.map((team: Team) =>
-            createMockTeamFinancialSummary(team, 15),
-          );
+          const updatedFinancialSummaries = data.league.teams.map((team: Team) => {
+            const totalSalaries = team.currentSalaryCap ?? 0;
+            const availableCap = data.league.salaryCap - totalSalaries;
+
+            return {
+              team: {
+                ...team,
+                abbreviation: team.name.substring(0, 3).toUpperCase(),
+                availableCap,
+              } as Team,
+              totalSalaries,
+              availableCap,
+              currentDeadMoney: team.currentDeadMoney ?? 0,
+              nextSeasonDeadMoney: 0,
+              projectedNextSeasonCap: availableCap,
+              contractsExpiring: 0,
+              playersWithContracts: [],
+            } as TeamFinancialSummary;
+          });
           setTeamsFinancialSummary(updatedFinancialSummaries);
         }
 
