@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAppContext } from '@/contexts/AppContext';
 import { League, TeamFinancialSummary, Team } from '@/types';
-import { createMockLeagueWithTeams, createMockTeamFinancialSummary } from '@/types/mocks';
+import { useTeams } from '@/hooks/useTeams';
+import { useLeague } from '@/hooks/useLeagues';
 import LeagueHeader from '@/components/leagues/LeagueHeader';
 import TeamsTable from '@/components/leagues/TeamsTable';
 import { SyncButton } from '@/components/leagues/SyncButton';
@@ -20,8 +20,8 @@ import { Sidebar } from '@/components/layout/Sidebar';
 export default function LeagueDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { state } = useAppContext();
   const leagueId = params.leagueId as string;
+  const { league: fetchedLeague, loading: leagueLoading } = useLeague(leagueId);
 
   // Estados locais
   const [league, setLeague] = useState<League | null>(null);
@@ -32,51 +32,53 @@ export default function LeagueDetailsPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filterText, setFilterText] = useState('');
 
-  // Carregar dados da liga
+  const { teams, loading: teamsLoading } = useTeams(leagueId);
+
+  // Definir liga quando carregada
   useEffect(() => {
-    const loadLeagueData = () => {
-      setLoading(true);
+    if (!leagueLoading) {
+      setLeague(fetchedLeague || null);
+    }
+  }, [fetchedLeague, leagueLoading]);
 
-      // Buscar liga no contexto global
-      const foundLeague = state.leagues.find(l => l.id === leagueId);
+  // Gerar resumo financeiro com dados reais
+  useEffect(() => {
+    if (leagueLoading || teamsLoading || !league) return;
 
-      if (!foundLeague) {
-        // Se não encontrar, gerar dados mock para demonstração
-        const mockData = createMockLeagueWithTeams(12);
-        mockData.league.id = leagueId;
-        mockData.league.name = 'Liga The Bad Place';
+    const summaries = teams.map(team => {
+      const totalSalaries = team.currentSalaryCap ?? 0;
+      const availableCap = league.salaryCap - totalSalaries;
 
-        setLeague(mockData.league);
+      const formattedTeam: Team = {
+        ...team,
+        abbreviation: team.name.substring(0, 3).toUpperCase(),
+        availableCap,
+        nextSeasonDeadMoney: 0,
+        franchiseTagsUsed: 0,
+      } as Team;
 
-        // Gerar resumos financeiros para cada time
-        const financialSummaries = mockData.teams.map(
-          (team: Team) => createMockTeamFinancialSummary(team, 15), // 15 jogadores por time
-        );
-        setTeamsFinancialSummary(financialSummaries);
-      } else {
-        setLeague(foundLeague);
+      return {
+        team: formattedTeam,
+        totalSalaries,
+        availableCap,
+        currentDeadMoney: team.currentDeadMoney ?? 0,
+        nextSeasonDeadMoney: 0,
+        projectedNextSeasonCap: availableCap,
+        contractsExpiring: 0,
+        playersWithContracts: [],
+      } as TeamFinancialSummary;
+    });
 
-        // Gerar dados mock de times para a liga encontrada
-        const mockData = createMockLeagueWithTeams(foundLeague.totalTeams);
-        const teamsWithCorrectLeagueId = mockData.teams.map((team: Team) => ({
-          ...team,
-          leagueId: foundLeague.id,
-        }));
+    setTeamsFinancialSummary(summaries);
+    setLoading(false);
+  }, [league, teams, teamsLoading, leagueLoading]);
 
-        // Teams são usados apenas para gerar os resumos financeiros
-
-        // Gerar resumos financeiros
-        const financialSummaries = teamsWithCorrectLeagueId.map((team: Team) =>
-          createMockTeamFinancialSummary(team, 15),
-        );
-        setTeamsFinancialSummary(financialSummaries);
-      }
-
+  // Finalizar carregamento quando dados foram buscados
+  useEffect(() => {
+    if (!leagueLoading && !teamsLoading && !league) {
       setLoading(false);
-    };
-
-    loadLeagueData();
-  }, [leagueId, state.leagues]);
+    }
+  }, [leagueLoading, teamsLoading, league]);
 
   // Aplicar filtros e ordenação
   useEffect(() => {
@@ -150,9 +152,25 @@ export default function LeagueDetailsPage() {
 
         // Atualizar resumos financeiros com os novos times
         if (data.league.teams) {
-          const updatedFinancialSummaries = data.league.teams.map((team: Team) =>
-            createMockTeamFinancialSummary(team, 15),
-          );
+          const updatedFinancialSummaries = data.league.teams.map((team: Team) => {
+            const totalSalaries = team.currentSalaryCap ?? 0;
+            const availableCap = data.league.salaryCap - totalSalaries;
+
+            return {
+              team: {
+                ...team,
+                abbreviation: team.name.substring(0, 3).toUpperCase(),
+                availableCap,
+              } as Team,
+              totalSalaries,
+              availableCap,
+              currentDeadMoney: team.currentDeadMoney ?? 0,
+              nextSeasonDeadMoney: 0,
+              projectedNextSeasonCap: availableCap,
+              contractsExpiring: 0,
+              playersWithContracts: [],
+            } as TeamFinancialSummary;
+          });
           setTeamsFinancialSummary(updatedFinancialSummaries);
         }
 
