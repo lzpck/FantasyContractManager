@@ -191,13 +191,13 @@ export default function LeagueDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Sidebar />
         <div className="lg:pl-64">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando dados da liga...</p>
+              <p className="text-gray-600 dark:text-gray-400">Carregando dados da liga...</p>
             </div>
           </div>
         </div>
@@ -207,14 +207,16 @@ export default function LeagueDetailsPage() {
 
   if (!league) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Sidebar />
         <div className="lg:pl-64">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="text-4xl mb-4">❌</div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Liga não encontrada</h2>
-              <p className="text-gray-600 mb-4">A liga solicitada não foi encontrada.</p>
+              <h2 className="text-xl font-semibold text-foreground mb-2">Liga não encontrada</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                A liga solicitada não foi encontrada.
+              </p>
               <button
                 onClick={() => router.push('/dashboard')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -229,7 +231,7 @@ export default function LeagueDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Sidebar />
 
       <div className="lg:pl-64">
@@ -261,7 +263,7 @@ export default function LeagueDetailsPage() {
           />
 
           {/* Tabela de times */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <TeamsTable teams={filteredTeams} onTeamClick={handleTeamClick} />
           </div>
         </div>

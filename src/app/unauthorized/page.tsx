@@ -11,12 +11,12 @@ export default function UnauthorizedPage() {
   const { user, isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 text-center">
         <div>
           <ExclamationTriangleIcon className="mx-auto h-16 w-16 text-red-500" />
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Acesso Negado</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="mt-6 text-3xl font-extrabold text-foreground">Acesso Negado</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {isAuthenticated
               ? 'Você não tem permissão para acessar esta página.'
               : 'Você precisa fazer login para acessar esta página.'}

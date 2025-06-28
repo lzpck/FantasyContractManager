@@ -114,12 +114,12 @@ export default function PlayersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Sidebar />
       <div className="lg:pl-64">
         <div className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Jogadores</h1>
+            <h1 className="text-2xl font-bold text-foreground">Jogadores</h1>
             {canImportLeague && (
               <button
                 onClick={handleImport}
@@ -147,7 +147,7 @@ export default function PlayersPage() {
           )}
 
           {/* Barra de Filtros */}
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               {/* Busca por texto */}
               <div>
@@ -273,7 +273,7 @@ export default function PlayersPage() {
 
               {/* Paginação */}
               {totalPages > 1 && (
-                <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6 rounded-lg shadow-sm">
+                <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6 mt-6 rounded-lg shadow-sm">
                   <div className="flex-1 flex justify-between sm:hidden">
                     <button
                       onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
