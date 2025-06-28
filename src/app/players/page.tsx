@@ -6,25 +6,36 @@ import { useAuth } from '@/hooks/useAuth';
 import { PlayersTable } from '@/components/players/PlayersTable';
 import { Sidebar } from '@/components/layout/Sidebar';
 
+export interface ImportProgress {
+  step: 'fetching' | 'saving' | 'complete';
+  message: string;
+  progress: number;
+}
+
 export default function PlayersPage() {
   const { players, loading, refreshPlayers } = usePlayers();
   const { canImportLeague } = useAuth();
   const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
 
   const handleImport = async () => {
     setImporting(true);
+    setImportProgress({ step: 'fetching', message: 'Buscando jogadores...', progress: 0 });
     try {
       const res = await fetch('/api/players/import', { method: 'POST' });
+      setImportProgress({ step: 'saving', message: 'Salvando jogadores...', progress: 50 });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || 'Erro ao importar jogadores');
       }
       refreshPlayers();
+      setImportProgress({ step: 'complete', message: 'Importação concluída', progress: 100 });
       alert(data.success ? `Importados ${data.imported} jogadores` : data.error);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao importar jogadores');
     } finally {
       setImporting(false);
+      setTimeout(() => setImportProgress(null), 500);
     }
   };
 
@@ -45,6 +56,20 @@ export default function PlayersPage() {
               </button>
             )}
           </div>
+          {importProgress && (
+            <div className="mb-6">
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>{importProgress.message}</span>
+                <span>{importProgress.progress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${importProgress.progress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
           {loading ? (
             <div className="text-center">Carregando...</div>
           ) : (
