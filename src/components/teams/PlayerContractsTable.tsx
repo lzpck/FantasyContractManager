@@ -101,7 +101,7 @@ export function PlayerContractsTable({
     children: React.ReactNode;
   }) => (
     <th
-      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
       onClick={() => onSortChange(field)}
     >
       <div className="flex items-center space-x-1">
@@ -117,9 +117,9 @@ export function PlayerContractsTable({
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
       {/* Filtros */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
@@ -131,7 +131,7 @@ export function PlayerContractsTable({
               placeholder="Nome do jogador ou time NFL..."
               value={filterText}
               onChange={e => onFilterTextChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
           <div className="sm:w-48">
@@ -142,7 +142,7 @@ export function PlayerContractsTable({
               id="position"
               value={filterPosition}
               onChange={e => onFilterPositionChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="all">Todas as Posições</option>
               {uniquePositions.map(position => (
@@ -175,8 +175,8 @@ export function PlayerContractsTable({
 
       {/* Tabela */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
               <SortableHeader field="name">Jogador</SortableHeader>
               <SortableHeader field="position">Posição</SortableHeader>
@@ -196,7 +196,7 @@ export function PlayerContractsTable({
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             {players.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-6 py-12 text-center">
@@ -221,7 +221,7 @@ export function PlayerContractsTable({
                 const statusText = getContractStatusText(contract.status, contract.yearsRemaining);
 
                 return (
-                  <tr key={player.id} className="hover:bg-gray-50">
+                  <tr key={player.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{player.name}</div>

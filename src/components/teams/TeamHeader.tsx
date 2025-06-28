@@ -30,7 +30,7 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
   const capInfo = formatCapUsage(totalSalaries + team.currentDeadMoney, league.salaryCap);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
       {/* Navegação e Título */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
@@ -61,13 +61,13 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
       {/* Informações Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Salary Cap */}
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Salary Cap Total</h3>
           <p className="text-2xl font-bold text-gray-900">{formatCurrency(league.salaryCap)}</p>
         </div>
 
         {/* Cap Usado */}
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Cap Usado</h3>
           <p className={`text-2xl font-bold ${capInfo.statusClass}`}>{capInfo.formattedUsed}</p>
           <p className="text-sm font-medium text-gray-500">
@@ -76,7 +76,7 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
         </div>
 
         {/* Cap Disponível */}
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Cap Disponível</h3>
           <p className={`text-2xl font-bold ${getCurrencyClasses(availableCap)}`}>
             {formatCurrency(availableCap)}
@@ -84,7 +84,7 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
         </div>
 
         {/* Dead Money */}
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Dead Money</h3>
           <p className="text-2xl font-bold text-gray-900">
             {formatCurrency(team.currentDeadMoney)}

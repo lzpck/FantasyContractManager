@@ -55,7 +55,7 @@ export function SalaryCapChart({ leagues }: SalaryCapChartProps) {
   }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
           <p className="font-semibold text-gray-900">{label}</p>
           <p className="text-blue-600">
             <span className="inline-block w-3 h-3 bg-blue-500 rounded mr-2"></span>

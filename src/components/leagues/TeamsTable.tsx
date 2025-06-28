@@ -42,8 +42,8 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Time
@@ -68,14 +68,14 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
           {teams.map(teamSummary => {
             const capUsagePercentage = parseFloat(getCapUsagePercentage(teamSummary.totalSalaries));
 
             return (
               <tr
                 key={teamSummary.team.id}
-                className="hover:bg-gray-50 transition-colors cursor-pointer"
+                className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                 onClick={() => onTeamClick(teamSummary.team.id)}
               >
                 {/* Time */}
@@ -172,8 +172,8 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
       </table>
 
       {/* Resumo da tabela */}
-      <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm text-gray-600">
+      <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
           <span>Total de {teams.length} times</span>
           <div className="flex space-x-6">
             <span>
