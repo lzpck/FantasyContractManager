@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types/database';
 import { CreateUserForm } from '@/components/admin/CreateUserForm';
@@ -44,7 +44,6 @@ interface SortOptions {
 export default function AdminPage() {
   const { canManageUsers } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -83,60 +82,18 @@ export default function AdminPage() {
   };
 
   // Função para filtrar usuários
-  const handleSearch = useCallback(
-    (term: string) => {
-      setSearchTerm(term);
-      setCurrentPage(1); // Volta para a primeira página ao pesquisar
-
-      if (!term.trim()) {
-        setFilteredUsers(users);
-        return;
-      }
-
-      const filtered = users.filter(
-        user =>
-          user.name.toLowerCase().includes(term.toLowerCase()) ||
-          user.email.toLowerCase().includes(term.toLowerCase()),
-      );
-
-      setFilteredUsers(filtered);
-    },
-    [users],
-  );
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1); // Volta para a primeira página ao pesquisar
+  };
 
   // Função para ordenar usuários
-  const handleSort = useCallback(
-    (field: SortField) => {
-      const newDirection =
-        sortOptions.field === field && sortOptions.direction === 'asc' ? 'desc' : 'asc';
+  const handleSort = (field: SortField) => {
+    const newDirection =
+      sortOptions.field === field && sortOptions.direction === 'asc' ? 'desc' : 'asc';
 
-      const newSortOptions = { field, direction: newDirection };
-      setSortOptions(newSortOptions);
-
-      const sorted = [...filteredUsers].sort((a, b) => {
-        if (field === 'createdAt') {
-          return newDirection === 'asc'
-            ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-            : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }
-
-        if (field === 'role') {
-          const roleOrder = { [UserRole.ADMIN]: 1, [UserRole.COMMISSIONER]: 2, [UserRole.USER]: 3 };
-          return newDirection === 'asc'
-            ? roleOrder[a.role] - roleOrder[b.role]
-            : roleOrder[b.role] - roleOrder[a.role];
-        }
-
-        const valueA = String(a[field]).toLowerCase();
-        const valueB = String(b[field]).toLowerCase();
-
-        return newDirection === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
-      });
-
-      setFilteredUsers(sorted);
-    },
-    [filteredUsers, sortOptions.field, sortOptions.direction],
-  );
+    setSortOptions({ field, direction: newDirection });
+  };
 
   // Função para mudar de página
   const handlePageChange = (page: number) => {
@@ -149,17 +106,50 @@ export default function AdminPage() {
     }
   }, [canManageUsers]);
 
-  // Efeito para aplicar filtragem quando os usuários ou o termo de pesquisa mudarem
-  useEffect(() => {
-    handleSearch(searchTerm);
-  }, [users, handleSearch, searchTerm]);
-
-  // Efeito para aplicar ordenação quando os usuários filtrados mudarem
-  useEffect(() => {
-    if (filteredUsers.length > 0) {
-      handleSort(sortOptions.field);
+  // Calcular usuários filtrados e ordenados usando useMemo
+  const filteredUsers = useMemo(() => {
+    // Primeiro filtrar
+    let filtered = users;
+    if (searchTerm.trim()) {
+      filtered = users.filter(
+        user =>
+          user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
     }
-  }, [sortOptions.field, sortOptions.direction, filteredUsers.length, handleSort]);
+
+    // Depois ordenar
+    if (filtered.length > 0) {
+      const { field, direction } = sortOptions;
+
+      filtered = [...filtered].sort((a, b) => {
+        if (field === 'createdAt') {
+          return direction === 'asc'
+            ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+
+        if (field === 'role') {
+          const roleOrder = { [UserRole.ADMIN]: 1, [UserRole.COMMISSIONER]: 2, [UserRole.USER]: 3 };
+          return direction === 'asc'
+            ? roleOrder[a.role] - roleOrder[b.role]
+            : roleOrder[b.role] - roleOrder[a.role];
+        }
+
+        const valueA = String(a[field]).toLowerCase();
+        const valueB = String(b[field]).toLowerCase();
+
+        return direction === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+      });
+    }
+
+    return filtered;
+  }, [users, searchTerm, sortOptions]);
+
+  // Efeito para resetar página quando filtros mudarem
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortOptions]);
 
   // Atualizar usuário
   const handleUpdateUser = async (userId: string, updates: Partial<User>) => {
