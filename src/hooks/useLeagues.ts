@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useAppContext } from '@/contexts/AppContext';
-import { League } from '@/types';
+import { League, LeagueSettings } from '@/types';
 import { getDemoLeagues } from '@/data/demoData';
 
 /**
@@ -37,8 +37,31 @@ export function useLeagues() {
           }
 
           const data = await response.json();
-          setLeagues(data.leagues || []);
-          setGlobalLeagues(data.leagues || []);
+          const apiLeagues = data.leagues || [];
+
+          // Converter para o formato utilizado no frontend
+          const transformed: League[] = apiLeagues.map((l: any) => {
+            const settings: LeagueSettings = {
+              maxFranchiseTags: l.maxFranchiseTags,
+              annualIncreasePercentage: l.annualIncreasePercentage,
+              minimumSalary: l.minimumSalary,
+              seasonTurnoverDate: l.seasonTurnoverDate,
+              rookieDraft: {
+                rounds: l.settings?.rookieDraft?.rounds ?? 3,
+                firstRoundFourthYearOption:
+                  l.settings?.rookieDraft?.firstRoundFourthYearOption ?? true,
+                salaryTable: l.settings?.rookieDraft?.salaryTable ?? [],
+              },
+            };
+
+            return {
+              ...l,
+              settings,
+            } as League;
+          });
+
+          setLeagues(transformed);
+          setGlobalLeagues(transformed);
         }
       } catch (err) {
         console.error('Erro ao carregar ligas:', err);
