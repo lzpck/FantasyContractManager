@@ -59,6 +59,7 @@ export interface Player {
   id: string;
   name: string;
   position: string;
+  fantasyPositions: string;
   team?: string | null;
   age?: number | null;
   sleeperPlayerId: string;

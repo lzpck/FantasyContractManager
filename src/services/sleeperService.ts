@@ -8,7 +8,7 @@
  * - Sincronizar dados de ligas existentes
  */
 
-import { League, Team, Player, LeagueSettings, PlayerPosition } from '@/types';
+import { League, Team, Player, LeagueSettings, PlayerPosition, TeamRoster } from '@/types';
 import { LeagueStatus } from '@/types/database';
 
 // ============================================================================
@@ -24,6 +24,8 @@ export interface SleeperLeague {
   season: string;
   status: string;
   sport: string;
+  /** Quantidade de times na liga */
+  num_teams?: number;
   settings: {
     max_keepers?: number;
     trade_deadline?: number;
@@ -337,8 +339,10 @@ export function transformSleeperLeagueToLocal(
   return {
     name: sleeperLeague.name,
     season: parseInt(sleeperLeague.season),
-    salaryCap: sleeperLeague.settings.salary_cap || 279.0, // Valor padrão em milhões
-    totalTeams: sleeperLeague.total_rosters,
+    // Valor padrão de salary cap, configurável posteriormente
+    salaryCap: 279.0,
+    totalTeams:
+      sleeperLeague.num_teams ?? sleeperLeague.settings.num_teams ?? sleeperLeague.total_rosters,
     status: mapSleeperStatusToLocal(sleeperLeague.status),
     sleeperLeagueId: sleeperLeague.league_id,
     commissionerId,
@@ -361,12 +365,15 @@ export function transformSleeperRostersToTeams(
 ): Omit<Team, 'id' | 'createdAt' | 'updatedAt'>[] {
   return sleeperRosters.map(roster => {
     const user = sleeperUsers.find(u => u.user_id === roster.owner_id);
-    const teamName = user?.metadata?.team_name || user?.display_name || `Time ${roster.roster_id}`;
+    const teamName =
+      user?.metadata?.team_name || `Time sem nome (${user?.display_name || roster.roster_id})`;
 
     return {
       name: teamName,
       leagueId,
-      ownerId: roster.owner_id, // Será mapeado para o usuário local posteriormente
+      ownerId: roster.owner_id, // placeholder até vincular usuários locais
+      sleeperOwnerId: user?.user_id,
+      ownerDisplayName: user?.display_name,
       sleeperTeamId: roster.roster_id.toString(),
       // Propriedades obrigatórias do tipo Team
       abbreviation: teamName.substring(0, 3).toUpperCase(), // Gera uma abreviação a partir do nome
@@ -379,27 +386,51 @@ export function transformSleeperRostersToTeams(
 }
 
 /**
+ * Converte rosters da Sleeper para um formato simplificado contendo
+ * jogadores ativos, em reserva e no taxi squad.
+ */
+export function transformSleeperRosters(sleeperRosters: SleeperRoster[]): TeamRoster[] {
+  return sleeperRosters.map(roster => {
+    const reserve = roster.reserve ?? [];
+    const taxi = roster.taxi ?? [];
+    const activePlayers = (roster.players || []).filter(
+      p => !reserve.includes(p) && !taxi.includes(p),
+    );
+
+    return {
+      sleeperRosterId: roster.roster_id,
+      ownerId: roster.owner_id,
+      players: activePlayers,
+      reserve,
+      taxi,
+    };
+  });
+}
+
+/**
  * Transforma dados de jogadores da Sleeper para o modelo local
  */
 export function transformSleeperPlayersToLocal(
   sleeperPlayers: Record<string, SleeperPlayer>,
-  rosterPlayers: string[],
+  allowedPositions: string[],
 ): Omit<Player, 'id' | 'createdAt' | 'updatedAt'>[] {
-  return rosterPlayers
-    .map(playerId => {
-      const sleeperPlayer = sleeperPlayers[playerId];
-      if (!sleeperPlayer) return null;
+  return Object.values(sleeperPlayers)
+    .filter(p => p.fantasy_positions?.some(pos => allowedPositions.includes(pos)))
+    .map(p => {
+      const fantasyPositions = (p.fantasy_positions || [])
+        .filter(pos => allowedPositions.includes(pos))
+        .map(pos => mapSleeperPositionToLocal(pos));
 
       return {
-        name: sleeperPlayer.full_name || `${sleeperPlayer.first_name} ${sleeperPlayer.last_name}`,
-        position: mapSleeperPositionToLocal(sleeperPlayer.position),
-        nflTeam: sleeperPlayer.team || 'FA',
-        age: sleeperPlayer.age,
-        sleeperPlayerId: sleeperPlayer.player_id,
-        isActive: sleeperPlayer.status !== 'Inactive',
+        name: p.full_name || `${p.first_name} ${p.last_name}`,
+        position: mapSleeperPositionToLocal(p.position),
+        fantasyPositions,
+        nflTeam: p.team || 'FA',
+        age: p.age,
+        sleeperPlayerId: p.player_id,
+        isActive: p.status !== 'Inactive',
       };
-    })
-    .filter((player): player is NonNullable<typeof player> => player !== null);
+    });
 }
 
 // ============================================================================
@@ -461,18 +492,23 @@ export async function importLeagueFromSleeper(leagueId: string, commissionerId: 
       fetchSleeperPlayers(),
     ]);
 
+    const allowedPositions = sleeperLeague.roster_positions.filter(
+      pos => pos !== 'FLEX' && pos !== 'BN',
+    );
+
     // Transformar dados para o modelo local
     const league = transformSleeperLeagueToLocal(sleeperLeague, commissionerId);
     const teams = transformSleeperRostersToTeams(sleeperRosters, sleeperUsers, leagueId);
+    const rosters = transformSleeperRosters(sleeperRosters);
 
     // Coletar todos os jogadores dos rosters
-    const allPlayerIds = sleeperRosters.flatMap(roster => roster.players || []);
-    const players = transformSleeperPlayersToLocal(sleeperPlayers, allPlayerIds);
+    const players = transformSleeperPlayersToLocal(sleeperPlayers, allowedPositions);
 
     return {
       league,
       teams,
       players,
+      rosters,
       sleeperData: {
         league: sleeperLeague,
         rosters: sleeperRosters,
@@ -522,13 +558,15 @@ export async function syncLeagueWithSleeper(league: League) {
       fetchSleeperPlayers(),
     ]);
 
+    const allowedPositions = sleeperLeague.roster_positions.filter(
+      pos => pos !== 'FLEX' && pos !== 'BN',
+    );
+
     // Transformar dados para o modelo local
     const updatedLeagueData = transformSleeperLeagueToLocal(sleeperLeague, league.commissionerId);
     const updatedTeams = transformSleeperRostersToTeams(sleeperRosters, sleeperUsers, league.id);
 
-    // Coletar todos os jogadores dos rosters
-    const allPlayerIds = sleeperRosters.flatMap(roster => roster.players || []);
-    const updatedPlayers = transformSleeperPlayersToLocal(sleeperPlayers, allPlayerIds);
+    const updatedPlayers = transformSleeperPlayersToLocal(sleeperPlayers, allowedPositions);
 
     return {
       league: {

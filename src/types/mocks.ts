@@ -279,6 +279,7 @@ export function createMockPlayer(overrides: Partial<Player> = {}): Player {
     sleeperPlayerId: `sleeper-${Math.random().toString(36).substr(2, 9)}`,
     name: 'Jogador Exemplo',
     position: randomPosition,
+    fantasyPositions: [randomPosition],
     nflTeam: 'KC',
     jerseyNumber: Math.floor(Math.random() * 99) + 1,
     isActive: true,
