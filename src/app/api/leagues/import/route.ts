@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { UserRole, LeagueStatus } from '@/types/database';
 import { prisma } from '@/lib/prisma';
 import { importLeagueFromSleeper, validateSleeperLeagueId } from '@/services/sleeperService';
-import { League } from '@/types';
+import { League, TeamRoster } from '@/types';
 
 // ============================================================================
 // TIPOS E INTERFACES
@@ -13,6 +13,7 @@ import { League } from '@/types';
 export interface ImportResult {
   success: boolean;
   league?: League;
+  rosters?: TeamRoster[];
   message: string;
   details?: {
     teamsImported: number;
@@ -82,7 +83,10 @@ async function importLeague(leagueId: string, commissionerId: string): Promise<I
           data: {
             name: team.name,
             leagueId: createdLeague.id,
-            ownerId: commissionerId, // Por enquanto, todos os times ficam com o comissário
+            ownerId: commissionerId, // proprietário local temporário
+            sleeperTeamId: team.sleeperTeamId,
+            sleeperOwnerId: team.sleeperOwnerId,
+            ownerDisplayName: team.ownerDisplayName,
           },
         }),
       ),
@@ -129,6 +133,7 @@ async function importLeague(leagueId: string, commissionerId: string): Promise<I
     return {
       success: true,
       league: leagueWithSettings,
+      rosters: importedData.rosters,
       message: `Liga "${createdLeague.name}" importada com sucesso!`,
       details: {
         teamsImported: createdTeams.length,

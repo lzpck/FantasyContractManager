@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/Toast';
-import { League } from '@/types';
+import { League, TeamRoster } from '@/types';
 
 // ============================================================================
 // TIPOS E INTERFACES
@@ -19,6 +19,7 @@ export interface ImportProgress {
 export interface ImportResult {
   success: boolean;
   league?: League;
+  rosters?: TeamRoster[];
   message: string;
   details?: {
     teamsImported: number;
