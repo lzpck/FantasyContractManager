@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types/database';
 import { CreateUserForm } from '@/components/admin/CreateUserForm';
