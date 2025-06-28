@@ -44,44 +44,44 @@ export function WelcomeCard() {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl m-6">
+    <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden md:max-w-2xl m-6">
       <div className="md:flex">
         <div className="p-8">
-          <div className="uppercase tracking-wide text-sm text-indigo-500 font-semibold">
+          <div className="uppercase tracking-wide text-sm text-indigo-500 dark:text-indigo-400 font-semibold">
             Fantasy Contract Manager
           </div>
 
-          <h2 className="block mt-1 text-lg leading-tight font-medium text-black">
+          <h2 className="block mt-1 text-lg leading-tight font-medium text-foreground">
             Sistema de Gerenciamento de Contratos
           </h2>
 
           <div className="mt-4">
             {isAuthenticated && authUser ? (
               <div className="space-y-2">
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   <strong>Usuário:</strong> {authUser.name}
                 </p>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   <strong>Email:</strong> {authUser.email}
                 </p>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   <strong>Perfil:</strong> {authUser.role}
                 </p>
               </div>
             ) : (
-              <p className="text-gray-600">Nenhum usuário logado</p>
+              <p className="text-gray-600 dark:text-gray-400">Nenhum usuário logado</p>
             )}
           </div>
 
           <div className="mt-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               <strong>Ligas disponíveis:</strong> {state.leagues.length}
             </p>
 
             {state.leagues.length > 0 && (
               <div className="mt-2 space-y-1">
                 {state.leagues.map(league => (
-                  <div key={league.id} className="text-sm text-gray-500">
+                  <div key={league.id} className="text-sm text-gray-500 dark:text-gray-400">
                     • {league.name} ({league.season}) - Salary Cap: $
                     {(league.salaryCap / 1000000).toFixed(0)}M
                   </div>
