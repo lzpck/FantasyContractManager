@@ -43,8 +43,8 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
     players.forEach(playerWithContract => {
       const contract = playerWithContract.contract;
 
-      // Verificar se o contrato ainda está ativo nesta temporada
-      if (contract.yearsRemaining > year) {
+      // Verificar se o contrato existe e ainda está ativo nesta temporada
+      if (contract && contract.yearsRemaining > year) {
         // Aplicar aumento de 15% por ano
         const projectedSalary = contract.currentSalary * Math.pow(1.15, year);
         totalSalaries += projectedSalary;
@@ -93,29 +93,30 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900 mb-2">{label}</p>
+        <div className="bg-slate-800 p-4 border border-slate-700 rounded-xl shadow-xl">
+          <p className="font-medium text-slate-100 mb-2">{label}</p>
           <div className="space-y-1 text-sm">
-            <p className="text-blue-600">Salários: {formatCurrency(data.totalSalaries)}</p>
+            <p className="text-blue-400">Salários: {formatCurrency(data.totalSalaries)}</p>
             {data.deadMoney > 0 && (
-              <p className="text-red-600">Dead Money: {formatCurrency(data.deadMoney)}</p>
+              <p className="text-red-400">Dead Money: {formatCurrency(data.deadMoney)}</p>
             )}
-            <p className="text-gray-900 font-medium">
+            <p className="text-slate-100 font-medium">
               Total Comprometido: {formatCurrency(data.totalSalaries + data.deadMoney)}
             </p>
             <p
               className={`font-medium ${
-                data.availableCap >= 0 ? 'text-green-600' : 'text-red-600'
+                data.availableCap >= 0 ? 'text-green-400' : 'text-red-400'
               }`}
             >
               Cap Disponível: {formatCurrency(data.availableCap)}
             </p>
-            <p className="text-gray-600">
+            <p className="text-slate-400">
               Uso do Cap:{' '}
               {(((data.totalSalaries + data.deadMoney) / data.totalCap) * 100).toFixed(1)}%
             </p>
-            <p className="text-gray-600">
-              Contratos Ativos: {players.filter(p => p.contract.yearsRemaining > 0).length}
+            <p className="text-slate-400">
+              Contratos Ativos:{' '}
+              {players.filter(p => p.contract && p.contract.yearsRemaining > 0).length}
             </p>
           </div>
         </div>
@@ -124,9 +125,29 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
     return null;
   };
 
+  // Verificar se há jogadores com contratos válidos
+  const playersWithValidContracts = players.filter(p => p.contract && p.contract.currentSalary > 0);
+
+  // Se não há contratos válidos, mostrar mensagem informativa
+  if (playersWithValidContracts.length === 0) {
+    return (
+      <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-6">
+        <h3 className="text-lg font-medium text-slate-100 mb-4">Projeção de Salary Cap</h3>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center text-slate-400">
+            <p className="text-lg font-medium mb-2">Nenhum contrato ativo</p>
+            <p className="text-sm">
+              Adicione contratos aos jogadores para ver as projeções de salary cap.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Projeção de Salary Cap</h3>
+    <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-6">
+      <h3 className="text-lg font-medium text-slate-100 mb-4">Projeção de Salary Cap</h3>
 
       {/* Gráfico */}
       <div className="h-64 mb-6">
