@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeftIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Team, League, PlayerWithContract } from '@/types';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatCapUsage, getCurrencyClasses } from '@/utils/formatUtils';
@@ -9,10 +9,9 @@ interface TeamHeaderProps {
   team: Team;
   league: League;
   players: PlayerWithContract[];
-  onAddPlayer: () => void;
 }
 
-export default function TeamHeader({ team, league, players, onAddPlayer }: TeamHeaderProps) {
+export default function TeamHeader({ team, league, players }: TeamHeaderProps) {
   const router = useRouter();
 
   // Calcula estatísticas do time
@@ -49,13 +48,7 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
             </p>
           </div>
         </div>
-        <button
-          onClick={onAddPlayer}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Adicionar Jogador
-        </button>
+        {/* Botão para adicionar jogador removido conforme novas regras */}
       </div>
 
       {/* Informações Principais */}
@@ -101,7 +94,7 @@ export default function TeamHeader({ team, league, players, onAddPlayer }: TeamH
       <div className="mt-6 pt-6 border-t border-slate-700">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-400">{playersWithContracts.length}</p>
+            <p className="text-2xl font-bold text-blue-400">{players.length}</p>
             <p className="text-sm text-slate-400">Jogadores Contratados</p>
           </div>
           <div className="text-center">

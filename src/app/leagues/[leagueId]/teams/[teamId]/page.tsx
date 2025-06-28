@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAppContext } from '@/contexts/AppContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useTeam } from '@/hooks/useTeams';
+import { useLeague } from '@/hooks/useLeagues';
 import { Team, PlayerWithContract, League } from '@/types';
-import { createMockTeamFinancialSummary, createMockLeagueWithTeams } from '@/types/mocks';
+import { getDemoPlayersWithContracts } from '@/types/mocks';
 import TeamHeader from '@/components/teams/TeamHeader';
 import { PlayerContractsTable } from '@/components/teams/PlayerContractsTable';
 import { CapProjectionChart } from '@/components/teams/CapProjectionChart';
@@ -21,13 +23,14 @@ import { Sidebar } from '@/components/layout/Sidebar';
 export default function TeamDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { state } = useAppContext();
+  const { isDemoUser } = useAuth();
   const leagueId = params.leagueId as string;
   const teamId = params.teamId as string;
 
+  const { team, loading: teamLoading } = useTeam(teamId);
+  const { league, loading: leagueLoading } = useLeague(leagueId);
+
   // Estados locais
-  const [team, setTeam] = useState<Team | null>(null);
-  const [league, setLeague] = useState<League | null>(null);
   const [playersWithContracts, setPlayersWithContracts] = useState<PlayerWithContract[]>([]);
   const [filteredPlayers, setFilteredPlayers] = useState<PlayerWithContract[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,50 +41,32 @@ export default function TeamDetailsPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
   const [showActionsModal, setShowActionsModal] = useState(false);
 
-  // Carregar dados do time
+  // Carregar jogadores do time
   useEffect(() => {
-    const loadTeamData = () => {
+    async function loadPlayers() {
+      if (!team || !league) return;
       setLoading(true);
 
-      // Buscar liga no contexto global
-      let foundLeague = state.leagues.find(l => l.id === leagueId);
-      let foundTeam: Team | null = null;
-
-      if (!foundLeague) {
-        // Se não encontrar, gerar dados mock para demonstração
-        const mockData = createMockLeagueWithTeams(12);
-        mockData.league.id = leagueId;
-        mockData.league.name = 'Liga The Bad Place';
-        foundLeague = mockData.league;
-
-        // Encontrar o time específico
-        foundTeam = mockData.teams.find(t => t.id === teamId) || mockData.teams[0];
-        foundTeam.id = teamId;
-
-        // Gerar jogadores para o time
-        const teamFinancialSummary = createMockTeamFinancialSummary(foundTeam, 20);
-        setPlayersWithContracts(teamFinancialSummary.playersWithContracts);
-      } else {
-        // Buscar time na liga encontrada
-        // Em produção, aqui faria uma busca no banco de dados
-        const mockData = createMockLeagueWithTeams(12);
-        foundTeam = mockData.teams.find(t => t.id === teamId) || mockData.teams[0];
-        foundTeam.id = teamId;
-        foundTeam.leagueId = leagueId;
-
-        const teamFinancialSummary = createMockTeamFinancialSummary(foundTeam, 20);
-        setPlayersWithContracts(teamFinancialSummary.playersWithContracts);
+      if (isDemoUser) {
+        const demoPlayers = getDemoPlayersWithContracts(team.id);
+        setPlayersWithContracts(demoPlayers);
+        setLoading(false);
+        return;
       }
 
-      setLeague(foundLeague || null);
-      setTeam(foundTeam);
-      setLoading(false);
-    };
-
-    if (leagueId && teamId) {
-      loadTeamData();
+      try {
+        // TODO: substituir por chamada real à API quando disponível
+        setPlayersWithContracts([]);
+      } catch (err) {
+        console.error('Erro ao carregar jogadores do time:', err);
+        setPlayersWithContracts([]);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [leagueId, teamId, state.leagues]);
+
+    loadPlayers();
+  }, [team, league, isDemoUser]);
 
   // Aplicar filtros e ordenação
   useEffect(() => {
@@ -155,13 +140,8 @@ export default function TeamDetailsPage() {
     setShowActionsModal(true);
   };
 
-  const handleAddPlayer = () => {
-    // Mock da adição de jogador
-    alert('Funcionalidade de adicionar jogador em desenvolvimento!');
-  };
-
   // Estados de carregamento e erro
-  if (loading) {
+  if (loading || teamLoading || leagueLoading) {
     return (
       <div className="flex h-screen bg-background">
         <Sidebar />
@@ -203,12 +183,7 @@ export default function TeamDetailsPage() {
       <div className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header do Time */}
-          <TeamHeader
-            team={team}
-            league={league}
-            players={playersWithContracts}
-            onAddPlayer={handleAddPlayer}
-          />
+          <TeamHeader team={team} league={league} players={playersWithContracts} />
 
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
