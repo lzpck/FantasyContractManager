@@ -22,12 +22,16 @@ interface PlayerContractsTableProps {
   filterText: string;
   /** Posição filtrada */
   filterPosition: string;
+  /** Status filtrado */
+  filterStatus: string;
   /** Função chamada ao alterar ordenação */
   onSortChange: (field: 'name' | 'position' | 'salary' | 'yearsRemaining') => void;
   /** Função chamada ao alterar filtro de texto */
   onFilterTextChange: (text: string) => void;
   /** Função chamada ao alterar filtro de posição */
   onFilterPositionChange: (position: string) => void;
+  /** Função chamada ao alterar filtro de status */
+  onFilterStatusChange: (status: string) => void;
   /** Função chamada ao executar ação em jogador */
   onPlayerAction: (player: PlayerWithContract, action: string) => void;
 }
@@ -44,9 +48,11 @@ export function PlayerContractsTable({
   sortOrder,
   filterText,
   filterPosition,
+  filterStatus,
   onSortChange,
   onFilterTextChange,
   onFilterPositionChange,
+  onFilterStatusChange,
   onPlayerAction,
 }: PlayerContractsTableProps) {
   // Função para calcular dead money estimado
@@ -80,13 +86,13 @@ export function PlayerContractsTable({
   };
 
   // Função para verificar se jogador é elegível para extensão
-  const isEligibleForExtension = (contract: Contract) => {
-    return contract.yearsRemaining === 1 && !contract.hasBeenExtended;
+  const isEligibleForExtension = (contract: Contract | null) => {
+    return contract && contract.yearsRemaining === 1 && !contract.hasBeenExtended;
   };
 
   // Função para verificar se jogador é elegível para franchise tag
-  const isEligibleForTag = (contract: Contract) => {
-    return contract.yearsRemaining === 1 && !contract.hasBeenTagged;
+  const isEligibleForTag = (contract: Contract | null) => {
+    return contract && contract.yearsRemaining === 1 && !contract.hasBeenTagged;
   };
 
   // Obter posições únicas para o filtro
@@ -152,18 +158,37 @@ export function PlayerContractsTable({
               ))}
             </select>
           </div>
+          <div className="sm:w-48">
+            <label htmlFor="status" className="block text-sm font-medium text-slate-100 mb-2">
+              Filtrar por Status
+            </label>
+            <select
+              id="status"
+              value={filterStatus}
+              onChange={e => onFilterStatusChange(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-800 text-slate-100"
+            >
+              <option value="all">Todos os Status</option>
+              <option value="active">Elenco Ativo</option>
+              <option value="ir">IR (Injured Reserve)</option>
+              <option value="taxi">Taxi Squad</option>
+            </select>
+          </div>
         </div>
-        {(filterText || filterPosition !== 'all') && (
+        {(filterText || filterPosition !== 'all' || filterStatus !== 'all') && (
           <div className="mt-4 flex items-center justify-between">
             <p className="text-sm text-slate-400">
               Mostrando {players.length} jogador(es)
               {filterText && ` com &quot;${filterText}&quot;`}
               {filterPosition !== 'all' && ` na posição ${filterPosition}`}
+              {filterStatus !== 'all' &&
+                ` com status ${filterStatus === 'active' ? 'Ativo' : filterStatus === 'ir' ? 'IR' : 'Taxi Squad'}`}
             </p>
             <button
               onClick={() => {
                 onFilterTextChange('');
                 onFilterPositionChange('all');
+                onFilterStatusChange('all');
               }}
               className="text-sm text-blue-600 hover:text-blue-800"
             >
@@ -213,12 +238,13 @@ export function PlayerContractsTable({
             ) : (
               players.map(playerWithContract => {
                 const { player, contract } = playerWithContract;
-                const deadMoney = calculateDeadMoney(contract);
-                const statusColor = getContractStatusColor(
-                  contract.status,
-                  contract.yearsRemaining,
-                );
-                const statusText = getContractStatusText(contract.status, contract.yearsRemaining);
+                const deadMoney = contract ? calculateDeadMoney(contract) : 0;
+                const statusColor = contract
+                  ? getContractStatusColor(contract.status, contract.yearsRemaining)
+                  : 'bg-gray-100 text-gray-800';
+                const statusText = contract
+                  ? getContractStatusText(contract.status, contract.yearsRemaining)
+                  : 'Sem contrato';
 
                 return (
                   <tr key={player.id} className="hover:bg-slate-700">
@@ -239,10 +265,10 @@ export function PlayerContractsTable({
                       {player.nflTeam}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-100">
-                      {formatCurrency(contract.currentSalary)}
+                      {contract ? formatCurrency(contract.currentSalary) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
-                      {contract.yearsRemaining} ano(s)
+                      {contract ? `${contract.yearsRemaining} ano(s)` : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
@@ -252,7 +278,7 @@ export function PlayerContractsTable({
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
-                      {formatCurrency(deadMoney)}
+                      {contract ? formatCurrency(deadMoney) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
