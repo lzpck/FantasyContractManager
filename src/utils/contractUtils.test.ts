@@ -76,6 +76,8 @@ const billsTeam: Team = {
   id: 'team-bills',
   leagueId: 'league-bad-place',
   ownerId: 'owner-bills',
+  sleeperOwnerId: 'sleeper-owner-bills',
+  ownerDisplayName: 'BillsFan',
   name: 'Buffalo Bills',
   abbreviation: 'BUF',
   availableCap: 45.5,

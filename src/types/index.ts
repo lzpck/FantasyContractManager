@@ -223,6 +223,10 @@ export interface Team {
   leagueId: string;
   /** ID do proprietário (usuário) */
   ownerId: string;
+  /** ID do usuário no Sleeper */
+  sleeperOwnerId?: string;
+  /** Nome de exibição do usuário no Sleeper */
+  ownerDisplayName?: string;
   /** Nome do time */
   name: string;
   /** Abreviação do time (3-4 letras) */
@@ -257,6 +261,8 @@ export interface Player {
   name: string;
   /** Posição do jogador */
   position: PlayerPosition;
+  /** Posições elegíveis no fantasy */
+  fantasyPositions: PlayerPosition[];
   /** Time da NFL */
   nflTeam: string;
   /** Número da camisa */
@@ -503,7 +509,26 @@ export interface SleeperIntegration {
 export interface SleeperRoster {
   rosterId: number;
   ownerId: string;
+  /** Jogadores ativos do roster */
   players: string[];
+  /** Jogadores na lista de machucados/reserva */
+  reserve?: string[];
+  /** Jogadores no taxi squad */
+  taxi?: string[];
+}
+
+/** Roster transformado para uso interno */
+export interface TeamRoster {
+  /** ID do roster na Sleeper */
+  sleeperRosterId: number;
+  /** ID do proprietário (Sleeper user) */
+  ownerId: string;
+  /** Lista de jogadores ativos */
+  players: string[];
+  /** Lista de reservas */
+  reserve: string[];
+  /** Lista de jogadores no taxi squad */
+  taxi: string[];
 }
 
 export interface SleeperPlayer {
