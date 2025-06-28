@@ -57,8 +57,8 @@ export function SalaryCapChart({ leagues }: SalaryCapChartProps) {
       return (
         <div className="bg-slate-800 p-3 border border-slate-700 rounded-xl shadow-xl">
           <p className="font-semibold text-slate-100">{label}</p>
-          <p className="text-blue-600">
-            <span className="inline-block w-3 h-3 bg-blue-500 rounded mr-2"></span>
+          <p className="text-slate-300">
+            <span className="inline-block w-3 h-3 bg-slate-500 rounded mr-2"></span>
             Cap Usado: ${payload[0].value}M
           </p>
           <p className="text-green-600">
@@ -120,7 +120,7 @@ export function SalaryCapChart({ leagues }: SalaryCapChartProps) {
       {/* Legenda personalizada */}
       <div className="flex justify-center mt-4 space-x-6">
         <div className="flex items-center">
-          <div className="w-3 h-3 bg-blue-500 rounded mr-2"></div>
+          <div className="w-3 h-3 bg-slate-500 rounded mr-2"></div>
           <span className="text-sm text-slate-400">Cap Usado</span>
         </div>
         <div className="flex items-center">
