@@ -13,7 +13,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { SummaryCard } from '@/components/dashboard/SummaryCard';
 import { SalaryCapChart } from '@/components/dashboard/SalaryCapChart';
 import { LeaguesList } from '@/components/dashboard/LeaguesList';
-import { Sidebar } from '@/components/layout/Sidebar';
+
 import { getNFLState } from '@/services/nflStateService';
 import {
   TrophyIcon,
@@ -196,11 +196,8 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar de navegação */}
-      <Sidebar />
-
       {/* Conteúdo principal */}
-      <div className="lg:pl-64">
+      <div>
         <div className="px-4 sm:px-6 lg:px-8 py-8">
           {/* Indicador de modo demo */}
           {demoIndicator}

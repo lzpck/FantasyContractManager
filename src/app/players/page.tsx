@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePlayers } from '@/hooks/usePlayers';
 import { useAuth } from '@/hooks/useAuth';
 import { PlayersTable } from '@/components/players/PlayersTable';
-import { Sidebar } from '@/components/layout/Sidebar';
+
 import { Player } from '@/types';
 
 export interface ImportProgress {
@@ -115,8 +115,7 @@ export default function PlayersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className="lg:pl-64">
+      <div>
         <div className="px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-foreground">Jogadores</h1>
