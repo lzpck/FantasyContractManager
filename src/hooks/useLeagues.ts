@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
-import { League } from '@/types';
+import { useAppContext } from '@/contexts/AppContext';
+import { League, LeagueSettings } from '@/types';
 import { getDemoLeagues } from '@/data/demoData';
 
 /**
@@ -11,6 +12,7 @@ import { getDemoLeagues } from '@/data/demoData';
  */
 export function useLeagues() {
   const { isDemoUser } = useAuth();
+  const { setLeagues: setGlobalLeagues } = useAppContext();
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +27,7 @@ export function useLeagues() {
           // Usuário demo: retorna dados fictícios
           const demoLeagues = getDemoLeagues();
           setLeagues(demoLeagues);
+          setGlobalLeagues(demoLeagues);
         } else {
           // Usuários reais: carrega dados da API
           const response = await fetch('/api/leagues');
@@ -34,7 +37,31 @@ export function useLeagues() {
           }
 
           const data = await response.json();
-          setLeagues(data.leagues || []);
+          const apiLeagues = data.leagues || [];
+
+          // Converter para o formato utilizado no frontend
+          const transformed: League[] = apiLeagues.map((l: any) => {
+            const settings: LeagueSettings = {
+              maxFranchiseTags: l.maxFranchiseTags,
+              annualIncreasePercentage: l.annualIncreasePercentage,
+              minimumSalary: l.minimumSalary,
+              seasonTurnoverDate: l.seasonTurnoverDate,
+              rookieDraft: {
+                rounds: l.settings?.rookieDraft?.rounds ?? 3,
+                firstRoundFourthYearOption:
+                  l.settings?.rookieDraft?.firstRoundFourthYearOption ?? true,
+                salaryTable: l.settings?.rookieDraft?.salaryTable ?? [],
+              },
+            };
+
+            return {
+              ...l,
+              settings,
+            } as League;
+          });
+
+          setLeagues(transformed);
+          setGlobalLeagues(transformed);
         }
       } catch (err) {
         console.error('Erro ao carregar ligas:', err);
@@ -53,6 +80,7 @@ export function useLeagues() {
       // Para usuário demo, apenas recarrega os dados fictícios
       const demoLeagues = getDemoLeagues();
       setLeagues(demoLeagues);
+      setGlobalLeagues(demoLeagues);
     } else {
       // Para usuários reais, recarrega da API
       // Implementar lógica de refresh da API aqui

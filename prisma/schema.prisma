@@ -126,8 +126,9 @@ model League {
 
   // Relacionamentos
   commissionerId String
-  commissioner   User   @relation("LeagueCommissioner", fields: [commissionerId], references: [id])
+  commissioner   User       @relation("LeagueCommissioner", fields: [commissionerId], references: [id])
   teams          Team[]
+  contracts      Contract[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -167,8 +168,9 @@ model Team {
   leagueId String
   league   League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
 
-  ownerId String
-  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  owner     User       @relation(fields: [ownerId], references: [id])
+  contracts Contract[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -200,5 +202,58 @@ model Player {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  contracts Contract[]
+
   @@map("players")
+}
+
+/**
+ * Status possíveis de um contrato
+ */
+enum ContractStatus {
+  ACTIVE
+  EXPIRED
+  TAGGED
+  EXTENDED
+  CUT
+}
+
+/**
+ * Forma de aquisição de um jogador
+ */
+enum AcquisitionType {
+  AUCTION
+  FAAB
+  ROOKIE_DRAFT
+  TRADE
+  UNDISPUTED
+}
+
+/**
+ * Contrato atribuído a um jogador
+ */
+model Contract {
+  id                        String          @id @default(cuid())
+  playerId                  String
+  teamId                    String
+  leagueId                  String
+  currentSalary             Float
+  originalSalary            Float
+  yearsRemaining            Int
+  originalYears             Int
+  status                    ContractStatus  @default(ACTIVE)
+  acquisitionType           AcquisitionType
+  signedSeason              Int
+  hasBeenTagged             Boolean         @default(false)
+  hasBeenExtended           Boolean         @default(false)
+  hasFourthYearOption       Boolean         @default(false)
+  fourthYearOptionActivated Boolean         @default(false)
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+
+  player Player @relation(fields: [playerId], references: [id])
+  team   Team   @relation(fields: [teamId], references: [id])
+  league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  @@map("contracts")
 }
