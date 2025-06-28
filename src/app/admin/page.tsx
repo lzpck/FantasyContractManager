@@ -219,9 +219,9 @@ export default function AdminPage() {
       case UserRole.COMMISSIONER:
         return 'bg-blue-50 text-blue-700 dark:bg-blue-800 dark:text-blue-300';
       case UserRole.USER:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
 
@@ -250,7 +250,7 @@ export default function AdminPage() {
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
             Gerenciamento de Usuários
           </h1>
-          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-200">
             Gerencie usuários, permissões e perfis da plataforma.
           </p>
         </div>
@@ -290,12 +290,12 @@ export default function AdminPage() {
         </div>
 
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-700 dark:text-gray-300">
+          <span className="text-sm text-gray-700 dark:text-gray-200">
             {filteredUsers.length} usuários encontrados
           </span>
           <button
             onClick={fetchUsers}
-            className="inline-flex items-center p-2 border border-gray-300 dark:border-gray-700 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="inline-flex items-center p-2 border border-gray-300 dark:border-gray-700 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={isRefreshing}
           >
             <ArrowPathIcon className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -386,7 +386,7 @@ export default function AdminPage() {
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
                               <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
-                                <UserIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+                                <UserIcon className="h-6 w-6 text-gray-600 dark:text-gray-200" />
                               </div>
                             </div>
                             <div className="ml-4">
@@ -490,21 +490,21 @@ export default function AdminPage() {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Anterior
             </button>
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Próximo
             </button>
           </div>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-gray-700 dark:text-gray-300">
+              <p className="text-sm text-gray-700 dark:text-gray-200">
                 Mostrando <span className="font-medium">{indexOfFirstUser + 1}</span> até{' '}
                 <span className="font-medium">
                   {Math.min(indexOfLastUser, filteredUsers.length)}
@@ -599,7 +599,7 @@ export default function AdminPage() {
                 className="space-y-4"
               >
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                     Nome
                   </label>
                   <input
@@ -610,7 +610,7 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                     Email
                   </label>
                   <input
@@ -621,7 +621,7 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                     Perfil
                   </label>
                   <select
@@ -635,7 +635,7 @@ export default function AdminPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                     Status
                   </label>
                   <select
@@ -658,7 +658,7 @@ export default function AdminPage() {
                   <button
                     type="button"
                     onClick={() => setEditingUser(null)}
-                    className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500"
+                    className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
                   >
                     Cancelar
                   </button>

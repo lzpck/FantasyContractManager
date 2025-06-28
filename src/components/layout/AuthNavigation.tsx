@@ -45,7 +45,7 @@ export function AuthNavigation() {
       <div className="relative">
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center space-x-3 text-foreground hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md p-2"
+          className="flex items-center space-x-3 text-foreground hover:text-gray-900 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md p-2"
         >
           <div className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
