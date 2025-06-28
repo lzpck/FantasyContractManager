@@ -54,58 +54,6 @@ export default function AdminPage() {
   const [sortOptions, setSortOptions] = useState<SortOptions>({ field: 'name', direction: 'asc' });
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Configurações de paginação
-  const usersPerPage = 10;
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-
-  // Carregar usuários
-  const fetchUsers = async () => {
-    try {
-      setIsRefreshing(true);
-      const response = await fetch('/api/users');
-      if (!response.ok) {
-        throw new Error('Erro ao carregar usuários');
-      }
-      const data = await response.json();
-      setUsers(data.users);
-      // Inicializa os usuários filtrados com todos os usuários
-      setFilteredUsers(data.users);
-    } catch (error) {
-      setError('Erro ao carregar usuários');
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
-
-  // Função para filtrar usuários
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    setCurrentPage(1); // Volta para a primeira página ao pesquisar
-  };
-
-  // Função para ordenar usuários
-  const handleSort = (field: SortField) => {
-    const newDirection =
-      sortOptions.field === field && sortOptions.direction === 'asc' ? 'desc' : 'asc';
-
-    setSortOptions({ field, direction: newDirection });
-  };
-
-  // Função para mudar de página
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  useEffect(() => {
-    if (canManageUsers) {
-      fetchUsers();
-    }
-  }, [canManageUsers]);
-
   // Calcular usuários filtrados e ordenados usando useMemo
   const filteredUsers = useMemo(() => {
     // Primeiro filtrar
@@ -145,6 +93,56 @@ export default function AdminPage() {
 
     return filtered;
   }, [users, searchTerm, sortOptions]);
+
+  // Configurações de paginação
+  const usersPerPage = 10;
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+  // Carregar usuários
+  const fetchUsers = async () => {
+    try {
+      setIsRefreshing(true);
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        throw new Error('Erro ao carregar usuários');
+      }
+      const data = await response.json();
+      setUsers(data.users);
+    } catch (error) {
+      setError('Erro ao carregar usuários');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  // Função para filtrar usuários
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1); // Volta para a primeira página ao pesquisar
+  };
+
+  // Função para ordenar usuários
+  const handleSort = (field: SortField) => {
+    const newDirection =
+      sortOptions.field === field && sortOptions.direction === 'asc' ? 'desc' : 'asc';
+
+    setSortOptions({ field, direction: newDirection });
+  };
+
+  // Função para mudar de página
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  useEffect(() => {
+    if (canManageUsers) {
+      fetchUsers();
+    }
+  }, [canManageUsers]);
 
   // Efeito para resetar página quando filtros mudarem
   useEffect(() => {
