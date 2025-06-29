@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { Team } from '@/types';
-import { getDemoTeams } from '@/data/demoData';
 
 /**
  * Hook para gerenciar times
  *
- * Para o usuário demo, retorna dados fictícios.
- * Para outros usuários, carrega dados reais da API.
+ * Carrega dados reais da API exclusivamente.
+ * Não utiliza mais dados demo ou mock.
  */
 export function useTeams(leagueId?: string) {
-  const { isDemoUser } = useAuth();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,22 +18,16 @@ export function useTeams(leagueId?: string) {
         setLoading(true);
         setError(null);
 
-        if (isDemoUser) {
-          // Usuário demo: retorna dados fictícios
-          const demoTeams = getDemoTeams(leagueId);
-          setTeams(demoTeams);
-        } else {
-          // Usuários reais: carrega dados da API
-          const url = leagueId ? `/api/leagues/${leagueId}/teams` : '/api/teams';
-          const response = await fetch(url);
+        // Sempre carrega dados reais da API
+        const url = leagueId ? `/api/leagues/${leagueId}/teams` : '/api/teams';
+        const response = await fetch(url);
 
-          if (!response.ok) {
-            throw new Error('Erro ao carregar times');
-          }
-
-          const data = await response.json();
-          setTeams(data.teams || []);
+        if (!response.ok) {
+          throw new Error('Erro ao carregar times');
         }
+
+        const data = await response.json();
+        setTeams(data.teams || []);
       } catch (err) {
         console.error('Erro ao carregar times:', err);
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
@@ -47,16 +38,28 @@ export function useTeams(leagueId?: string) {
     }
 
     loadTeams();
-  }, [isDemoUser, leagueId]);
+  }, [leagueId]);
 
-  const refreshTeams = () => {
-    if (isDemoUser) {
-      // Para usuário demo, apenas recarrega os dados fictícios
-      const demoTeams = getDemoTeams(leagueId);
-      setTeams(demoTeams);
-    } else {
-      // Para usuários reais, recarrega da API
-      // Implementar lógica de refresh da API aqui
+  const refreshTeams = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Sempre recarrega dados reais da API
+      const url = leagueId ? `/api/leagues/${leagueId}/teams` : '/api/teams';
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error('Erro ao carregar times');
+      }
+
+      const data = await response.json();
+      setTeams(data.teams || []);
+    } catch (err) {
+      console.error('Erro ao recarregar times:', err);
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,9 +74,9 @@ export function useTeams(leagueId?: string) {
 
 /**
  * Hook para obter um time específico por ID
+ * Carrega dados reais da API exclusivamente.
  */
 export function useTeam(teamId: string) {
-  const { isDemoUser } = useAuth();
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,22 +87,15 @@ export function useTeam(teamId: string) {
         setLoading(true);
         setError(null);
 
-        if (isDemoUser) {
-          // Usuário demo: busca nos dados fictícios
-          const demoTeams = getDemoTeams();
-          const foundTeam = demoTeams.find(t => t.id === teamId);
-          setTeam(foundTeam || null);
-        } else {
-          // Usuários reais: carrega dados da API
-          const response = await fetch(`/api/teams/${teamId}`);
+        // Sempre carrega dados reais da API
+        const response = await fetch(`/api/teams/${teamId}`);
 
-          if (!response.ok) {
-            throw new Error('Erro ao carregar time');
-          }
-
-          const data = await response.json();
-          setTeam(data.team || null);
+        if (!response.ok) {
+          throw new Error('Erro ao carregar time');
         }
+
+        const data = await response.json();
+        setTeam(data.team || null);
       } catch (err) {
         console.error('Erro ao carregar time:', err);
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
@@ -112,7 +108,7 @@ export function useTeam(teamId: string) {
     if (teamId) {
       loadTeam();
     }
-  }, [isDemoUser, teamId]);
+  }, [teamId]);
 
   return {
     team,
