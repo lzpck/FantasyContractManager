@@ -60,14 +60,20 @@ function ContractsContent() {
     );
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, yearsRemaining?: number) => {
+    // Priorizar anos restantes para contratos ativos
+    if (status === 'ACTIVE' && yearsRemaining !== undefined) {
+      if (yearsRemaining <= 1) return 'bg-red-100 text-red-800'; // Último ano - vermelho
+      if (yearsRemaining <= 2) return 'bg-yellow-100 text-yellow-800'; // Expira em breve - amarelo
+    }
+    
     switch (status) {
       case 'ACTIVE':
         return 'bg-green-100 text-green-800';
       case 'EXPIRED':
         return 'bg-red-100 text-red-800';
       case 'TAGGED':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-purple-100 text-purple-800'; // Alterado para roxo para consistência
       case 'EXTENDED':
         return 'bg-blue-100 text-blue-800';
       case 'CUT':
@@ -178,7 +184,7 @@ function ContractsContent() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status, contract.yearsRemaining)}`}
                           >
                             {contract.status}
                           </span>
