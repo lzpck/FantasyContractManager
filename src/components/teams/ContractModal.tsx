@@ -275,7 +275,7 @@ export default function ContractModal({
           {/* Campos de Edição */}
           {isEditMode && (
             <div className="bg-slate-700 p-4 rounded-xl">
-              <h4 className="text-sm font-medium text-slate-100 mb-3">Opções de Administração</h4>
+              <h4 className="text-sm font-medium text-slate-100 mb-3">Opções do Comissário</h4>
               <div className="space-y-3">
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input

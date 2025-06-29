@@ -58,7 +58,7 @@ export default function UnauthorizedPage() {
                 Fazer Login
               </Link>
               <p className="text-sm text-gray-600 text-center">
-                Entre em contato com o administrador para criar uma conta.
+                Entre em contato com o comissário para criar uma conta.
               </p>
             </>
           )}

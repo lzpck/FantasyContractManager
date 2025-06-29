@@ -5,7 +5,6 @@
 // evitando importações diretas do Prisma Client no lado do cliente.
 
 export enum UserRole {
-  ADMIN = 'ADMIN',
   COMMISSIONER = 'COMMISSIONER',
   USER = 'USER',
 }

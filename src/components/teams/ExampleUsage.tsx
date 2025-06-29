@@ -207,7 +207,7 @@ export function ContractSystemExample() {
   const [notifications, setNotifications] = useState<string[]>([]);
   
   const { user } = useAuth();
-  const isCommissioner = user?.role === 'COMMISSIONER' || user?.role === 'ADMIN';
+  const isCommissioner = user?.role === 'COMMISSIONER';
   
   // Simular carregamento de dados
   const refreshContracts = async () => {

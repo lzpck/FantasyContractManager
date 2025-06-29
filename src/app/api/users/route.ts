@@ -11,10 +11,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
-    if (
-      !session ||
-      (session.user.role !== UserRole.COMMISSIONER && session.user.role !== UserRole.ADMIN)
-    ) {
+    if (!session || session.user.role !== UserRole.COMMISSIONER) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
