@@ -23,8 +23,8 @@ export interface User {
   emailVerified?: Date | null;
   image?: string | null;
   role: UserRole;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string; // ISO 8601 format
+  updatedAt: string; // ISO 8601 format
 }
 
 export interface League {
@@ -40,8 +40,8 @@ export interface League {
   minimumSalary: number;
   seasonTurnoverDate: string;
   commissionerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string; // ISO 8601 format
+  updatedAt: string; // ISO 8601 format
 }
 
 export interface Team {
@@ -56,8 +56,8 @@ export interface Team {
   nextSeasonDeadMoney?: number | null;
   leagueId: string;
   ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string; // ISO 8601 format
+  updatedAt: string; // ISO 8601 format
 }
 
 export interface Player {
@@ -69,8 +69,8 @@ export interface Player {
   age?: number | null;
   sleeperPlayerId: string;
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string; // ISO 8601 format
+  updatedAt: string; // ISO 8601 format
 }
 
 export enum ContractStatus {
@@ -105,6 +105,6 @@ export interface Contract {
   hasBeenExtended: boolean;
   hasFourthYearOption: boolean;
   fourthYearOptionActivated: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string; // ISO 8601 format
+  updatedAt: string; // ISO 8601 format
 }
