@@ -47,10 +47,15 @@ export interface League {
 export interface Team {
   id: string;
   name: string;
+  abbreviation?: string | null;
   sleeperTeamId?: string | null;
+  sleeperOwnerId?: string | null;
+  ownerDisplayName?: string | null;
   currentSalaryCap?: number | null;
   currentDeadMoney?: number | null;
+  nextSeasonDeadMoney?: number | null;
   leagueId: string;
+  ownerId: string;
   createdAt: Date;
   updatedAt: Date;
 }
