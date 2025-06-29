@@ -153,6 +153,8 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
           where: { id: existingTeam.id },
           data: {
             name: team.name,
+            ownerDisplayName: team.ownerDisplayName,
+            sleeperOwnerId: team.sleeperOwnerId,
             updatedAt: new Date(),
           },
         });
@@ -164,6 +166,8 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
             leagueId: leagueId,
             ownerId: league.commissionerId, // Por padrão, atribuir ao comissário
             sleeperTeamId: team.sleeperTeamId,
+            ownerDisplayName: team.ownerDisplayName,
+            sleeperOwnerId: team.sleeperOwnerId,
           },
         });
       }
