@@ -33,8 +33,8 @@ export const DEMO_USER: User = {
   role: UserRole.USER,
   isActive: true,
   isCommissioner: false,
-  createdAt: new Date('2024-01-01'),
-  updatedAt: new Date(),
+  createdAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: new Date().toISOString(),
 };
 
 // ============================================================================
@@ -55,8 +55,8 @@ export const DEMO_LEAGUES: League[] = [
     minimumSalary: 1000000, // $1M
     seasonTurnoverDate: '2024-04-01',
     commissionerId: 'demo-user-id',
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
+    createdAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: new Date().toISOString(),
     settings: {
       maxFranchiseTags: 1,
       annualIncreasePercentage: 15,
@@ -82,8 +82,8 @@ export const DEMO_LEAGUES: League[] = [
     minimumSalary: 500000, // $500K
     seasonTurnoverDate: '2024-03-15',
     commissionerId: 'demo-user-id',
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: new Date().toISOString(),
     settings: {
       maxFranchiseTags: 2,
       annualIncreasePercentage: 12,
@@ -273,8 +273,8 @@ export const DEMO_CONTRACTS: Contract[] = [
     hasBeenTagged: false,
     hasFourthYearOption: false,
     fourthYearOptionActivated: false,
-    createdAt: new Date('2022-04-01'),
-    updatedAt: new Date(),
+    createdAt: '2022-04-01T00:00:00.000Z',
+  updatedAt: new Date().toISOString(),
   },
   {
     id: 'demo-contract-2',
@@ -311,8 +311,8 @@ export const DEMO_CONTRACTS: Contract[] = [
     hasBeenTagged: false,
     hasFourthYearOption: false,
     fourthYearOptionActivated: false,
-    createdAt: new Date('2023-05-01'),
-    updatedAt: new Date(),
+    createdAt: '2023-05-01T00:00:00.000Z',
+  updatedAt: new Date().toISOString(),
   },
   {
     id: 'demo-contract-4',
@@ -330,8 +330,8 @@ export const DEMO_CONTRACTS: Contract[] = [
     hasBeenTagged: false,
     hasFourthYearOption: false,
     fourthYearOptionActivated: false,
-    createdAt: new Date('2020-04-01'),
-    updatedAt: new Date(),
+    createdAt: '2020-04-01T00:00:00.000Z',
+  updatedAt: new Date().toISOString(),
   },
 ];
 

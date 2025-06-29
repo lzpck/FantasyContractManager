@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { toISOString, nowInBrazil } from '../src/lib/prisma';
 
 const prisma = new PrismaClient();
 
@@ -46,7 +47,7 @@ async function main() {
           password: hashedPassword,
           role: 'USER',
           isActive: true,
-          emailVerified: new Date(),
+          emailVerified: toISOString(nowInBrazil()),
         },
       });
 
@@ -72,7 +73,7 @@ async function main() {
           password: hashedPassword,
           role: 'ADMIN',
           isActive: true,
-          emailVerified: new Date(),
+          emailVerified: toISOString(nowInBrazil()),
         },
       });
 
