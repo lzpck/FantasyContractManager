@@ -8,10 +8,9 @@ interface LeagueHeaderProps {
   league: League;
   onBack: () => void;
   totalTeams?: number;
-  onSync?: () => Promise<void>;
 }
 
-export default function LeagueHeader({ league, onBack, totalTeams, onSync }: LeagueHeaderProps) {
+export default function LeagueHeader({ league, onBack, totalTeams }: LeagueHeaderProps) {
   return (
     <div className="mb-8">
       {/* Header/Topbar da página */}
@@ -104,7 +103,7 @@ export default function LeagueHeader({ league, onBack, totalTeams, onSync }: Lea
 
         {/* Informações adicionais */}
         <div className="mt-6 pt-6 border-t border-slate-600">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="text-slate-400">Salário Mínimo:</span>
               <span className="ml-2 font-medium text-slate-100">
@@ -123,30 +122,16 @@ export default function LeagueHeader({ league, onBack, totalTeams, onSync }: Lea
                 {league.settings.rookieDraft.rounds}
               </span>
             </div>
-          </div>
-        </div>
-
-        {/* ID da liga no Sleeper (se disponível) */}
-        {league.sleeperLeagueId && (
-          <div className="mt-4 pt-4 border-t border-slate-600">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center text-sm text-slate-400">
-                <span>ID Sleeper:</span>
+            {league.sleeperLeagueId && (
+              <div>
+                <span className="text-slate-400">ID Sleeper:</span>
                 <code className="ml-2 px-2 py-1 bg-slate-700 text-slate-100 rounded text-xs font-mono">
                   {league.sleeperLeagueId}
                 </code>
               </div>
-              {onSync && (
-                <button
-                  onClick={onSync}
-                  className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-colors shadow-md"
-                >
-                  Sincronizar com Sleeper
-                </button>
-              )}
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

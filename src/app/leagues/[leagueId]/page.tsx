@@ -233,10 +233,6 @@ export default function LeagueDetailsPage() {
           <LeagueHeader
             league={league}
             totalTeams={teamsFinancialSummary.length}
-            onSync={async () => {
-              // TODO: Implementar sincronização com Sleeper
-              console.log('Sincronizando dados da liga...');
-            }}
             onBack={() => router.push('/dashboard')}
           />
 
