@@ -24,7 +24,7 @@ export default withAuth(
 
     // Verificar se é uma rota de comissário
     if (commissionerRoutes.some(route => pathname.startsWith(route))) {
-      if (token?.role !== UserRole.COMMISSIONER && token?.role !== UserRole.ADMIN) {
+      if (token?.role !== UserRole.COMMISSIONER) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }

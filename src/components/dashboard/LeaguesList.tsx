@@ -123,7 +123,7 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
   const isCommissioner = (league: League) => {
     return (
       user?.role === UserRole.COMMISSIONER ||
-      user?.role === UserRole.ADMIN ||
+      
       league.commissionerId === user?.id
     );
   };

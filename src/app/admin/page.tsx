@@ -78,7 +78,7 @@ export default function AdminPage() {
         }
 
         if (field === 'role') {
-          const roleOrder = { [UserRole.ADMIN]: 1, [UserRole.COMMISSIONER]: 2, [UserRole.USER]: 3 };
+          const roleOrder = { [UserRole.COMMISSIONER]: 1, [UserRole.USER]: 2 };
           return direction === 'asc'
             ? roleOrder[a.role] - roleOrder[b.role]
             : roleOrder[b.role] - roleOrder[a.role];
@@ -200,8 +200,6 @@ export default function AdminPage() {
   // Função para obter ícone do role
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
-      case UserRole.ADMIN:
-        return <ShieldCheckIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
       case UserRole.COMMISSIONER:
         return <ShieldCheckIcon className="h-5 w-5 text-blue-500 dark:text-blue-300" />;
       case UserRole.USER:
@@ -214,8 +212,6 @@ export default function AdminPage() {
   // Função para obter cor do badge do role
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
-      case UserRole.ADMIN:
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case UserRole.COMMISSIONER:
         return 'bg-blue-50 text-blue-700 dark:bg-blue-800 dark:text-blue-300';
       case UserRole.USER:
@@ -229,7 +225,7 @@ export default function AdminPage() {
     return (
       <div className="text-center py-12">
         <p className="text-red-600">
-          Acesso negado. Apenas administradores e comissários podem acessar esta página.
+          Acesso negado. Apenas comissários podem acessar esta página.
         </p>
       </div>
     );
@@ -407,7 +403,7 @@ export default function AdminPage() {
                                 user.role,
                               )}`}
                             >
-                              {user.role === UserRole.ADMIN && 'Administrador'}
+      
                               {user.role === UserRole.COMMISSIONER && 'Comissário'}
                               {user.role === UserRole.USER && 'Usuário'}
                             </span>
@@ -631,7 +627,7 @@ export default function AdminPage() {
                   >
                     <option value={UserRole.USER}>Usuário</option>
                     <option value={UserRole.COMMISSIONER}>Comissário</option>
-                    <option value={UserRole.ADMIN}>Administrador</option>
+                    
                   </select>
                 </div>
                 <div>

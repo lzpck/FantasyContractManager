@@ -259,7 +259,7 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
  * POST /api/leagues/sync
  *
  * Sincroniza uma liga existente com a Sleeper API
- * Requer autenticação e perfil COMMISSIONER ou ADMIN
+ * Requer autenticação e perfil COMMISSIONER
  */
 export async function POST(request: NextRequest) {
   try {
@@ -269,8 +269,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
-    // Verificar se é comissário ou admin
-    if (session.user.role !== UserRole.COMMISSIONER && session.user.role !== UserRole.ADMIN) {
+    // Verificar se é comissário
+    if (session.user.role !== UserRole.COMMISSIONER) {
       return NextResponse.json(
         { error: 'Acesso negado. Apenas comissários podem sincronizar ligas.' },
         { status: 403 },

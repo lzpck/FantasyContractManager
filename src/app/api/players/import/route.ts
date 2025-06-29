@@ -12,7 +12,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
-    if (session.user.role !== UserRole.COMMISSIONER && session.user.role !== UserRole.ADMIN) {
+    if (session.user.role !== UserRole.COMMISSIONER) {
       return NextResponse.json(
         { error: 'Acesso negado. Apenas comissários podem importar jogadores.' },
         { status: 403 },

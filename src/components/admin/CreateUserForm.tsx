@@ -5,7 +5,7 @@ import { UserRole } from '@/types/database';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 /**
- * Componente para criação de usuários por administradores/comissários
+ * Componente para criação de usuários por comissários
  */
 interface CreateUserFormProps {
   onSuccess?: () => void;
@@ -157,10 +157,10 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
           >
             <option value={UserRole.USER}>Usuário</option>
             <option value={UserRole.COMMISSIONER}>Comissário</option>
-            <option value={UserRole.ADMIN}>Administrador</option>
+            
           </select>
           <p className="mt-1 text-xs text-slate-400">
-            Usuário: acesso básico | Comissário: gerencia ligas | Administrador: acesso total
+            Usuário: acesso básico | Comissário: gerencia ligas
           </p>
         </div>
 
