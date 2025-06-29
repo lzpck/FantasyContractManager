@@ -4,6 +4,7 @@ import './globals.css';
 import { AppProvider } from '@/contexts/AppContext';
 import { AuthNavigation } from '@/components/layout/AuthNavigation';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { SessionWrapper } from '@/components/providers/SessionWrapper';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -30,30 +31,32 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0f172a] min-h-screen`}
       >
-        <AppProvider>
-          {/* Sidebar de navegação */}
-          <Sidebar />
+        <SessionWrapper>
+          <AppProvider>
+            {/* Sidebar de navegação */}
+            <Sidebar />
 
-          {/* Layout principal com sidebar */}
-          <div className="lg:pl-64">
-            {/* Barra de navegação superior */}
-            <nav className="bg-slate-900 shadow-md border-b border-slate-800">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                  <div className="flex items-center lg:hidden">
-                    <h1 className="text-xl font-bold text-slate-100">Fantasy Contract Manager</h1>
-                  </div>
-                  <div className="flex items-center ml-auto">
-                    <AuthNavigation />
+            {/* Layout principal com sidebar */}
+            <div className="lg:pl-64">
+              {/* Barra de navegação superior */}
+              <nav className="bg-slate-900 shadow-md border-b border-slate-800">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex justify-between h-16">
+                    <div className="flex items-center lg:hidden">
+                      <h1 className="text-xl font-bold text-slate-100">Fantasy Contract Manager</h1>
+                    </div>
+                    <div className="flex items-center ml-auto">
+                      <AuthNavigation />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </nav>
+              </nav>
 
-            {/* Conteúdo principal */}
-            <main className="bg-[#0f172a] min-h-screen">{children}</main>
-          </div>
-        </AppProvider>
+              {/* Conteúdo principal */}
+              <main className="bg-[#0f172a] min-h-screen">{children}</main>
+            </div>
+          </AppProvider>
+         </SessionWrapper>
       </body>
     </html>
   );

@@ -97,7 +97,7 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
         sleeperLeagueId: z.string().optional(),
       })
     : z.object({
-        name: z.string().min(1, 'O nome da liga é obrigatório.'),
+        name: z.string().optional(), // Nome é opcional na importação, será obtido da API do Sleeper
         salaryCap: z.coerce.number().min(1, 'O Salary Cap deve ser um número positivo.'),
         maxFranchiseTags: z.coerce
           .number()
