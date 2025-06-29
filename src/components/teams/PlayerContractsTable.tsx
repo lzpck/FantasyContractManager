@@ -2,6 +2,7 @@
 
 import { PlayerWithContract, ContractStatus, Contract } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
+import { getPositionBadgeColor } from '@/utils/positionColors';
 import {
   ChevronUpIcon,
   ChevronDownIcon,
@@ -55,6 +56,7 @@ export function PlayerContractsTable({
   onFilterStatusChange,
   onPlayerAction,
 }: PlayerContractsTableProps) {
+
   // Função para calcular dead money estimado
   const calculateDeadMoney = (contract: Contract) => {
     const remainingSalary = contract.currentSalary * contract.yearsRemaining;
@@ -63,7 +65,8 @@ export function PlayerContractsTable({
 
   // Função para obter cor do status do contrato
   const getContractStatusColor = (status: ContractStatus, yearsRemaining: number) => {
-    if (yearsRemaining === 1) return 'bg-yellow-100 text-yellow-800';
+    if (yearsRemaining === 1) return 'bg-red-100 text-red-800'; // Último ano - vermelho
+    if (yearsRemaining <= 2) return 'bg-yellow-100 text-yellow-800'; // Expira em breve - amarelo
     if (status === ContractStatus.ACTIVE) return 'bg-green-100 text-green-800';
     if (status === ContractStatus.TAGGED) return 'bg-purple-100 text-purple-800';
     if (status === ContractStatus.EXTENDED) return 'bg-blue-100 text-blue-800';
@@ -95,8 +98,12 @@ export function PlayerContractsTable({
     return contract && contract.yearsRemaining === 1 && !contract.hasBeenTagged;
   };
 
-  // Obter posições únicas para o filtro
-  const uniquePositions = Array.from(new Set(players.map(p => p.player.position))).sort();
+  // Obter posições únicas para filtro (usando fantasyPositions)
+  const uniquePositions = Array.from(
+    new Set(
+      players.flatMap(p => p.player.fantasyPositions || [])
+    )
+  ).sort();
 
   // Componente de cabeçalho ordenável
   const SortableHeader = ({
@@ -257,8 +264,8 @@ export function PlayerContractsTable({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {player.position}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPositionBadgeColor(player.fantasyPositions?.[0] || 'N/A')}`}>
+                        {player.fantasyPositions?.[0] || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">

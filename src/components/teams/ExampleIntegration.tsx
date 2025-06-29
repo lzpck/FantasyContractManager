@@ -110,7 +110,7 @@ function PlayerCard({ player, team, league, contract }: {
       <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="text-lg font-semibold text-slate-100">{player.name}</h3>
-          <p className="text-sm text-slate-400">{player.position} • {player.nflTeam}</p>
+          <p className="text-sm text-slate-400">{player.fantasyPositions?.[0] || 'N/A'} • {player.nflTeam}</p>
         </div>
         <div className="text-right">
           {contract ? (
@@ -230,7 +230,7 @@ function ContractsTable({ playersWithContracts, team, league }: {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {playerWithContract.player.position}
+                    {playerWithContract.player.fantasyPositions?.[0] || 'N/A'}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-100">

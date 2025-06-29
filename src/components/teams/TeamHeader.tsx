@@ -25,6 +25,11 @@ export default function TeamHeader({ team, league, players, onBack }: TeamHeader
   const contractsExpiring = playersWithContracts.filter(
     p => p.contract?.yearsRemaining === 1,
   ).length;
+  
+  // Calcula franchise tags usadas (jogadores com hasBeenTagged = true)
+  const franchiseTagsUsed = playersWithContracts.filter(
+    p => p.contract?.hasBeenTagged === true,
+  ).length;
 
   // Calcula informações do salary cap
   const capInfo = formatCapUsage(totalSalaries + team.currentDeadMoney, league.salaryCap);
@@ -102,7 +107,7 @@ export default function TeamHeader({ team, league, players, onBack }: TeamHeader
             <p className="text-sm text-slate-400">Contratos Expirando</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-purple-400">{team.franchiseTagsUsed}</p>
+            <p className="text-2xl font-bold text-purple-400">{franchiseTagsUsed}</p>
             <p className="text-sm text-slate-400">Franchise Tags Usadas</p>
           </div>
           <div className="text-center">

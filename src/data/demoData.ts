@@ -186,6 +186,28 @@ export const DEMO_PLAYERS: Player[] = [
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date(),
   },
+  {
+    id: 'demo-player-5',
+    name: 'Taysom Hill',
+    position: PlayerPosition.QB,
+    fantasyPositions: [PlayerPosition.QB, PlayerPosition.TE],
+    sleeperPlayerId: 'demo-sleeper-player-5',
+    nflTeam: 'NO',
+    isActive: true,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'demo-player-6',
+    name: 'Cordarrelle Patterson',
+    position: PlayerPosition.RB,
+    fantasyPositions: [PlayerPosition.RB, PlayerPosition.WR],
+    sleeperPlayerId: 'demo-sleeper-player-6',
+    nflTeam: 'ATL',
+    isActive: true,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date(),
+  },
 ];
 
 // ============================================================================
@@ -267,6 +289,44 @@ export const DEMO_CONTRACTS: Contract[] = [
     hasFourthYearOption: false,
     fourthYearOptionActivated: false,
     createdAt: new Date('2020-04-01'),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'demo-contract-5',
+    playerId: 'demo-player-5',
+    teamId: 'demo-team-1',
+    leagueId: 'demo-league-1',
+    currentSalary: 15000000, // $15M
+    originalSalary: 12000000, // $12M
+    yearsRemaining: 1,
+    originalYears: 2,
+    acquisitionType: AcquisitionType.FAAB,
+    status: ContractStatus.ACTIVE,
+    signedSeason: 2023,
+    hasBeenExtended: false,
+    hasBeenTagged: true, // Franchise tagged
+    hasFourthYearOption: false,
+    fourthYearOptionActivated: false,
+    createdAt: new Date('2023-04-01'),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'demo-contract-6',
+    playerId: 'demo-player-6',
+    teamId: 'demo-team-1',
+    leagueId: 'demo-league-1',
+    currentSalary: 8000000, // $8M
+    originalSalary: 6000000, // $6M
+    yearsRemaining: 2,
+    originalYears: 3,
+    acquisitionType: AcquisitionType.ROOKIE_DRAFT,
+    status: ContractStatus.ACTIVE,
+    signedSeason: 2022,
+    hasBeenExtended: false,
+    hasBeenTagged: true, // Franchise tagged
+    hasFourthYearOption: false,
+    fourthYearOptionActivated: false,
+    createdAt: new Date('2022-04-01'),
     updatedAt: new Date(),
   },
 ];

@@ -138,7 +138,9 @@ export default function TeamDetailsPage() {
                 sleeperPlayerId: player.sleeperPlayerId,
                 name: player.name,
                 position: player.position,
-                fantasyPositions: [player.position],
+                fantasyPositions: Array.isArray(player.fantasyPositions) 
+                  ? player.fantasyPositions 
+                  : (player.fantasyPositions || '').split(',').filter(s => s),
                 nflTeam: player.nflTeam,
                 isActive: true,
                 createdAt: new Date(),
@@ -163,7 +165,9 @@ export default function TeamDetailsPage() {
                 sleeperPlayerId: contract.player.sleeperPlayerId,
                 name: contract.player.name,
                 position: contract.player.position,
-                fantasyPositions: contract.player.fantasyPositions || [contract.player.position],
+                fantasyPositions: Array.isArray(contract.player.fantasyPositions)
+                  ? contract.player.fantasyPositions
+                  : (contract.player.fantasyPositions || '').split(',').filter(s => s),
                 nflTeam: contract.player.nflTeam || 'FA',
                 isActive: contract.player.isActive,
                 createdAt: contract.player.createdAt,
@@ -309,7 +313,7 @@ export default function TeamDetailsPage() {
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <PositionDistributionChart players={playersWithContracts} />
-            <CapProjectionChart team={team} players={playersWithContracts} />
+            <CapProjectionChart team={team} players={playersWithContracts} league={league} />
           </div>
 
 

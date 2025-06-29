@@ -3,6 +3,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { PlayerWithContract } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
+import { getPositionHexColor, getPositionSortIndex } from '@/utils/positionColors';
 
 interface PositionDistributionChartProps {
   players: PlayerWithContract[];
@@ -11,24 +12,22 @@ interface PositionDistributionChartProps {
 export default function PositionDistributionChart({ players }: PositionDistributionChartProps) {
   // Filtrar jogadores com contratos
 
-  // Cores para cada posição
-  const POSITION_COLORS: Record<string, string> = {
-    QB: '#3B82F6', // Blue
-    RB: '#10B981', // Green
-    WR: '#F59E0B', // Yellow
-    TE: '#8B5CF6', // Purple
-    K: '#EF4444', // Red
-    DEF: '#6B7280', // Gray
-  };
+
 
   // Filtrar jogadores que têm contratos válidos
   const playersWithValidContracts = players.filter(p => p.contract && p.contract.currentSalary);
 
-  // Agrupar dados por posição
+  // Agrupar dados por posição (usando fantasyPositions)
   const positionData = playersWithValidContracts.reduce(
     (acc, playerWithContract) => {
-      const position = playerWithContract.player.position;
+      // Usar a primeira posição de fantasyPositions, pular se não existir
+      const position = playerWithContract.player.fantasyPositions?.[0];
       const salary = playerWithContract.contract.currentSalary;
+
+      // Pular jogadores sem posição de fantasy definida
+      if (!position) {
+        return acc;
+      }
 
       if (!acc[position]) {
         acc[position] = {
@@ -56,7 +55,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
     >,
   );
 
-  // Converter para array e ordenar por total de salário
+  // Converter para array e ordenar por posição oficial
   const totalSalarySum = playersWithValidContracts.reduce(
     (sum, p) => sum + p.contract.currentSalary,
     0,
@@ -67,7 +66,16 @@ export default function PositionDistributionChart({ players }: PositionDistribut
       percentage:
         totalSalarySum > 0 ? ((data.totalSalary / totalSalarySum) * 100).toFixed(1) : '0.0',
     }))
-    .sort((a, b) => b.totalSalary - a.totalSalary);
+    .sort((a, b) => {
+      // Primeiro ordenar por posição oficial
+      const orderA = getPositionSortIndex(a.position);
+      const orderB = getPositionSortIndex(b.position);
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      // Se as posições forem iguais, ordenar por total de salário (decrescente)
+      return b.totalSalary - a.totalSalary;
+    });
 
   // Tipos para componentes customizados
   interface TooltipProps {
@@ -108,11 +116,11 @@ export default function PositionDistributionChart({ players }: PositionDistribut
   // Componente customizado para legenda
   const CustomLegend = ({ payload }: LegendProps) => (
     <div className="flex flex-wrap justify-center gap-4 mt-4">
-      {payload?.map((entry, index: number) => (
+      {chartData.map((data, index: number) => (
         <div key={index} className="flex items-center space-x-2">
-          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getPositionHexColor(data.position) }}></div>
           <span className="text-sm text-slate-400">
-            {entry.value} ({chartData.find(d => d.position === entry.value)?.count})
+            {data.position} ({data.count})
           </span>
         </div>
       ))}
@@ -155,7 +163,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
               dataKey="totalSalary"
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={POSITION_COLORS[entry.position] || '#9CA3AF'} />
+                <Cell key={`cell-${index}`} fill={getPositionHexColor(entry.position)} />
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
@@ -166,48 +174,48 @@ export default function PositionDistributionChart({ players }: PositionDistribut
 
       {/* Tabela de Resumo */}
       <div className="mt-6">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Resumo por Posição</h4>
+        <h4 className="text-sm font-medium text-slate-100 mb-3">Resumo por Posição</h4>
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr className="border-b border-gray-200 dark:border-gray-700">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+            <thead className="bg-slate-700/50">
+              <tr className="border-b border-slate-600">
+                <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                   Posição
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+                <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                   Jogadores
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+                <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                   Total
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+                <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                   Média
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+                <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                   % do Cap
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+            <tbody className="divide-y divide-slate-600">
               {chartData.map(data => (
-                <tr key={data.position}>
-                  <td className="py-2">
+                <tr key={data.position} className="hover:bg-slate-700/30 transition-colors">
+                  <td className="py-3 px-2">
                     <div className="flex items-center space-x-2">
                       <div
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: POSITION_COLORS[data.position] || '#9CA3AF' }}
+                        style={{ backgroundColor: getPositionHexColor(data.position) }}
                       ></div>
-                      <span className="text-sm font-medium text-gray-900">{data.position}</span>
+                      <span className="text-sm font-medium text-slate-100">{data.position}</span>
                     </div>
                   </td>
-                  <td className="py-2 text-sm text-gray-900">{data.count}</td>
-                  <td className="py-2 text-sm font-medium text-gray-900">
+                  <td className="py-3 px-2 text-sm text-slate-300">{data.count}</td>
+                  <td className="py-3 px-2 text-sm font-medium text-slate-100">
                     {formatCurrency(data.totalSalary)}
                   </td>
-                  <td className="py-2 text-sm text-gray-900">
+                  <td className="py-3 px-2 text-sm text-slate-300">
                     {formatCurrency(data.totalSalary / data.count)}
                   </td>
-                  <td className="py-2 text-sm text-gray-900">{data.percentage}%</td>
+                  <td className="py-3 px-2 text-sm text-slate-300">{data.percentage}%</td>
                 </tr>
               ))}
             </tbody>

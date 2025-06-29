@@ -243,7 +243,7 @@ export default function ContractActionsModal({
                 Ações de Contrato - {player.player.name}
               </h3>
               <p className="text-sm text-slate-400">
-                {player.player.position} • {player.player.nflTeam}
+                {player.player.fantasyPositions?.[0] || 'N/A'} • {player.player.nflTeam}
                 {player.contract && (
                   <>
                     {' '} • {formatCurrency(player.contract.currentSalary)} • {player.contract.yearsRemaining} ano(s)

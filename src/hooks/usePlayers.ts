@@ -26,7 +26,7 @@ export function usePlayers() {
           nflTeam: p.nflTeam ?? p.team,
           fantasyPositions: Array.isArray(p.fantasyPositions)
             ? p.fantasyPositions
-            : p.fantasyPositions.split(',').filter((s: string) => s),
+            : (p.fantasyPositions || '').split(',').filter((s: string) => s),
         }));
         setPlayers(parsed);
       }

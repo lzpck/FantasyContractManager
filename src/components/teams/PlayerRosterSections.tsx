@@ -1,6 +1,7 @@
 import React from 'react';
 import { PlayerWithContract, PlayerRosterStatus } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
+import { getPositionDarkBadgeColor, getPositionSortIndex } from '@/utils/positionColors';
 import { PencilIcon, PlusIcon, ArrowPathIcon, TagIcon } from '@heroicons/react/24/outline';
 
 interface PlayerRosterSectionsProps {
@@ -20,6 +21,8 @@ interface PlayerRosterSectionsProps {
  * - Jogadores Cortados
  */
 export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSectionsProps) {
+
+
   // Função para verificar se jogador é elegível para extensão
   const isEligibleForExtension = (contract: any) => {
     return contract && contract.yearsRemaining === 1 && !contract.hasBeenExtended;
@@ -33,8 +36,8 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
   // Função para obter cor do status do contrato
   const getContractStatusColor = (status: string, yearsRemaining: number) => {
     if (status === 'ACTIVE' || status === 'active') {
-      if (yearsRemaining <= 1) return 'bg-yellow-100 text-yellow-800';
-      if (yearsRemaining <= 2) return 'bg-orange-100 text-orange-800';
+      if (yearsRemaining <= 1) return 'bg-red-100 text-red-800'; // Último ano - vermelho
+      if (yearsRemaining <= 2) return 'bg-yellow-100 text-yellow-800'; // Expira em breve - amarelo
       return 'bg-green-100 text-green-800';
     }
     return 'bg-gray-100 text-gray-800';
@@ -57,21 +60,14 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
     return contract.currentSalary * 0.25;
   };
 
-  // Ordem das posições conforme especificado
-  const POSITION_ORDER = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
-
   // Função para ordenar jogadores por posição
   const sortPlayersByPosition = (players: PlayerWithContract[]) => {
     return players.sort((a, b) => {
-      const positionA = a.player.fantasyPositions?.[0] || a.player.position;
-      const positionB = b.player.fantasyPositions?.[0] || b.player.position;
+      const positionA = a.player.fantasyPositions?.[0] || 'N/A';
+    const positionB = b.player.fantasyPositions?.[0] || 'N/A';
 
-      const indexA = POSITION_ORDER.indexOf(positionA);
-      const indexB = POSITION_ORDER.indexOf(positionB);
-
-      // Se a posição não estiver na lista, colocar no final
-      const orderA = indexA === -1 ? POSITION_ORDER.length : indexA;
-      const orderB = indexB === -1 ? POSITION_ORDER.length : indexB;
+      const orderA = getPositionSortIndex(positionA);
+      const orderB = getPositionSortIndex(positionB);
 
       if (orderA !== orderB) {
         return orderA - orderB;
@@ -159,7 +155,7 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
                 const displayPositions =
                   player.fantasyPositions && player.fantasyPositions.length > 0
                     ? player.fantasyPositions.join(', ')
-                    : player.position;
+                    : 'N/A';
 
                 return (
                   <tr key={player.id} className="hover:bg-slate-700">
@@ -172,7 +168,7 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPositionDarkBadgeColor(displayPositions)}`}>
                         {displayPositions}
                       </span>
                     </td>

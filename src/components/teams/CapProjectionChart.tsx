@@ -1,6 +1,6 @@
 'use client';
 
-import { Team, PlayerWithContract } from '@/types';
+import { Team, PlayerWithContract, League } from '@/types';
 import {
   BarChart,
   Bar,
@@ -18,6 +18,8 @@ interface CapProjectionChartProps {
   team: Team;
   /** Lista de jogadores com contratos */
   players: PlayerWithContract[];
+  /** Liga para obter o salary cap */
+  league: League;
 }
 
 /**
@@ -26,9 +28,9 @@ interface CapProjectionChartProps {
  * Exibe um gráfico de barras mostrando as projeções
  * de salary cap para as próximas temporadas.
  */
-export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
+export function CapProjectionChart({ team, players, league }: CapProjectionChartProps) {
   const currentYear = new Date().getFullYear();
-  const salaryCap = CURRENCY_CONSTANTS.DEFAULT_SALARY_CAP;
+  const salaryCap = league.salaryCap;
 
   // Calcular projeções para os próximos 4 anos
   const projectionData = [];
@@ -44,7 +46,11 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
       const contract = playerWithContract.contract;
 
       // Verificar se o contrato existe e ainda está ativo nesta temporada
-      if (contract && contract.yearsRemaining > year) {
+      // Para o ano atual (year = 0), usar yearsRemaining >= 1
+      // Para anos futuros, ajustar baseado nos anos que passaram
+      const remainingYearsForThisSeason = contract?.yearsRemaining ? contract.yearsRemaining - year : 0;
+      
+      if (contract && remainingYearsForThisSeason > 0) {
         // Aplicar aumento de 15% por ano
         const projectedSalary = contract.currentSalary * Math.pow(1.15, year);
         totalSalaries += projectedSalary;
@@ -61,7 +67,7 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
 
     const totalCommitted = totalSalaries + deadMoney;
     const availableCap = salaryCap - totalCommitted;
-    const capUsagePercentage = (totalCommitted / salaryCap) * 100;
+    const capUsagePercentage = salaryCap > 0 ? (totalCommitted / salaryCap) * 100 : 0;
 
     projectionData.push({
       year: seasonYear,
@@ -181,74 +187,74 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
       <div className="flex items-center justify-center space-x-6 mb-6">
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-blue-500 rounded"></div>
-          <span className="text-sm text-gray-600">Salários</span>
+          <span className="text-sm text-slate-300">Salários</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-red-500 rounded"></div>
-          <span className="text-sm text-gray-600">Dead Money</span>
+          <span className="text-sm text-slate-300">Dead Money</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 border-2 border-red-500 border-dashed rounded"></div>
-          <span className="text-sm text-gray-600">Salary Cap</span>
+          <span className="text-sm text-slate-300">Salary Cap</span>
         </div>
       </div>
 
       {/* Tabela de Resumo */}
       <div className="overflow-x-auto">
         <table className="min-w-full">
-          <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+          <thead className="bg-slate-700/50">
+            <tr className="border-b border-slate-600">
+              <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                 Temporada
               </th>
-              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+              <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                 Contratos
               </th>
-              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+              <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                 Salários
               </th>
-              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+              <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                 Dead Money
               </th>
-              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+              <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                 Total
               </th>
-              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+              <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                 Disponível
               </th>
-              <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+              <th className="text-left text-xs font-medium text-slate-300 uppercase tracking-wider py-3 px-2">
                 Uso %
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-slate-600">
             {projectionData.map((data, index) => (
-              <tr key={data.year} className={index === 0 ? 'bg-blue-50' : ''}>
-                <td className="py-2 text-sm font-medium text-gray-900">
+              <tr key={data.year} className={`hover:bg-slate-700/30 transition-colors ${index === 0 ? 'bg-blue-900/20' : ''}`}>
+                <td className="py-3 px-2 text-sm font-medium text-slate-100">
                   {data.year} {index === 0 && '(Atual)'}
                 </td>
-                <td className="py-2 text-sm text-gray-900">{data.contractsCount}</td>
-                <td className="py-2 text-sm text-gray-900">{formatCurrency(data.totalSalaries)}</td>
-                <td className="py-2 text-sm text-gray-900">
+                <td className="py-3 px-2 text-sm text-slate-300">{data.contractsCount}</td>
+                <td className="py-3 px-2 text-sm text-slate-300">{formatCurrency(data.totalSalaries)}</td>
+                <td className="py-3 px-2 text-sm text-slate-300">
                   {data.deadMoney > 0 ? formatCurrency(data.deadMoney) : '-'}
                 </td>
-                <td className="py-2 text-sm font-medium text-gray-900">
+                <td className="py-3 px-2 text-sm font-medium text-slate-100">
                   {formatCurrency(data.totalCommitted)}
                 </td>
                 <td
-                  className={`py-2 text-sm font-medium ${
-                    data.availableCap >= 0 ? 'text-green-600' : 'text-red-600'
+                  className={`py-3 px-2 text-sm font-medium ${
+                    data.availableCap >= 0 ? 'text-green-400' : 'text-red-400'
                   }`}
                 >
                   {formatCurrency(data.availableCap)}
                 </td>
                 <td
-                  className={`py-2 text-sm font-medium ${
+                  className={`py-3 px-2 text-sm font-medium ${
                     parseFloat(data.capUsagePercentage) >= 95
-                      ? 'text-red-600'
+                      ? 'text-red-400'
                       : parseFloat(data.capUsagePercentage) >= 85
-                        ? 'text-yellow-600'
-                        : 'text-green-600'
+                        ? 'text-yellow-400'
+                        : 'text-green-400'
                   }`}
                 >
                   {data.capUsagePercentage}%
@@ -261,7 +267,7 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
 
       {/* Alertas */}
       {projectionData.some(d => d.availableCap < 0) && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mt-4 p-4 bg-red-900/20 border border-red-700/50 rounded-lg">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -273,8 +279,8 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Alerta de Salary Cap</h3>
-              <p className="text-sm text-red-700 mt-1">
+              <h3 className="text-sm font-medium text-red-200">Alerta de Salary Cap</h3>
+              <p className="text-sm text-red-300 mt-1">
                 O time está projetado para exceder o salary cap em uma ou mais temporadas futuras.
               </p>
             </div>

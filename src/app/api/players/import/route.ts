@@ -20,7 +20,8 @@ export async function POST() {
     }
 
     const sleeperPlayers = await fetchSleeperPlayers();
-    const allowed = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
+    // Filtrar apenas posições de fantasy football (ofensivas + K)
+    const allowed = ['QB', 'RB', 'WR', 'TE', 'K'];
     const players = transformSleeperPlayersToLocal(sleeperPlayers, allowed);
 
     const batchSize = 100;

@@ -1,6 +1,7 @@
 'use client';
 
 import { Player } from '@/types';
+import { getPositionBadgeColor } from '@/utils/positionColors';
 
 interface PlayersTableProps {
   players: Player[];
@@ -13,18 +14,7 @@ interface PlayersTableProps {
  * time da NFL e status de atividade.
  */
 export function PlayersTable({ players }: PlayersTableProps) {
-  // Função para obter cor do badge de posição
-  const getPositionColor = (position: string) => {
-    const colors: { [key: string]: string } = {
-      QB: 'bg-purple-600 text-purple-100',
-      RB: 'bg-green-600 text-green-100',
-      WR: 'bg-blue-600 text-blue-100',
-      TE: 'bg-yellow-600 text-yellow-100',
-      K: 'bg-slate-600 text-slate-100',
-      DEF: 'bg-red-600 text-red-100',
-    };
-    return colors[position] || 'bg-slate-600 text-slate-100';
-  };
+
 
   // Função para obter cor do status
   const getStatusColor = (isActive: boolean) => {
@@ -87,10 +77,10 @@ export function PlayersTable({ players }: PlayersTableProps) {
               {/* Posição */}
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPositionColor(player.position)}`}
-                >
-                  {player.position}
-                </span>
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPositionBadgeColor(player.fantasyPositions?.[0] || 'N/A')}`}
+              >
+                {player.fantasyPositions?.[0] || 'N/A'}
+              </span>
               </td>
 
               {/* Time NFL */}

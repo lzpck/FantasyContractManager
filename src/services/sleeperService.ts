@@ -527,8 +527,10 @@ export async function importLeagueFromSleeper(leagueId: string, commissionerId: 
       fetchSleeperPlayers(),
     ]);
 
+    // Filtrar apenas posições de fantasy football (ofensivas + K)
+    const fantasyPositions = ['QB', 'RB', 'WR', 'TE', 'K'];
     const allowedPositions = sleeperLeague.roster_positions.filter(
-      pos => pos !== 'FLEX' && pos !== 'BN',
+      pos => fantasyPositions.includes(pos) || pos === 'FLEX' || pos === 'SUPER_FLEX',
     );
 
     // Transformar dados para o modelo local
@@ -593,8 +595,10 @@ export async function syncLeagueWithSleeper(league: League) {
       fetchSleeperPlayers(),
     ]);
 
+    // Filtrar apenas posições de fantasy football (ofensivas + K)
+    const fantasyPositions = ['QB', 'RB', 'WR', 'TE', 'K'];
     const allowedPositions = sleeperLeague.roster_positions.filter(
-      pos => pos !== 'FLEX' && pos !== 'BN',
+      pos => fantasyPositions.includes(pos) || pos === 'FLEX' || pos === 'SUPER_FLEX',
     );
 
     // Transformar dados para o modelo local

@@ -73,10 +73,13 @@ export function PlayerContractsManager({
         if (!matchesName && !matchesTeam) return false;
       }
       
-      // Filtro por posição
-      if (filterPosition !== 'all' && player.position !== filterPosition) {
+      // Filtrar por posição (usando fantasyPositions)
+    if (filterPosition !== 'all') {
+      const playerPositions = player.fantasyPositions || [];
+      if (!playerPositions.includes(filterPosition)) {
         return false;
       }
+    }
       
       // Filtro por status (simulado - você pode ajustar conforme sua lógica)
       if (filterStatus !== 'all') {
@@ -99,9 +102,9 @@ export function PlayerContractsManager({
           bValue = b.player.name;
           break;
         case 'position':
-          aValue = a.player.position;
-          bValue = b.player.position;
-          break;
+        aValue = a.player.fantasyPositions?.[0] || 'N/A';
+        bValue = b.player.fantasyPositions?.[0] || 'N/A';
+        break;
         case 'salary':
           aValue = a.contract?.currentSalary || 0;
           bValue = b.contract?.currentSalary || 0;

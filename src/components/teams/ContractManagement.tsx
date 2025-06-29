@@ -43,13 +43,13 @@ export default function ContractManagement({
   // Filtrar jogadores baseado na busca
   const filteredPlayersWithContracts = playersWithContracts.filter(pwc =>
     pwc.player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pwc.player.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (pwc.player.fantasyPositions || []).some(pos => pos.toLowerCase().includes(searchTerm.toLowerCase())) ||
     pwc.player.nflTeam.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredPlayersWithoutContract = playersWithoutContract.filter(player =>
     player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    player.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (player.fantasyPositions || []).some(pos => pos.toLowerCase().includes(searchTerm.toLowerCase())) ||
     player.nflTeam.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -174,7 +174,7 @@ export default function ContractManagement({
                           {playerWithContract.player.name}
                         </div>
                         <div className="text-xs text-slate-400">
-                          {playerWithContract.player.position} • {playerWithContract.player.nflTeam}
+                          {playerWithContract.player.fantasyPositions?.[0] || 'N/A'} • {playerWithContract.player.nflTeam}
                         </div>
                       </div>
                     </div>
@@ -231,7 +231,7 @@ export default function ContractManagement({
                           {player.name}
                         </div>
                         <div className="text-xs text-slate-400">
-                          {player.position} • {player.nflTeam}
+                          {player.fantasyPositions?.[0] || 'N/A'} • {player.nflTeam}
                         </div>
                       </div>
                     </div>

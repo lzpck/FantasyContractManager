@@ -157,7 +157,7 @@ export default function ContractModal({
               {isEditMode ? 'Editar Contrato' : 'Adicionar Contrato'}
             </h3>
             <p className="text-sm text-slate-400 mt-1">
-              {player.name} • {player.position} • {player.nflTeam} • {team.name}
+              {player.name} • {player.fantasyPositions?.[0] || 'N/A'} • {player.nflTeam} • {team.name}
             </p>
             {isEditMode && contract && (
               <p className="text-xs text-slate-500 mt-1">
