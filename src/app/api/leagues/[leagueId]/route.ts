@@ -159,6 +159,7 @@ export async function PUT(
       minimumSalary,
       annualIncreasePercentage,
       seasonTurnoverDate,
+      deadMoneyConfig,
     } = body;
 
     // Atualizar a liga
@@ -172,6 +173,7 @@ export async function PUT(
         ...(minimumSalary && { minimumSalary }),
         ...(annualIncreasePercentage !== undefined && { annualIncreasePercentage }),
         ...(seasonTurnoverDate && { seasonTurnoverDate }),
+        ...(deadMoneyConfig && { deadMoneyConfig: JSON.stringify(deadMoneyConfig) }),
       },
       include: {
         teams: {

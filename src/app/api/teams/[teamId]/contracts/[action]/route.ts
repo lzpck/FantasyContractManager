@@ -137,10 +137,41 @@ async function handleReleasePlayer(body: any, teamId: string, team: any) {
     return NextResponse.json({ error: 'Contrato ativo não encontrado' }, { status: 404 });
   }
 
-  // Calcular dead money
-  const currentYearDeadMoney = contract.currentSalary;
-  const futureYearsDeadMoney =
-    contract.yearsRemaining > 1 ? contract.currentSalary * 0.25 * (contract.yearsRemaining - 1) : 0;
+  // Buscar configuração de dead money da liga
+  const league = await prisma.league.findUnique({
+    where: { id: contract.leagueId },
+    select: { deadMoneyConfig: true },
+  });
+
+  if (!league) {
+    return NextResponse.json({ error: 'Liga não encontrada' }, { status: 404 });
+  }
+
+  // Parse da configuração de dead money
+  let deadMoneyConfig;
+  try {
+    deadMoneyConfig = JSON.parse(league.deadMoneyConfig);
+  } catch (error) {
+    // Usar configuração padrão em caso de erro
+    deadMoneyConfig = {
+      currentSeason: 1.0,
+      futureSeasons: { '1': 0, '2': 0.5, '3': 0.75, '4': 1.0 },
+    };
+  }
+
+  // Calcular dead money usando a configuração da liga
+  const currentYearDeadMoney = contract.currentSalary * deadMoneyConfig.currentSeason;
+  let futureYearsDeadMoney = 0;
+  
+  if (contract.yearsRemaining > 1) {
+    const yearsRemaining = contract.yearsRemaining - 1;
+    const yearsKey = Math.min(yearsRemaining, 4).toString();
+    const penaltyPercentage = deadMoneyConfig.futureSeasons[yearsKey] || 0;
+    
+    // Calcular salário dos anos restantes (simplificado - usando salário atual)
+    futureYearsDeadMoney = contract.currentSalary * penaltyPercentage * yearsRemaining;
+  }
+  
   const totalDeadMoney = currentYearDeadMoney + futureYearsDeadMoney;
 
   // Atualizar contrato para CUT

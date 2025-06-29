@@ -45,6 +45,38 @@ export enum PlayerPosition {
 export type PlayerRosterStatus = 'active' | 'ir' | 'taxi' | 'cut';
 
 /**
+ * Configuração de Dead Money por Liga
+ */
+export interface DeadMoneyConfig {
+  /** Percentual aplicado ao salário do ano atual (ex: 1.0 = 100%) */
+  currentSeason: number;
+  /** Percentuais aplicados conforme anos restantes de contrato */
+  futureSeasons: {
+    /** Percentual para 1 ano restante */
+    '1': number;
+    /** Percentual para 2 anos restantes */
+    '2': number;
+    /** Percentual para 3 anos restantes */
+    '3': number;
+    /** Percentual para 4 anos restantes */
+    '4': number;
+  };
+}
+
+/**
+ * Configuração padrão de Dead Money
+ */
+export const DEFAULT_DEAD_MONEY_CONFIG: DeadMoneyConfig = {
+  currentSeason: 1.0, // 100% do salário atual
+  futureSeasons: {
+    '1': 0,    // 0% para 1 ano restante
+    '2': 0.5,  // 50% para 2 anos restantes
+    '3': 0.75, // 75% para 3 anos restantes
+    '4': 1.0,  // 100% para 4 anos restantes
+  },
+};
+
+/**
  * Tipos de aquisição de jogadores
  */
 export enum AcquisitionType {
@@ -162,6 +194,8 @@ export interface League {
   minimumSalary: number;
   /** Data de virada da temporada */
   seasonTurnoverDate: string;
+  /** Configuração de dead money da liga (JSON string) */
+  deadMoneyConfig?: string;
   /** Configurações específicas da liga */
   settings: LeagueSettings;
   /** Times da liga */
@@ -170,6 +204,28 @@ export interface League {
   createdAt: Date;
   /** Data da última atualização */
   updatedAt: Date;
+}
+
+/**
+ * Dados do formulário de criação/edição de liga
+ */
+export interface LeagueFormData {
+  /** Nome da liga */
+  name: string;
+  /** ID da liga no Sleeper (opcional para edição) */
+  sleeperLeagueId: string;
+  /** Teto salarial da liga */
+  salaryCap: number;
+  /** Número máximo de Franchise Tags por temporada */
+  maxFranchiseTags: number;
+  /** Percentual de aumento anual dos contratos */
+  annualIncreasePercentage: number;
+  /** Valor mínimo para contratos não disputados */
+  minimumSalary: number;
+  /** Data de virada da temporada */
+  seasonTurnoverDate: string;
+  /** Configuração de dead money da liga */
+  deadMoneyConfig: DeadMoneyConfig;
 }
 
 /**
