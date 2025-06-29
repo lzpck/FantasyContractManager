@@ -48,7 +48,6 @@ model User {
  * Tipos de perfil de usuário
  */
 enum UserRole {
-  ADMIN // Admin - acesso total ao sistema
   COMMISSIONER // Comissário - acesso total à liga
   USER // Usuário - acesso básico
 }
