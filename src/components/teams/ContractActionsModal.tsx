@@ -307,18 +307,7 @@ export default function ContractActionsModal({
                                  {player.contract.yearsRemaining}
                                </span>
                              </div>
-                             <div>
-                               <span className="text-slate-400">Valor Total:</span>
-                               <span className="ml-2 text-slate-100">
-                                 {formatCurrency(player.contract.totalValue)}
-                               </span>
-                             </div>
-                             <div>
-                               <span className="text-slate-400">Garantido:</span>
-                               <span className="ml-2 text-slate-100">
-                                 {formatCurrency(player.contract.guaranteedMoney)}
-                               </span>
-                             </div>
+
                            </>
                          ) : (
                            <div className="text-center py-4">
