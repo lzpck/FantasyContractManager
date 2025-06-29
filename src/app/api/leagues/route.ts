@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
       minimumSalary,
       annualIncreasePercentage,
       seasonTurnoverDate,
+      deadMoneyConfig,
     } = body;
 
     // Validar dados obrigatórios
@@ -142,6 +143,7 @@ export async function POST(request: NextRequest) {
         minimumSalary: minimumSalary || 1000000,
         annualIncreasePercentage: annualIncreasePercentage || 15.0,
         seasonTurnoverDate: seasonTurnoverDate || '04-01',
+        deadMoneyConfig: deadMoneyConfig ? JSON.stringify(deadMoneyConfig) : JSON.stringify({"currentSeason":1.0,"futureSeasons":{"1":0.25,"2":0.25,"3":0.25,"4":0.25}}),
       },
       include: {
         teams: {

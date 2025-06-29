@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { League, LeagueStatus } from '@/types';
+import { League, LeagueStatus, LeagueFormData, DeadMoneyConfig, DEFAULT_DEAD_MONEY_CONFIG } from '@/types';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/components/ui/Toast';
+import { DeadMoneyConfigForm } from './DeadMoneyConfigForm';
 import { z } from 'zod';
 
 export interface ImportProgress {
@@ -43,6 +44,7 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
     annualIncreasePercentage: 15,
     minimumSalary: 1000000, // Valor padrão em dólares
     seasonTurnoverDate: '04-01', // 1º de abril (MM-DD)
+    deadMoneyConfig: DEFAULT_DEAD_MONEY_CONFIG,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -55,6 +57,17 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
     if (isOpen) {
       if (league) {
         // Modo edição - preencher com dados da liga existente
+        let deadMoneyConfig = DEFAULT_DEAD_MONEY_CONFIG;
+        if (league.deadMoneyConfig) {
+          try {
+            deadMoneyConfig = typeof league.deadMoneyConfig === 'string' 
+              ? JSON.parse(league.deadMoneyConfig) 
+              : league.deadMoneyConfig;
+          } catch (error) {
+            console.warn('Erro ao fazer parse da configuração de dead money, usando padrão:', error);
+          }
+        }
+        
         setFormData({
           name: league.name || '',
           sleeperLeagueId: league.sleeperLeagueId || '',
@@ -63,6 +76,7 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
           annualIncreasePercentage: league.annualIncreasePercentage || 15,
           minimumSalary: league.minimumSalary || 1000000,
           seasonTurnoverDate: league.seasonTurnoverDate || '04-01',
+          deadMoneyConfig,
         });
       } else {
         // Modo criação/importação - valores padrão
@@ -74,6 +88,7 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
           annualIncreasePercentage: 15,
           minimumSalary: 1000000, // $1 milhão
           seasonTurnoverDate: '04-01', // 1º de abril (MM-DD)
+          deadMoneyConfig: DEFAULT_DEAD_MONEY_CONFIG,
         });
       }
       setErrors({});
@@ -487,6 +502,19 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
                 {errors.seasonTurnoverDate && (
                   <p className="mt-1 text-sm text-red-400">{errors.seasonTurnoverDate}</p>
                 )}
+              </div>
+
+              {/* Dead Money Configuration */}
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-slate-100 mb-4">Configuração de Dead Money</h3>
+                <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+                  <DeadMoneyConfigForm
+                    config={formData.deadMoneyConfig || DEFAULT_DEAD_MONEY_CONFIG}
+                    onChange={(config) => updateField('deadMoneyConfig', config)}
+                    disabled={isSubmitting}
+                    compact={true}
+                  />
+                </div>
               </div>
             </div>
 
