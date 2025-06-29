@@ -161,9 +161,9 @@ export interface User {
   /** Se o usuário é comissário da liga atual (deprecated - usar role) */
   isCommissioner?: boolean;
   /** Data de criação da conta */
-  createdAt: Date;
+  createdAt: string; // ISO 8601 format
   /** Data da última atualização */
-  updatedAt: Date;
+  updatedAt: string; // ISO 8601 format
 }
 
 /**
@@ -201,9 +201,9 @@ export interface League {
   /** Times da liga */
   teams?: Team[];
   /** Data de criação da liga */
-  createdAt: Date;
+  createdAt: string; // ISO 8601 format
   /** Data da última atualização */
-  updatedAt: Date;
+  updatedAt: string; // ISO 8601 format
 }
 
 /**
@@ -305,9 +305,9 @@ export interface Team {
   /** Número de Franchise Tags usadas na temporada */
   franchiseTagsUsed: number;
   /** Data de criação do time */
-  createdAt: Date;
+  createdAt: string; // ISO 8601 format
   /** Data da última atualização */
-  updatedAt: Date;
+  updatedAt: string; // ISO 8601 format
 }
 
 /**
@@ -333,9 +333,9 @@ export interface Player {
   /** Se o jogador está ativo na NFL */
   isActive: boolean;
   /** Data de criação do registro */
-  createdAt: Date;
+  createdAt: string; // ISO 8601 format
   /** Data da última atualização */
-  updatedAt: Date;
+  updatedAt: string; // ISO 8601 format
 }
 
 /**
@@ -373,9 +373,9 @@ export interface Contract {
   /** Se a opção de 4º ano foi ativada */
   fourthYearOptionActivated: boolean;
   /** Data de criação do contrato */
-  createdAt: Date;
+  createdAt: string; // ISO 8601 format
   /** Data da última atualização */
-  updatedAt: Date;
+  updatedAt: string; // ISO 8601 format
 }
 
 /**
@@ -399,7 +399,7 @@ export interface FranchiseTag {
   /** Média dos top 10 da posição (usado no cálculo) */
   positionAverage: number;
   /** Data de aplicação da tag */
-  appliedAt: Date;
+  appliedAt: string; // ISO 8601 format
 }
 
 /**
@@ -423,7 +423,7 @@ export interface ContractExtension {
   /** Temporada em que a extensão entra em vigor */
   effectiveSeason: number;
   /** Data da negociação */
-  negotiatedAt: Date;
+  negotiatedAt: string; // ISO 8601 format
 }
 
 /**
@@ -449,7 +449,7 @@ export interface DeadMoney {
   /** Se o jogador estava no practice squad */
   wasPracticeSquad: boolean;
   /** Data em que o jogador foi cortado */
-  cutAt: Date;
+  cutAt: string; // ISO 8601 format
 }
 
 /**
@@ -471,7 +471,7 @@ export interface CapMovement {
   /** Temporada da movimentação */
   season: number;
   /** Data da movimentação */
-  createdAt: Date;
+  createdAt: string; // ISO 8601 format
 }
 
 /**
@@ -499,7 +499,7 @@ export interface DraftPick {
   /** Se o pick já foi usado */
   isUsed: boolean;
   /** Data de criação */
-  createdAt: Date;
+  createdAt: string; // ISO 8601 format
 }
 
 // ============================================================================
@@ -551,10 +551,10 @@ export interface FranchiseTagCalculation {
 export interface SeasonConfig {
   season: number;
   salaryCap: number;
-  seasonStartDate: Date;
-  seasonEndDate: Date;
-  franchiseTagDeadline: Date;
-  rookieDraftDate?: Date;
+  seasonStartDate: string; // ISO 8601 format
+  seasonEndDate: string; // ISO 8601 format
+  franchiseTagDeadline: string; // ISO 8601 format
+  rookieDraftDate?: string; // ISO 8601 format
 }
 
 /**
@@ -563,7 +563,7 @@ export interface SeasonConfig {
 export interface SleeperIntegration {
   leagueId: string;
   season: number;
-  lastSync: Date;
+  lastSync: string; // ISO 8601 format
   rosters: SleeperRoster[];
   players: SleeperPlayer[];
 }

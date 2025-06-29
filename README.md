@@ -24,6 +24,8 @@ Este sistema automatiza todo o ciclo de vida dos contratos de jogadores em ligas
 - ✅ Sistema de waivers e free agency
 - ✅ Integração com plataforma Sleeper
 - ✅ Relatórios e análises detalhadas
+- ✅ Datas ISO 8601: Sistema de datas legível e universal para melhor compatibilidade
+- ✅ Fuso Horário Brasileiro: Todas as datas são salvas e exibidas no horário de São Paulo/Brasília
 
 ## 🛠️ Instalação e Execução
 

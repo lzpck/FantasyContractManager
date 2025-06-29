@@ -184,7 +184,7 @@ export async function POST(request: Request) {
         signedSeason: signedSeason || new Date().getFullYear(),
         status: status || 'active',
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString()
       };
 
       console.log('Contrato criado (modo demo):', mockContract);

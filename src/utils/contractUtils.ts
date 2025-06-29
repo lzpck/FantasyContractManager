@@ -20,6 +20,7 @@ import {
   FranchiseTagCalculation,
   DeadMoneyConfig,
 } from '../types';
+import { toISOString } from '@/utils/formatUtils';
 
 // ============================================================================
 // TIPOS AUXILIARES
@@ -470,8 +471,8 @@ export function runBasicTests(): void {
     hasBeenExtended: false,
     hasFourthYearOption: false,
     fourthYearOptionActivated: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: toISOString(),
+    updatedAt: toISOString(),
   };
 
   // Teste 1: Cálculo de salário anual
@@ -517,8 +518,8 @@ export function runBasicTests(): void {
     currentDeadMoney: 5.0,
     nextSeasonDeadMoney: 2.0,
     franchiseTagsUsed: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: toISOString(),
+    updatedAt: toISOString(),
   };
 
   const projections = projectTeamCap(mockTeam, [mockContract], 3, 279.0);
