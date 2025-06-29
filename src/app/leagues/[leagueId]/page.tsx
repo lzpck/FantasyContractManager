@@ -40,36 +40,97 @@ export default function LeagueDetailsPage() {
     }
   }, [fetchedLeague, leagueLoading]);
 
+  // Função para calcular dados financeiros reais do time
+  const calculateTeamFinancials = async (team: Team): Promise<TeamFinancialSummary> => {
+    try {
+      // Buscar contratos ativos do time
+      const contractsResponse = await fetch(`/api/teams/${team.id}/contracts`);
+      let contracts = [];
+      let totalSalaries = 0;
+      let contractsExpiring = 0;
+      
+      if (contractsResponse.ok) {
+        const contractsData = await contractsResponse.json();
+        contracts = contractsData.contracts || [];
+        
+        // Calcular total de salários dos contratos ativos
+        totalSalaries = contracts.reduce((sum: number, contract: any) => {
+          return sum + (contract.currentSalary || 0);
+        }, 0);
+        
+        // Contar contratos expirando (1 ano restante)
+        contractsExpiring = contracts.filter((contract: any) => 
+          contract.yearsRemaining === 1
+        ).length;
+      }
+      
+      // Calcular cap disponível
+      const currentDeadMoney = team.currentDeadMoney || 0;
+      const availableCap = league!.salaryCap - totalSalaries - currentDeadMoney;
+      
+      // Projetar cap da próxima temporada (considerando aumento de 15% nos salários)
+      const projectedSalariesIncrease = totalSalaries * 0.15;
+      const projectedNextSeasonCap = league!.salaryCap - (totalSalaries + projectedSalariesIncrease) - (team.nextSeasonDeadMoney || 0);
+      
+      return {
+        team: {
+          ...team,
+          abbreviation: team.abbreviation || team.name.substring(0, 3).toUpperCase(),
+          availableCap,
+        },
+        totalSalaries,
+        availableCap,
+        currentDeadMoney,
+        nextSeasonDeadMoney: team.nextSeasonDeadMoney || 0,
+        projectedNextSeasonCap,
+        contractsExpiring,
+        playersWithContracts: contracts,
+      };
+    } catch (error) {
+      console.error('Erro ao calcular dados financeiros do time:', error);
+      
+      // Fallback com valores zerados em caso de erro
+      const availableCap = league!.salaryCap - (team.currentDeadMoney || 0);
+      
+      return {
+        team: {
+          ...team,
+          abbreviation: team.abbreviation || team.name.substring(0, 3).toUpperCase(),
+          availableCap,
+        },
+        totalSalaries: 0,
+        availableCap,
+        currentDeadMoney: team.currentDeadMoney || 0,
+        nextSeasonDeadMoney: team.nextSeasonDeadMoney || 0,
+        projectedNextSeasonCap: availableCap,
+        contractsExpiring: 0,
+        playersWithContracts: [],
+      };
+    }
+  };
+
   // Gerar resumo financeiro com dados reais
   useEffect(() => {
     if (leagueLoading || teamsLoading || !league) return;
 
-    const summaries = teams.map(team => {
-      const totalSalaries = team.currentSalaryCap ?? 0;
-      const availableCap = league.salaryCap - totalSalaries;
+    async function generateFinancialSummaries() {
+      try {
+        setLoading(true);
+        
+        // Calcular dados financeiros para todos os times
+        const summariesPromises = teams.map(team => calculateTeamFinancials(team));
+        const summaries = await Promise.all(summariesPromises);
+        
+        setTeamsFinancialSummary(summaries);
+      } catch (error) {
+        console.error('Erro ao gerar resumos financeiros:', error);
+        setTeamsFinancialSummary([]);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-      const formattedTeam: Team = {
-        ...team,
-        abbreviation: team.name.substring(0, 3).toUpperCase(),
-        availableCap,
-        nextSeasonDeadMoney: 0,
-        franchiseTagsUsed: 0,
-      } as Team;
-
-      return {
-        team: formattedTeam,
-        totalSalaries,
-        availableCap,
-        currentDeadMoney: team.currentDeadMoney ?? 0,
-        nextSeasonDeadMoney: 0,
-        projectedNextSeasonCap: availableCap,
-        contractsExpiring: 0,
-        playersWithContracts: [],
-      } as TeamFinancialSummary;
-    });
-
-    setTeamsFinancialSummary(summaries);
-    setLoading(false);
+    generateFinancialSummaries();
   }, [league, teams, teamsLoading, leagueLoading]);
 
   // Finalizar carregamento quando dados foram buscados
@@ -151,25 +212,10 @@ export default function LeagueDetailsPage() {
 
         // Atualizar resumos financeiros com os novos times
         if (data.league.teams) {
-          const updatedFinancialSummaries = data.league.teams.map((team: Team) => {
-            const totalSalaries = team.currentSalaryCap ?? 0;
-            const availableCap = data.league.salaryCap - totalSalaries;
-
-            return {
-              team: {
-                ...team,
-                abbreviation: team.name.substring(0, 3).toUpperCase(),
-                availableCap,
-              } as Team,
-              totalSalaries,
-              availableCap,
-              currentDeadMoney: team.currentDeadMoney ?? 0,
-              nextSeasonDeadMoney: 0,
-              projectedNextSeasonCap: availableCap,
-              contractsExpiring: 0,
-              playersWithContracts: [],
-            } as TeamFinancialSummary;
-          });
+          const summariesPromises = data.league.teams.map((team: Team) => 
+            calculateTeamFinancials(team)
+          );
+          const updatedFinancialSummaries = await Promise.all(summariesPromises);
           setTeamsFinancialSummary(updatedFinancialSummaries);
         }
 

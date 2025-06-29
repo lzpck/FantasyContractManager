@@ -16,6 +16,10 @@ interface TeamsTableProps {
  *
  * Exibe lista de times com salary cap, valores usados/disponíveis,
  * contratos expirando e ações para acessar detalhes do time.
+ * 
+ * IMPORTANTE: Este componente utiliza exclusivamente dados reais da API.
+ * Não deve mais recorrer a dados demo ou mock. Todos os dados financeiros
+ * são calculados baseados nos contratos reais dos jogadores.
  */
 export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
   // Função para calcular percentual do cap usado
@@ -34,8 +38,12 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
     return (
       <div className="text-center py-12">
         <div className="text-4xl mb-4">👥</div>
-        <h3 className="text-lg font-medium text-slate-100 mb-2">Nenhum time encontrado</h3>
-        <p className="text-slate-400">Não há times que correspondam aos filtros aplicados.</p>
+        <h3 className="text-lg font-medium text-slate-100 mb-2">Nenhum time cadastrado</h3>
+        <p className="text-slate-400">
+          Esta liga ainda não possui times cadastrados ou sincronizados.
+          <br />
+          Use o botão de sincronização para importar times do Sleeper.
+        </p>
       </div>
     );
   }
