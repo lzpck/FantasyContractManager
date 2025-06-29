@@ -3,6 +3,24 @@
 import { useState, useEffect } from 'react';
 import { League, LeagueStatus } from '@/types';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useToast } from '@/components/ui/Toast';
+import { z } from 'zod';
+
+export interface ImportProgress {
+  step: 'validating' | 'fetching' | 'transforming' | 'saving' | 'complete';
+  message: string;
+  progress: number; // 0-100
+}
+
+export interface ImportResult {
+  success: boolean;
+  league?: League;
+  message: string;
+  details?: {
+    teamsImported: number;
+    playersImported: number;
+  };
+}
 
 interface LeagueModalProps {
   isOpen: boolean;
@@ -19,117 +37,102 @@ interface LeagueModalProps {
 export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProps) {
   const [formData, setFormData] = useState({
     name: '',
-    salaryCap: 279000000,
-    totalTeams: 12,
-    season: new Date().getFullYear(),
-    status: LeagueStatus.ACTIVE,
     sleeperLeagueId: '',
+    salaryCap: 279000000, // Valor padrão em dólares
     maxFranchiseTags: 1,
-    minimumSalary: 1000000,
-    annualIncreasePercentage: 15.0,
-    seasonTurnoverDate: '04-01',
+    annualIncreasePercentage: 15,
+    minimumSalary: 1000000, // Valor padrão em dólares
+    seasonTurnoverDate: '04-01', // 1º de abril (MM-DD)
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
+  const { addToast } = useToast();
 
-  // Resetar formulário quando o modal abrir/fechar ou liga mudar
+  // Resetar formulário quando o modal abrir/fechar
   useEffect(() => {
     if (isOpen) {
       if (league) {
-        // Modo edição - preencher com dados da liga
+        // Modo edição - preencher com dados da liga existente
         setFormData({
-          name: league.name,
-          salaryCap: league.salaryCap,
-          totalTeams: league.totalTeams,
-          season: league.season,
-          status: league.status,
+          name: league.name || '',
           sleeperLeagueId: league.sleeperLeagueId || '',
+          salaryCap: league.salaryCap || 279000000,
           maxFranchiseTags: league.maxFranchiseTags || 1,
+          annualIncreasePercentage: league.annualIncreasePercentage || 15,
           minimumSalary: league.minimumSalary || 1000000,
-          annualIncreasePercentage: league.annualIncreasePercentage || 15.0,
           seasonTurnoverDate: league.seasonTurnoverDate || '04-01',
         });
       } else {
-        // Modo criação - valores padrão
+        // Modo criação/importação - valores padrão
         setFormData({
           name: '',
-          salaryCap: 279000000,
-          totalTeams: 12,
-          season: new Date().getFullYear(),
-          status: LeagueStatus.ACTIVE,
           sleeperLeagueId: '',
+          salaryCap: 279000000, // $279 milhões
           maxFranchiseTags: 1,
-          minimumSalary: 1000000,
-          annualIncreasePercentage: 15.0,
-          seasonTurnoverDate: '04-01',
+          annualIncreasePercentage: 15,
+          minimumSalary: 1000000, // $1 milhão
+          seasonTurnoverDate: '04-01', // 1º de abril (MM-DD)
         });
       }
       setErrors({});
+      setImportProgress(null);
     }
   }, [isOpen, league]);
 
+  // Esquema de validação condicional
+  const validationSchema = league
+    ? z.object({
+        name: z.string().min(1, 'O nome da liga é obrigatório.'),
+        salaryCap: z.coerce.number().min(1, 'O Salary Cap deve ser um número positivo.'),
+        maxFranchiseTags: z.coerce
+          .number()
+          .min(0, 'O número máximo de Franchise Tags deve ser um número positivo.'),
+        minimumSalary: z.coerce.number().min(0, 'O salário mínimo deve ser um número positivo.'),
+        annualIncreasePercentage: z.coerce
+          .number()
+          .min(0, 'A porcentagem de aumento anual deve ser um número positivo.'),
+        seasonTurnoverDate: z.string().min(1, 'A data de virada de temporada é obrigatória.'),
+        sleeperLeagueId: z.string().optional(),
+      })
+    : z.object({
+        name: z.string().min(1, 'O nome da liga é obrigatório.'),
+        salaryCap: z.coerce.number().min(1, 'O Salary Cap deve ser um número positivo.'),
+        maxFranchiseTags: z.coerce
+          .number()
+          .min(0, 'O número máximo de Franchise Tags deve ser um número positivo.'),
+        minimumSalary: z.coerce.number().min(0, 'O salário mínimo deve ser um número positivo.'),
+        annualIncreasePercentage: z.coerce
+          .number()
+          .min(0, 'A porcentagem de aumento anual deve ser um número positivo.'),
+        seasonTurnoverDate: z.string().min(1, 'A data de virada de temporada é obrigatória.'),
+        sleeperLeagueId: z.string().min(1, 'O ID da liga Sleeper é obrigatório para importação.'),
+      });
+
   // Validar formulário
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    // Validações apenas para modo de criação
-    if (!league) {
-      if (!formData.name.trim()) {
-        newErrors.name = 'Nome da liga é obrigatório';
-      } else if (formData.name.length < 3) {
-        newErrors.name = 'Nome deve ter pelo menos 3 caracteres';
+    try {
+      validationSchema.parse(formData);
+      setErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach(err => {
+          if (err.path.length > 0) {
+            newErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(newErrors);
       }
-
-      if (formData.totalTeams < 4) {
-        newErrors.totalTeams = 'Mínimo de 4 times';
-      } else if (formData.totalTeams > 32) {
-        newErrors.totalTeams = 'Máximo de 32 times';
-      }
-
-      if (formData.season < 2020) {
-        newErrors.season = 'Temporada deve ser 2020 ou posterior';
-      } else if (formData.season > new Date().getFullYear() + 5) {
-        newErrors.season = 'Temporada muito distante no futuro';
-      }
+      return false;
     }
-
-    // Validações comuns para criação e edição
-    if (formData.salaryCap < 50000000) {
-      newErrors.salaryCap = 'Salary cap deve ser pelo menos $50M';
-    } else if (formData.salaryCap > 1000000000) {
-      newErrors.salaryCap = 'Salary cap não pode exceder $1B';
-    }
-
-    if (formData.maxFranchiseTags < 0) {
-      newErrors.maxFranchiseTags = 'Número de franchise tags não pode ser negativo';
-    } else if (formData.maxFranchiseTags > 5) {
-      newErrors.maxFranchiseTags = 'Máximo de 5 franchise tags por temporada';
-    }
-
-    if (formData.minimumSalary < 500000) {
-      newErrors.minimumSalary = 'Salário mínimo deve ser pelo menos $500K';
-    } else if (formData.minimumSalary > 10000000) {
-      newErrors.minimumSalary = 'Salário mínimo não pode exceder $10M';
-    }
-
-    if (formData.annualIncreasePercentage < 0) {
-      newErrors.annualIncreasePercentage = 'Percentual não pode ser negativo';
-    } else if (formData.annualIncreasePercentage > 50) {
-      newErrors.annualIncreasePercentage = 'Percentual não pode exceder 50%';
-    }
-
-    // Validar formato da data (MM-DD)
-    const dateRegex = /^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
-    if (!dateRegex.test(formData.seasonTurnoverDate)) {
-      newErrors.seasonTurnoverDate = 'Data deve estar no formato MM-DD (ex: 04-01)';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
-  // Submeter formulário
+  /**
+   * Função para salvar liga (criar/importar ou editar)
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -141,58 +144,135 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
 
     try {
       if (league) {
-        // Modo edição - atualizar liga existente (apenas campos editáveis)
-        const response = await fetch(`/api/leagues/${league.id}`, {
+        // Modo edição - atualizar liga existente
+        setImportProgress({ step: 'validating', message: 'Atualizando liga...', progress: 50 });
+
+        const updateResponse = await fetch(`/api/leagues/${league.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            name: formData.name,
             salaryCap: formData.salaryCap,
             sleeperLeagueId: formData.sleeperLeagueId,
             maxFranchiseTags: formData.maxFranchiseTags,
-            minimumSalary: formData.minimumSalary,
             annualIncreasePercentage: formData.annualIncreasePercentage,
+            minimumSalary: formData.minimumSalary,
             seasonTurnoverDate: formData.seasonTurnoverDate,
           }),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Erro ao atualizar liga');
+        const updateData = await updateResponse.json();
+
+        if (!updateResponse.ok) {
+          const errorMsg = updateData.error || 'Erro ao atualizar liga';
+          addToast({
+            message: errorMsg,
+            type: 'error',
+          });
+          return;
         }
 
-        const data = await response.json();
-        console.log('Liga atualizada:', data.league);
+        addToast({
+          message: 'Liga atualizada com sucesso!',
+          type: 'success',
+        });
+
+        onClose();
+
+        // Refresh da página para efetivar as alterações
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
-        // Modo criação - criar nova liga
-        const response = await fetch('/api/leagues', {
+        // Modo criação/importação - importar nova liga do Sleeper
+        const leagueId = formData.sleeperLeagueId.trim();
+        setImportProgress({ step: 'validating', message: 'Iniciando importação...', progress: 0 });
+
+        // Primeiro, validar o ID da liga
+        const validateResponse = await fetch(
+          `/api/leagues/import?leagueId=${encodeURIComponent(leagueId)}`,
+        );
+        const validateData = await validateResponse.json();
+
+        if (!validateResponse.ok) {
+          const errorMsg = validateData.error || 'Erro ao validar ID da liga';
+          addToast({
+            message: errorMsg,
+            type: 'error',
+          });
+          return;
+        }
+
+        if (validateData.exists) {
+          const warningMsg = 'Esta liga já foi importada anteriormente';
+          addToast({
+            message: warningMsg,
+            type: 'warning',
+          });
+          return;
+        }
+
+        // Iniciar a importação
+        setImportProgress({ step: 'fetching', message: 'Buscando dados da liga...', progress: 25 });
+
+        const importResponse = await fetch('/api/leagues/import', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            leagueId,
+            salaryCap: formData.salaryCap,
+            maxFranchiseTags: formData.maxFranchiseTags,
+            annualIncreasePercentage: formData.annualIncreasePercentage,
+            minimumSalary: formData.minimumSalary,
+            seasonTurnoverDate: formData.seasonTurnoverDate,
+          }),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Erro ao criar liga');
+        const importData: ImportResult = await importResponse.json();
+
+        if (!importResponse.ok) {
+          const errorMsg = importData.message || 'Erro ao importar liga';
+          addToast({
+            message: errorMsg,
+            type: 'error',
+          });
+          return;
         }
 
-        const data = await response.json();
-        console.log('Liga criada:', data.league);
-      }
+        if (importData.success && importData.league) {
+          const successMsg = `Liga "${importData.league.name}" importada com sucesso!`;
+          addToast({
+            message: successMsg,
+            type: 'success',
+          });
 
-      onClose();
-      // Recarregar a página para atualizar a lista de ligas
-      window.location.reload();
+          onClose();
+          // Recarregar a página para atualizar a lista de ligas
+          window.location.reload();
+        } else {
+          const errorMsg = importData.message;
+          addToast({
+            message: errorMsg,
+            type: 'error',
+          });
+        }
+      }
     } catch (error) {
       console.error('Erro ao salvar liga:', error);
-      setErrors({
-        submit: error instanceof Error ? error.message : 'Erro ao salvar liga. Tente novamente.',
+      const errorMsg = league
+        ? 'Erro inesperado ao atualizar liga'
+        : 'Erro inesperado ao importar liga';
+      addToast({
+        message: errorMsg,
+        type: 'error',
       });
     } finally {
       setIsSubmitting(false);
+      setImportProgress(null);
     }
   };
 
@@ -226,11 +306,11 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
 
         {/* Modal */}
-        <div className="relative bg-slate-800 rounded-xl border border-slate-700 shadow-xl w-full max-w-md p-6">
+        <div className="relative bg-slate-800 rounded-xl border border-slate-700 shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-slate-100">
-              {league ? 'Editar Liga' : 'Nova Liga'}
+              {league ? 'Editar Liga' : 'Importar Liga do Sleeper'}
             </h2>
             <button
               onClick={onClose}
@@ -242,97 +322,17 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
 
           {/* Formulário */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Nome da liga - Apenas no modo de edição (bloqueado) */}
+            {/* Nome da Liga - Somente leitura */}
             {league && (
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Nome da Liga
                 </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-slate-300 cursor-not-allowed"
-                  disabled
-                  readOnly
-                />
+                <div className="w-full px-3 py-2 bg-slate-600 border border-slate-600 rounded-lg text-slate-300">
+                  {formData.name || 'Nome não disponível'}
+                </div>
                 <p className="mt-1 text-xs text-slate-400">
-                  Nome da liga não pode ser alterado após criação
-                </p>
-              </div>
-            )}
-
-            {/* Salary Cap */}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Salary Cap *</label>
-              <input
-                type="number"
-                value={formData.salaryCap}
-                onChange={e => updateField('salaryCap', parseInt(e.target.value) || 0)}
-                className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.salaryCap ? 'border-red-500' : 'border-slate-600'
-                }`}
-                min="50000000"
-                max="1000000000"
-                step="1000000"
-                placeholder="279000000"
-              />
-              <p className="mt-1 text-xs text-slate-400">
-                Formato: 279000000 (sem pontos ou vírgulas)
-              </p>
-              {errors.salaryCap && <p className="mt-1 text-sm text-red-400">{errors.salaryCap}</p>}
-            </div>
-
-            {/* Número de times - Apenas no modo de edição (bloqueado) */}
-            {league && (
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Número de Times
-                </label>
-                <input
-                  type="number"
-                  value={formData.totalTeams}
-                  className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-slate-300 cursor-not-allowed"
-                  disabled
-                  readOnly
-                />
-                <p className="mt-1 text-xs text-slate-400">
-                  Número de times não pode ser alterado após criação
-                </p>
-              </div>
-            )}
-
-            {/* Temporada - Apenas no modo de edição (bloqueado) */}
-            {league && (
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Temporada</label>
-                <input
-                  type="number"
-                  value={formData.season}
-                  className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-slate-300 cursor-not-allowed"
-                  disabled
-                  readOnly
-                />
-                <p className="mt-1 text-xs text-slate-400">
-                  Temporada não pode ser alterada após criação
-                </p>
-              </div>
-            )}
-
-            {/* Status - Apenas no modo de edição (bloqueado) */}
-            {league && (
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Status</label>
-                <select
-                  value={formData.status}
-                  className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-slate-300 cursor-not-allowed"
-                  disabled
-                >
-                  <option value={LeagueStatus.ACTIVE}>Ativa</option>
-                  <option value={LeagueStatus.OFFSEASON}>Off-season</option>
-                  <option value={LeagueStatus.ARCHIVED}>Arquivada</option>
-                </select>
-                <p className="mt-1 text-xs text-slate-400">
-                  Status não pode ser alterado após criação
+                  O nome da liga é importado do Sleeper e não pode ser alterado
                 </p>
               </div>
             )}
@@ -340,117 +340,171 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
             {/* Sleeper League ID */}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                Sleeper League ID
+                ID da Liga (Sleeper) {!league && '*'}
               </label>
               <input
                 type="text"
                 value={formData.sleeperLeagueId}
                 onChange={e => updateField('sleeperLeagueId', e.target.value)}
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="ID da liga no Sleeper (opcional)"
-              />
-              <p className="mt-1 text-xs text-slate-400">
-                Atualize a cada ano quando renovar a liga no Sleeper
-              </p>
-            </div>
-
-            {/* Máximo de Franchise Tags */}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Máximo de Franchise Tags *
-              </label>
-              <input
-                type="number"
-                value={formData.maxFranchiseTags}
-                onChange={e => updateField('maxFranchiseTags', parseInt(e.target.value) || 0)}
                 className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.maxFranchiseTags ? 'border-red-500' : 'border-slate-600'
+                  errors.sleeperLeagueId ? 'border-red-500' : 'border-slate-600'
                 }`}
-                min="0"
-                max="5"
+                placeholder="Ex: 123456789"
+                disabled={isSubmitting}
               />
               <p className="mt-1 text-xs text-slate-400">
-                Quantas franchise tags cada time pode usar por temporada
+                {league
+                  ? 'ID da liga no Sleeper (pode ser atualizado para nova temporada)'
+                  : 'Importe uma liga existente do Sleeper usando o ID da liga'}
               </p>
-              {errors.maxFranchiseTags && (
-                <p className="mt-1 text-sm text-red-400">{errors.maxFranchiseTags}</p>
+              {errors.sleeperLeagueId && (
+                <p className="mt-1 text-sm text-red-400">{errors.sleeperLeagueId}</p>
               )}
             </div>
 
-            {/* Salário Mínimo */}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Salário Mínimo *
-              </label>
-              <input
-                type="number"
-                value={formData.minimumSalary}
-                onChange={e => updateField('minimumSalary', parseInt(e.target.value) || 0)}
-                className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.minimumSalary ? 'border-red-500' : 'border-slate-600'
-                }`}
-                min="500000"
-                max="10000000"
-                step="100000"
-                placeholder="1000000"
-              />
-              <p className="mt-1 text-xs text-slate-400">
-                Salário para jogadores não disputados (formato: 1000000)
-              </p>
-              {errors.minimumSalary && (
-                <p className="mt-1 text-sm text-red-400">{errors.minimumSalary}</p>
-              )}
+            {/* Configurações da Liga */}
+            <div className="border-t border-slate-700 pt-4">
+              <h3 className="text-sm font-medium text-slate-300 mb-3">Configurações da Liga</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Salary Cap */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Salary Cap *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.salaryCap}
+                    onChange={e => updateField('salaryCap', parseInt(e.target.value) || 0)}
+                    className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.salaryCap ? 'border-red-500' : 'border-slate-600'
+                    }`}
+                    placeholder="279000000"
+                    disabled={isSubmitting}
+                    min="1"
+                  />
+                  <p className="mt-1 text-xs text-slate-400">Teto salarial da liga em dólares</p>
+                  {errors.salaryCap && (
+                    <p className="mt-1 text-sm text-red-400">{errors.salaryCap}</p>
+                  )}
+                </div>
+
+                {/* Max Franchise Tags */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Máximo de Franchise Tags *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.maxFranchiseTags}
+                    onChange={e => updateField('maxFranchiseTags', parseInt(e.target.value) || 0)}
+                    className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.maxFranchiseTags ? 'border-red-500' : 'border-slate-600'
+                    }`}
+                    placeholder="1"
+                    disabled={isSubmitting}
+                    min="0"
+                  />
+                  <p className="mt-1 text-xs text-slate-400">
+                    Número máximo de franchise tags por temporada
+                  </p>
+                  {errors.maxFranchiseTags && (
+                    <p className="mt-1 text-sm text-red-400">{errors.maxFranchiseTags}</p>
+                  )}
+                </div>
+
+                {/* Annual Increase Percentage */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Aumento Anual (%) *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.annualIncreasePercentage}
+                    onChange={e =>
+                      updateField('annualIncreasePercentage', parseFloat(e.target.value) || 0)
+                    }
+                    className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.annualIncreasePercentage ? 'border-red-500' : 'border-slate-600'
+                    }`}
+                    placeholder="15"
+                    disabled={isSubmitting}
+                    min="0"
+                    step="0.1"
+                  />
+                  <p className="mt-1 text-xs text-slate-400">
+                    Percentual de aumento automático dos contratos
+                  </p>
+                  {errors.annualIncreasePercentage && (
+                    <p className="mt-1 text-sm text-red-400">{errors.annualIncreasePercentage}</p>
+                  )}
+                </div>
+
+                {/* Minimum Salary */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Salário Mínimo *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.minimumSalary}
+                    onChange={e => updateField('minimumSalary', parseInt(e.target.value) || 0)}
+                    className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.minimumSalary ? 'border-red-500' : 'border-slate-600'
+                    }`}
+                    placeholder="1000000"
+                    disabled={isSubmitting}
+                    min="1"
+                  />
+                  <p className="mt-1 text-xs text-slate-400">
+                    Salário mínimo para contratos em dólares
+                  </p>
+                  {errors.minimumSalary && (
+                    <p className="mt-1 text-sm text-red-400">{errors.minimumSalary}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Season Turnover Date - Campo único em linha separada */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Data de Virada de Temporada *
+                </label>
+                <input
+                  type="text"
+                  value={formData.seasonTurnoverDate}
+                  onChange={e => updateField('seasonTurnoverDate', e.target.value)}
+                  className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.seasonTurnoverDate ? 'border-red-500' : 'border-slate-600'
+                  }`}
+                  placeholder="04-01"
+                  disabled={isSubmitting}
+                  pattern="^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+                />
+                <p className="mt-1 text-xs text-slate-400">
+                  Data da virada de temporada no formato MM-DD (ex: 04-01 para 1º de abril)
+                </p>
+                {errors.seasonTurnoverDate && (
+                  <p className="mt-1 text-sm text-red-400">{errors.seasonTurnoverDate}</p>
+                )}
+              </div>
             </div>
 
-            {/* Percentual de Aumento Anual */}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Aumento Anual dos Contratos (%) *
-              </label>
-              <input
-                type="number"
-                value={formData.annualIncreasePercentage}
-                onChange={e =>
-                  updateField('annualIncreasePercentage', parseFloat(e.target.value) || 0)
-                }
-                className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.annualIncreasePercentage ? 'border-red-500' : 'border-slate-600'
-                }`}
-                min="0"
-                max="50"
-                step="0.5"
-                placeholder="15.0"
-              />
-              <p className="mt-1 text-xs text-slate-400">
-                Percentual aplicado automaticamente a cada virada de temporada
-              </p>
-              {errors.annualIncreasePercentage && (
-                <p className="mt-1 text-sm text-red-400">{errors.annualIncreasePercentage}</p>
-              )}
-            </div>
-
-            {/* Data de Turnover */}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Data de Virada da Temporada *
-              </label>
-              <input
-                type="text"
-                value={formData.seasonTurnoverDate}
-                onChange={e => updateField('seasonTurnoverDate', e.target.value)}
-                className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.seasonTurnoverDate ? 'border-red-500' : 'border-slate-600'
-                }`}
-                placeholder="04-01"
-                maxLength={5}
-              />
-              <p className="mt-1 text-xs text-slate-400">
-                Data quando os contratos recebem aumento anual (formato: MM-DD)
-              </p>
-              {errors.seasonTurnoverDate && (
-                <p className="mt-1 text-sm text-red-400">{errors.seasonTurnoverDate}</p>
-              )}
-            </div>
+            {/* Barra de progresso da importação */}
+            {importProgress && (
+              <div className="mb-4">
+                <div className="flex justify-between text-sm text-slate-400 mb-1">
+                  <span>{importProgress.message}</span>
+                  <span>{importProgress.progress}%</span>
+                </div>
+                <div className="w-full bg-slate-700 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${importProgress.progress}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
 
             {/* Botões */}
             <div className="flex gap-3 pt-4">
@@ -464,10 +518,38 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Salvando...' : league ? 'Atualizar' : 'Criar Liga'}
+                {isSubmitting ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    {league ? 'Salvando...' : 'Importando...'}
+                  </>
+                ) : league ? (
+                  'Salvar Alterações'
+                ) : (
+                  'Importar Liga'
+                )}
               </button>
             </div>
           </form>
