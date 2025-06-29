@@ -153,6 +153,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
               outerRadius={80}
               paddingAngle={2}
               dataKey="totalSalary"
+              nameKey="position"
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={POSITION_COLORS[entry.position] || '#9CA3AF'} />
