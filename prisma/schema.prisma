@@ -123,6 +123,9 @@ model League {
   annualIncreasePercentage Float  @default(15.0)
   minimumSalary            Float  @default(1.0)
   seasonTurnoverDate       String @default("04-01")
+  
+  // Configuração de Dead Money (JSON)
+  deadMoneyConfig          String @default("{\"currentSeason\":1.0,\"futureSeasons\":{\"1\":0,\"2\":0.5,\"3\":0.75,\"4\":1.0}}")
 
   // Relacionamentos
   commissionerId String

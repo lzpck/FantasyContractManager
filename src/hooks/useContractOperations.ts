@@ -8,8 +8,9 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Player, Contract, Team, League, ContractStatus } from '@/types';
+import { Player, Contract, Team, League, ContractStatus, DeadMoneyConfig, DEFAULT_DEAD_MONEY_CONFIG } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
+import { calculateDeadMoney } from '@/utils/contractUtils';
 
 interface ContractOperationResult {
   success: boolean;
@@ -404,8 +405,21 @@ export function useContractOperations({
     setError(null);
     
     try {
-      // Calcular dead money
-      const deadMoney = contract.guaranteedMoney - (contract.paidGuaranteed || 0);
+      // Obter configuração de dead money da liga
+      let deadMoneyConfig = DEFAULT_DEAD_MONEY_CONFIG;
+      if (league.deadMoneyConfig) {
+        try {
+          deadMoneyConfig = typeof league.deadMoneyConfig === 'string' 
+            ? JSON.parse(league.deadMoneyConfig) 
+            : league.deadMoneyConfig;
+        } catch (error) {
+          console.warn('Erro ao fazer parse da configuração de dead money, usando padrão:', error);
+        }
+      }
+      
+      // Calcular dead money usando a configuração da liga
+      const deadMoneyResult = calculateDeadMoney(contract, player.rosterStatus, deadMoneyConfig);
+      const deadMoney = deadMoneyResult.currentSeason + deadMoneyResult.nextSeason;
       
       // Atualizar contrato como cortado
       const cutContract: Contract = {

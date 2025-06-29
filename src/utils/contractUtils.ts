@@ -18,6 +18,7 @@ import {
   PlayerPosition,
   AcquisitionType,
   FranchiseTagCalculation,
+  DeadMoneyConfig,
 } from '../types';
 
 // ============================================================================
@@ -90,21 +91,34 @@ export function calculateAnnualSalary(contract: Contract, targetYear: number): n
 /**
  * Calcula o dead money ao cortar um jogador
  *
- * Regras:
- * - Salário do ano atual: 100% vira dead money
- * - Anos restantes: 25% do salário de cada ano vira dead money na próxima temporada
+ * Regras customizáveis por liga:
+ * - Salário do ano atual: percentual configurável (padrão 100%)
+ * - Anos restantes: percentual configurável por quantidade de anos restantes
  * - Practice squad: apenas 25% do salário atual, zero para próxima temporada
  *
  * @param contract - Contrato do jogador
  * @param cutYear - Ano em que o jogador foi cortado (relativo ao ano de assinatura)
  * @param isPracticeSquad - Se o jogador estava no practice squad
+ * @param deadMoneyConfig - Configuração de dead money da liga (opcional, usa padrão se não fornecido)
  * @returns Cálculo detalhado do dead money
  */
 export function calculateDeadMoney(
   contract: Contract,
   cutYear: number,
   isPracticeSquad: boolean = false,
+  deadMoneyConfig?: DeadMoneyConfig,
 ): DeadMoneyCalculation {
+  // Usar configuração padrão se não fornecida
+  const config = deadMoneyConfig || {
+    currentSeason: 1.0,
+    futureSeasons: {
+      '1': 0,
+      '2': 0.5,
+      '3': 0.75,
+      '4': 1.0,
+    },
+  };
+
   const currentYearSalary = calculateAnnualSalary(contract, cutYear);
   const yearsRemaining = contract.originalYears - cutYear - 1;
 
@@ -112,18 +126,25 @@ export function calculateDeadMoney(
   let nextSeasonAmount: number;
 
   if (isPracticeSquad) {
-    // Practice squad: apenas 25% do salário atual
+    // Practice squad: sempre 25% do salário atual, independente da configuração
     currentSeasonAmount = currentYearSalary * 0.25;
     nextSeasonAmount = 0;
   } else {
-    // Jogador regular: salário atual + 25% dos anos restantes
-    currentSeasonAmount = currentYearSalary;
+    // Jogador regular: usar configuração da liga
+    currentSeasonAmount = currentYearSalary * config.currentSeason;
 
-    // Calcula 25% do salário de cada ano restante
+    // Calcular penalidade baseada nos anos restantes e configuração
     let remainingYearsPenalty = 0;
-    for (let year = cutYear + 1; year < contract.originalYears; year++) {
-      const yearSalary = calculateAnnualSalary(contract, year);
-      remainingYearsPenalty += yearSalary * 0.25;
+    if (yearsRemaining > 0) {
+      // Obter percentual baseado nos anos restantes
+      const yearsKey = Math.min(yearsRemaining, 4).toString() as keyof typeof config.futureSeasons;
+      const penaltyPercentage = config.futureSeasons[yearsKey] || 0;
+      
+      // Aplicar percentual ao salário total dos anos restantes
+      for (let year = cutYear + 1; year < contract.originalYears; year++) {
+        const yearSalary = calculateAnnualSalary(contract, year);
+        remainingYearsPenalty += yearSalary * penaltyPercentage;
+      }
     }
     nextSeasonAmount = remainingYearsPenalty;
   }
