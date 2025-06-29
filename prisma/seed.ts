@@ -17,18 +17,18 @@ async function main() {
     const demoUserEmail = 'demo@demo.com';
     const demoUserPassword = 'demo';
 
-    // Criar usuário administrador
-    const adminUserEmail = 'admin@admin.com';
-    const adminUserPassword = 'admin';
+    // Criar usuário comissário (substitui o antigo admin)
+    const commissionerUserEmail = 'commissioner@demo.com';
+    const commissionerUserPassword = 'commissioner';
 
     // Verificar se o usuário demo já existe
     const existingDemoUser = await prisma.user.findUnique({
       where: { email: demoUserEmail },
     });
 
-    // Verificar se o usuário admin já existe
-    const existingAdminUser = await prisma.user.findUnique({
-      where: { email: adminUserEmail },
+    // Verificar se o usuário comissário já existe
+    const existingCommissionerUser = await prisma.user.findUnique({
+      where: { email: commissionerUserEmail },
     });
 
     let demoUser;
@@ -59,29 +59,29 @@ async function main() {
       });
     }
 
-    let adminUser;
-    if (existingAdminUser) {
-      adminUser = existingAdminUser;
-      console.log('✅ Usuário administrador já existe:', adminUserEmail);
+    let commissionerUser;
+    if (existingCommissionerUser) {
+      commissionerUser = existingCommissionerUser;
+      console.log('✅ Usuário comissário já existe:', commissionerUserEmail);
     } else {
-      const hashedPassword = await bcrypt.hash(adminUserPassword, 12);
+      const hashedPassword = await bcrypt.hash(commissionerUserPassword, 12);
 
-      adminUser = await prisma.user.create({
+      commissionerUser = await prisma.user.create({
         data: {
-          name: 'Administrador',
-          email: adminUserEmail,
+          name: 'Comissário Demo',
+          email: commissionerUserEmail,
           password: hashedPassword,
-          role: 'ADMIN',
+          role: 'COMMISSIONER',
           isActive: true,
           emailVerified: toISOString(nowInBrazil()),
         },
       });
 
-      console.log('✅ Usuário administrador criado:', {
-        id: adminUser.id,
-        email: adminUser.email,
-        name: adminUser.name,
-        role: adminUser.role,
+      console.log('✅ Usuário comissário criado:', {
+        id: commissionerUser.id,
+        email: commissionerUser.email,
+        name: commissionerUser.name,
+        role: commissionerUser.role,
       });
     }
 
@@ -120,10 +120,10 @@ async function main() {
       console.log('✅ Liga de demonstração criada e vinculada ao usuário demo');
     }
 
-    // Caso existam times da liga vinculados ao administrador, transferir para o usuário demo
+    // Caso existam times da liga vinculados ao comissário, transferir para o usuário demo
     if (demoLeague) {
       await prisma.team.updateMany({
-        where: { leagueId: demoLeague.id, ownerId: adminUser.id },
+        where: { leagueId: demoLeague.id, ownerId: commissionerUser.id },
         data: { ownerId: demoUser.id },
       });
     }

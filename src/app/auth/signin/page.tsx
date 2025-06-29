@@ -159,7 +159,7 @@ export default function SignInPage() {
 
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Entre em contato com o administrador para criar uma conta.
+              Entre em contato com o comissário para criar uma conta.
             </p>
           </div>
         </form>

@@ -134,8 +134,6 @@ export enum CapMovementType {
  * Tipos de perfil de usuário
  */
 export enum UserRole {
-  /** Administrador - acesso total ao sistema */
-  ADMIN = 'ADMIN',
   /** Comissário - gerencia ligas */
   COMMISSIONER = 'COMMISSIONER',
   /** Usuário - gerencia seus times */

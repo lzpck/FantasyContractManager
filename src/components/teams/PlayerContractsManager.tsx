@@ -58,7 +58,7 @@ export function PlayerContractsManager({
   
   // Hook de autenticação
   const { user } = useAuth();
-  const isCommissioner = user?.role === 'COMMISSIONER' || user?.role === 'ADMIN';
+  const isCommissioner = user?.role === 'COMMISSIONER';
   
   // Filtrar e ordenar jogadores
   const filteredAndSortedPlayers = players
