@@ -286,34 +286,35 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
       </div>
 
       {/* Tabela de Resumo */}
-      <div className="overflow-x-auto -mx-4 sm:mx-0">
-        <table className="min-w-full text-xs sm:text-sm">
-          <thead>
-            <tr className="border-b border-slate-600">
-              <th className="text-left text-xs font-medium text-slate-400 uppercase tracking-wider py-2 sm:py-3 px-1 sm:px-2">
-                Temporada
-              </th>
-              <th className="text-center text-xs font-medium text-slate-400 uppercase tracking-wider py-2 sm:py-3 px-1 sm:px-2 hidden sm:table-cell">
-                Contratos
-              </th>
-              <th className="text-right text-xs font-medium text-slate-400 uppercase tracking-wider py-2 sm:py-3 px-1 sm:px-2">
-                Salários
-              </th>
-              <th className="text-right text-xs font-medium text-slate-400 uppercase tracking-wider py-2 sm:py-3 px-1 sm:px-2 hidden md:table-cell">
-                Dead Money
-              </th>
-              <th className="text-right text-xs font-medium text-slate-400 uppercase tracking-wider py-2 sm:py-3 px-1 sm:px-2">
-                Total
-              </th>
-              <th className="text-right text-xs font-medium text-slate-400 uppercase tracking-wider py-2 sm:py-3 px-1 sm:px-2">
-                Disponível
-              </th>
-              <th className="text-center text-xs font-medium text-slate-400 uppercase tracking-wider py-2 sm:py-3 px-1 sm:px-2">
-                Uso %
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-700">
+      <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-slate-700/30 border-b border-slate-600/50">
+                <th className="text-left text-xs font-semibold text-slate-300 uppercase tracking-wide py-3 px-4">
+                  Temporada
+                </th>
+                <th className="text-center text-xs font-semibold text-slate-300 uppercase tracking-wide py-3 px-4 hidden sm:table-cell">
+                  Contratos
+                </th>
+                <th className="text-right text-xs font-semibold text-slate-300 uppercase tracking-wide py-3 px-4">
+                  Salários
+                </th>
+                <th className="text-right text-xs font-semibold text-slate-300 uppercase tracking-wide py-3 px-4 hidden md:table-cell">
+                  Dead Money
+                </th>
+                <th className="text-right text-xs font-semibold text-slate-300 uppercase tracking-wide py-3 px-4">
+                  Total
+                </th>
+                <th className="text-right text-xs font-semibold text-slate-300 uppercase tracking-wide py-3 px-4">
+                  Disponível
+                </th>
+                <th className="text-center text-xs font-semibold text-slate-300 uppercase tracking-wide py-3 px-4">
+                  Uso %
+                </th>
+              </tr>
+            </thead>
+          <tbody className="divide-y divide-slate-600/30">
             {projectionData.map((data, index) => {
               const isCurrentYear = index === 0;
               const usagePercentage = data.capUsagePercentage;
@@ -327,29 +328,28 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
                    key={data.year} 
                    className={`${
                      isCurrentYear 
-                       ? 'bg-blue-900/30 border-blue-500/50' 
-                       : 'hover:bg-slate-700/50'
-                   } transition-colors`}
+                       ? 'bg-blue-500/10 border-l-2 border-l-blue-500' 
+                       : 'hover:bg-slate-700/30'
+                   } transition-all duration-200`}
                    aria-label={`Projeção para ${data.year}${isCurrentYear ? ' (ano atual)' : ''}`}
                  >
-                   <td className="py-2 sm:py-3 px-1 sm:px-2 font-medium text-slate-100">
-                     <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
-                       <span className="text-sm sm:text-base">{data.year}</span>
+                   <td className="py-3 px-4 font-medium text-slate-100">
+                     <div className="flex items-center space-x-2">
+                       <span className="text-sm">{data.year}</span>
                        {isCurrentYear && (
-                         <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mt-1 sm:mt-0 w-fit">
+                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">
                            Atual
                          </span>
                        )}
                      </div>
                    </td>
-                   <td className="py-2 sm:py-3 px-1 sm:px-2 text-center text-slate-300 hidden sm:table-cell" aria-label={`${data.contractsCount} contratos ativos`}>
+                   <td className="py-3 px-4 text-center text-slate-300 text-sm hidden sm:table-cell" aria-label={`${data.contractsCount} contratos ativos`}>
                      {data.contractsCount}
                    </td>
-                   <td className="py-2 sm:py-3 px-1 sm:px-2 text-right text-slate-300 font-mono" aria-label={`Salários: ${formatCurrency(data.totalSalaries)}`}>
-                     <span className="block sm:hidden text-xs text-slate-500">Sal:</span>
+                   <td className="py-3 px-4 text-right text-slate-300 font-mono text-sm" aria-label={`Salários: ${formatCurrency(data.totalSalaries)}`}>
                      {formatCurrency(data.totalSalaries)}
                    </td>
-                   <td className="py-2 sm:py-3 px-1 sm:px-2 text-right font-mono hidden md:table-cell" aria-label={hasDeadMoney ? `Dead money: ${formatCurrency(data.deadMoney)}` : 'Sem dead money'}>
+                   <td className="py-3 px-4 text-right font-mono text-sm hidden md:table-cell" aria-label={hasDeadMoney ? `Dead money: ${formatCurrency(data.deadMoney)}` : 'Sem dead money'}>
                      {hasDeadMoney ? (
                        <span className="text-red-400 font-medium">
                          {formatCurrency(data.deadMoney)}
@@ -358,21 +358,19 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
                        <span className="text-slate-500">—</span>
                      )}
                    </td>
-                   <td className="py-2 sm:py-3 px-1 sm:px-2 text-right font-medium font-mono text-slate-100" aria-label={`Total comprometido: ${formatCurrency(data.totalCommitted)}`}>
-                     <span className="block sm:hidden text-xs text-slate-500">Tot:</span>
+                   <td className="py-3 px-4 text-right font-medium font-mono text-slate-100 text-sm" aria-label={`Total comprometido: ${formatCurrency(data.totalCommitted)}`}>
                      {formatCurrency(data.totalCommitted)}
                    </td>
-                   <td className={`py-2 sm:py-3 px-1 sm:px-2 text-right font-medium font-mono ${
+                   <td className={`py-3 px-4 text-right font-medium font-mono text-sm ${
                      data.availableCap >= 0 
                        ? 'text-green-400' 
                        : 'text-red-400'
                    }`} aria-label={`Cap disponível: ${formatCurrency(data.availableCap)}`}>
-                     <span className="block sm:hidden text-xs text-slate-500">Disp:</span>
                      {formatCurrency(data.availableCap)}
                    </td>
-                   <td className="py-2 sm:py-3 px-1 sm:px-2 text-center" aria-label={`Uso do cap: ${formatPercentage(usagePercentage)}`}>
-                     <div className="flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2">
-                       <span className={`font-medium font-mono ${
+                   <td className="py-3 px-4 text-center" aria-label={`Uso do cap: ${formatPercentage(usagePercentage)}`}>
+                     <div className="flex items-center justify-center space-x-2">
+                       <span className={`font-medium font-mono text-sm ${
                          isOverCap
                            ? 'text-red-400'
                            : isCritical
@@ -385,17 +383,17 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
                        </span>
                        <div className="flex space-x-1">
                          {isOverCap && (
-                           <span className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 text-xs font-bold text-white bg-red-500 rounded-full" title="Acima do salary cap" aria-label="Acima do salary cap">
+                           <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full" title="Acima do salary cap" aria-label="Acima do salary cap">
                              !
                            </span>
                          )}
                          {!isOverCap && isCritical && (
-                           <span className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 text-xs font-bold text-white bg-orange-500 rounded-full" title="Uso crítico do salary cap" aria-label="Uso crítico do salary cap">
+                           <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full" title="Uso crítico do salary cap" aria-label="Uso crítico do salary cap">
                              ⚠
                            </span>
                          )}
                          {hasDeadMoney && data.deadMoney > 5000000 && (
-                           <span className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 text-xs font-bold text-white bg-purple-500 rounded-full" title="Alto dead money" aria-label="Alto dead money">
+                           <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-purple-500 rounded-full" title="Alto dead money" aria-label="Alto dead money">
                              D
                            </span>
                          )}
@@ -407,10 +405,11 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Alertas */}
-      <div className="space-y-3">
+      <div className="space-y-3 mt-6">
         {/* Alerta de Cap Excedido */}
         {projectionData.some(d => d.availableCap < 0) && (
           <div className="p-4 bg-red-900/20 border border-red-500/50 rounded-lg">
