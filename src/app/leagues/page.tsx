@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { League, LeagueStatus } from '@/types';
 import { useLeagues } from '@/hooks/useLeagues';
+import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency, getStatusColor, getStatusText } from '@/utils/formatUtils';
 import { Toast } from '@/components/ui/Toast';
 import LeagueModal from '@/components/leagues/LeagueModal';
@@ -31,6 +32,7 @@ interface ToastState {
 export default function LeaguesPage() {
   const router = useRouter();
   const { leagues, loading, error, refreshLeagues } = useLeagues();
+  const { canImportLeague } = useAuth();
 
   // Estados locais
   const [searchTerm, setSearchTerm] = useState('');
@@ -172,13 +174,15 @@ export default function LeaguesPage() {
                 Gerencie suas ligas de fantasy football e contratos de jogadores
               </p>
             </div>
-            <button
-              onClick={handleAddLeague}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-            >
-              <PlusIcon className="h-5 w-5" />
-              Nova Liga
-            </button>
+            {canImportLeague && (
+              <button
+                onClick={handleAddLeague}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <PlusIcon className="h-5 w-5" />
+                Nova Liga
+              </button>
+            )}
           </div>
 
           {/* Barra de busca e filtros */}
@@ -258,7 +262,7 @@ export default function LeaguesPage() {
                 ? 'Comece criando sua primeira liga de fantasy football'
                 : 'Tente ajustar os filtros de busca para encontrar suas ligas'}
             </p>
-            {leagues.length === 0 && (
+            {leagues.length === 0 && canImportLeague && (
               <button
                 onClick={handleAddLeague}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2 mx-auto"

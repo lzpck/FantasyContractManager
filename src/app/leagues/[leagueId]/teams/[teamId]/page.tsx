@@ -10,6 +10,9 @@ import { PlayerRosterSections } from '@/components/teams/PlayerRosterSections';
 import { CapProjectionChart } from '@/components/teams/CapProjectionChart';
 import PositionDistributionChart from '@/components/teams/PositionDistributionChart';
 import ContractActionsModal from '@/components/teams/ContractActionsModal';
+import ContractModal from '@/components/teams/ContractModal';
+import { useContractModal } from '@/hooks/useContractModal';
+
 
 /**
  * Página de detalhes do time
@@ -34,6 +37,9 @@ export default function TeamDetailsPage() {
   // Estados para modais
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
+  
+  // Hook para gerenciar o ContractModal
+  const contractModal = useContractModal();
 
   // Carregar dados do time
   useEffect(() => {
@@ -183,6 +189,22 @@ export default function TeamDetailsPage() {
     }
   }, [leagueId, teamId]);
 
+  // Listener para refresh após salvar contrato
+  useEffect(() => {
+    const handleContractUpdated = () => {
+      // Recarregar dados do time após salvar/editar contrato
+      if (leagueId && teamId) {
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('contractUpdated', handleContractUpdated);
+    
+    return () => {
+      window.removeEventListener('contractUpdated', handleContractUpdated);
+    };
+  }, [leagueId, teamId]);
+
   // Handlers
   const handleBack = () => {
     router.push(`/leagues/${leagueId}`);
@@ -190,7 +212,14 @@ export default function TeamDetailsPage() {
 
   const handlePlayerAction = (player: PlayerWithContract, action: string) => {
     setSelectedPlayer(player);
-    setShowActionsModal(true);
+    
+    if (action === 'add') {
+      // Para adicionar contrato, abrir diretamente o ContractModal
+      contractModal.openModal(player.player, team, league);
+    } else {
+      // Para editar, estender ou tag, abrir o ContractActionsModal
+      setShowActionsModal(true);
+    }
   };
 
   const handleContractAction = async (action: string, contractData?: any) => {
@@ -198,8 +227,6 @@ export default function TeamDetailsPage() {
 
     try {
       // Implementar ações de contrato (editar, adicionar, liberar)
-      console.log('Ação de contrato:', action, 'Jogador:', selectedPlayer, 'Dados:', contractData);
-
       // Aqui seria feita a chamada para a API para executar a ação
       // await fetch(`/api/teams/${teamId}/contracts/${action}`, { ... });
 
@@ -285,6 +312,8 @@ export default function TeamDetailsPage() {
             <CapProjectionChart team={team} players={playersWithContracts} />
           </div>
 
+
+
           {/* Seções de Jogadores por Status */}
           <PlayerRosterSections
             players={playersWithContracts}
@@ -293,18 +322,31 @@ export default function TeamDetailsPage() {
         </div>
       </div>
 
-      {/* Modal de Ações */}
-      {showActionsModal && selectedPlayer && (
-        <ContractActionsModal
-          isOpen={showActionsModal}
-          player={selectedPlayer}
-          onClose={() => {
-            setShowActionsModal(false);
-            setSelectedPlayer(null);
-          }}
-          onAction={handleContractAction}
-        />
-      )}
+      {/* Modal de Ações de Contrato */}
+      <ContractActionsModal
+        isOpen={showActionsModal}
+        player={selectedPlayer}
+        team={team!}
+        league={league!}
+        onClose={() => {
+          setShowActionsModal(false);
+          setSelectedPlayer(null);
+        }}
+        onAction={handleContractAction}
+        isCommissioner={true}
+      />
+      
+      {/* Modal de Contrato */}
+      <ContractModal
+        isOpen={contractModal.isOpen}
+        onClose={contractModal.closeModal}
+        player={contractModal.player}
+        team={contractModal.team}
+        league={contractModal.league}
+        contract={contractModal.contract}
+        onSave={contractModal.saveContract}
+        isCommissioner={true}
+      />
     </div>
   );
 }

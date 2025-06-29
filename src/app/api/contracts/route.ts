@@ -124,3 +124,169 @@ export async function GET() {
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
+
+/**
+ * POST /api/contracts
+ * Cria um novo contrato
+ */
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const userEmail = session.user.email;
+    const body = await request.json();
+
+    const {
+      playerId,
+      teamId,
+      leagueId,
+      originalSalary,
+      currentSalary,
+      originalYears,
+      yearsRemaining,
+      acquisitionType,
+      hasFourthYearOption,
+      hasBeenTagged,
+      hasBeenExtended,
+      fourthYearOptionActivated,
+      signedSeason,
+      status
+    } = body;
+
+    // Validação básica
+    if (!playerId || !teamId || !leagueId || !originalSalary || !originalYears) {
+      return NextResponse.json(
+        { error: 'Campos obrigatórios: playerId, teamId, leagueId, originalSalary, originalYears' },
+        { status: 400 }
+      );
+    }
+
+    // Para usuário demo, simular criação
+    if (isDemoUser(userEmail)) {
+      const mockContract = {
+        id: `contract-${Date.now()}`,
+        playerId,
+        teamId,
+        leagueId,
+        originalSalary,
+        currentSalary: currentSalary || originalSalary,
+        originalYears,
+        yearsRemaining: yearsRemaining || originalYears,
+        acquisitionType,
+        hasFourthYearOption: hasFourthYearOption || false,
+        hasBeenTagged: hasBeenTagged || false,
+        hasBeenExtended: hasBeenExtended || false,
+        fourthYearOptionActivated: fourthYearOptionActivated || false,
+        signedSeason: signedSeason || new Date().getFullYear(),
+        status: status || 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      console.log('Contrato criado (modo demo):', mockContract);
+      return NextResponse.json({ contract: mockContract }, { status: 201 });
+    }
+
+    // Buscar usuário real
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
+    }
+
+    // Verificar se o jogador existe (buscar pelo sleeperPlayerId)
+    const player = await prisma.player.findUnique({
+      where: { sleeperPlayerId: playerId },
+    });
+
+    if (!player) {
+      return NextResponse.json(
+        { error: 'Jogador não encontrado' },
+        { status: 404 }
+      );
+    }
+
+    // Verificar se a liga existe
+    const league = await prisma.league.findUnique({
+      where: { id: leagueId },
+    });
+
+    if (!league) {
+      return NextResponse.json(
+        { error: 'Liga não encontrada' },
+        { status: 404 }
+      );
+    }
+
+    // Verificar se o time pertence ao usuário e está na liga correta
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+        ownerId: user.id,
+        leagueId: leagueId,
+      },
+    });
+
+    if (!team) {
+      return NextResponse.json(
+        { error: 'Time não encontrado, não pertence ao usuário ou não está na liga especificada' },
+        { status: 403 }
+      );
+    }
+
+    // Verificar se já existe um contrato ativo para este jogador neste time
+    const existingContract = await prisma.contract.findFirst({
+      where: {
+        playerId: player.id,
+        teamId,
+        status: 'ACTIVE',
+      },
+    });
+
+    if (existingContract) {
+      return NextResponse.json(
+        { error: 'Jogador já possui contrato ativo neste time' },
+        { status: 409 }
+      );
+    }
+
+    // Criar o contrato
+    const contract = await prisma.contract.create({
+      data: {
+        playerId: player.id,
+        teamId,
+        leagueId,
+        originalSalary,
+        currentSalary: currentSalary || originalSalary,
+        originalYears,
+        yearsRemaining: yearsRemaining || originalYears,
+        acquisitionType: acquisitionType.toUpperCase(),
+        hasFourthYearOption: hasFourthYearOption || false,
+        hasBeenTagged: hasBeenTagged || false,
+        hasBeenExtended: hasBeenExtended || false,
+        fourthYearOptionActivated: fourthYearOptionActivated || false,
+        signedSeason: signedSeason || new Date().getFullYear(),
+        status: (status || 'active').toUpperCase(),
+      },
+      include: {
+        player: true,
+        team: {
+          include: {
+            league: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json({ contract }, { status: 201 });
+  } catch (error) {
+    console.error('Erro ao criar contrato:', error);
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
+  }
+}

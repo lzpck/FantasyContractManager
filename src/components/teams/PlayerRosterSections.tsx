@@ -32,7 +32,7 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
 
   // Função para obter cor do status do contrato
   const getContractStatusColor = (status: string, yearsRemaining: number) => {
-    if (status === 'active') {
+    if (status === 'ACTIVE' || status === 'active') {
       if (yearsRemaining <= 1) return 'bg-yellow-100 text-yellow-800';
       if (yearsRemaining <= 2) return 'bg-orange-100 text-orange-800';
       return 'bg-green-100 text-green-800';
@@ -42,7 +42,7 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
 
   // Função para obter texto do status do contrato
   const getContractStatusText = (status: string, yearsRemaining: number) => {
-    if (status === 'active') {
+    if (status === 'ACTIVE' || status === 'active') {
       if (yearsRemaining <= 1) return 'Último ano';
       if (yearsRemaining <= 2) return 'Expira em breve';
       return 'Ativo';
@@ -102,7 +102,10 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
       <div className="bg-slate-900 px-6 py-4 border-b border-slate-700">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
-          <span className="text-sm text-slate-400">{sectionPlayers.length} jogador(es)</span>
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-slate-400">{sectionPlayers.length} jogador(es)</span>
+
+          </div>
         </div>
       </div>
 
@@ -193,13 +196,16 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
                       {contract ? formatCurrency(deadMoney) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 relative z-10">
                         {/* Adicionar/Editar Contrato */}
                         <button
-                          onClick={() =>
-                            onPlayerAction(playerWithContract, contract ? 'edit' : 'add')
-                          }
-                          className="text-blue-600 hover:text-blue-900"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                  
+                            onPlayerAction(playerWithContract, contract ? 'edit' : 'add');
+                          }}
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-100 cursor-pointer relative z-20"
                           title={contract ? 'Editar Contrato' : 'Adicionar Contrato'}
                         >
                           {contract ? (
@@ -212,19 +218,29 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
                         {/* Extensão (se elegível) */}
                         {isEligibleForExtension(contract) && (
                           <button
-                            onClick={() => onPlayerAction(playerWithContract, 'extend')}
-                            className="text-green-600 hover:text-green-900"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                  
+                              onPlayerAction(playerWithContract, 'extend');
+                            }}
+                            className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-100 cursor-pointer relative z-20"
                             title="Extensão de Contrato"
                           >
                             <ArrowPathIcon className="h-4 w-4" />
                           </button>
                         )}
 
-                        {/* Franchise Tag (se elegível) */}
-                        {isEligibleForTag(contract) && (
+                        {/* Franchise Tag */}
+                        {isEligibleForTag(playerWithContract) && (
                           <button
-                            onClick={() => onPlayerAction(playerWithContract, 'tag')}
-                            className="text-purple-600 hover:text-purple-900"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                  
+                              onPlayerAction(playerWithContract, 'tag');
+                            }}
+                            className="text-purple-600 hover:text-purple-900 ml-2 p-1 rounded hover:bg-purple-100 cursor-pointer relative z-20"
                             title="Franchise Tag"
                           >
                             <TagIcon className="h-4 w-4" />

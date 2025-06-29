@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { PlayerWithContract } from '@/types';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
+import { PlayerWithContract, Player, Team, League, Contract } from '@/types';
+import { XMarkIcon, PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/formatUtils';
+import { useContractModal } from '@/hooks/useContractModal';
+import { useContractOperations } from '@/hooks/useContractOperations';
+import ContractModal from './ContractModal';
 
 interface ContractActionData {
   action: string;
@@ -24,14 +27,20 @@ interface ContractActionsModalProps {
   isOpen: boolean;
   onClose: () => void;
   player: PlayerWithContract | null;
+  team: Team;
+  league: League;
   onAction: (action: string, data: ContractActionData) => void;
+  isCommissioner: boolean;
 }
 
 export default function ContractActionsModal({
   isOpen,
   onClose,
   player,
+  team,
+  league,
   onAction,
+  isCommissioner,
 }: ContractActionsModalProps) {
   const [activeTab, setActiveTab] = useState<'edit' | 'extend' | 'tag' | 'cut'>('edit');
   const [formData, setFormData] = useState({
@@ -41,307 +50,422 @@ export default function ContractActionsModal({
     extensionYears: '',
   });
 
-  if (!isOpen || !player || !player.contract) return null;
+  const contractModal = useContractModal();
+  
+  const {
+    createContract,
+    updateContract,
+    extendContract,
+    applyFranchiseTag,
+    cutPlayer,
+    isLoading,
+    error: operationError,
+    clearError,
+  } = useContractOperations({
+    team,
+    league,
+    onUpdate: () => {
+      // Callback para atualizar dados após operação
+    },
+  });
 
-  // Calcular dead money se cortado
+  const handleContractSave = async (formData: any) => {
+    try {
+      // Transformar dados do formulário para o formato esperado pelo hook
+      const contractData = {
+        totalValue: formData.annualSalary * formData.contractYears,
+        years: formData.contractYears,
+        currentSalary: formData.annualSalary,
+        originalSalary: formData.annualSalary,
+        originalYears: formData.contractYears,
+        yearsRemaining: formData.contractYears,
+        guaranteedMoney: formData.annualSalary * formData.contractYears, // Por padrão, todo o contrato é garantido
+        acquisitionType: formData.acquisitionType,
+        hasFourthYearOption: formData.hasFourthYearOption,
+        hasBeenTagged: formData.hasBeenTagged,
+        hasBeenExtended: formData.hasBeenExtended,
+        fourthYearOptionActivated: formData.fourthYearOptionActivated,
+        signedSeason: new Date().getFullYear(),
+      };
+      
+      let result;
+      
+      if (player.contract) {
+        result = await updateContract(player.contract, contractData);
+      } else {
+        result = await createContract(player.player, contractData);
+      }
+      
+      if (result.success) {
+        alert(result.message);
+        onClose();
+      } else {
+        alert(`Erro: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Erro ao salvar contrato:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && player && player.contract) {
+      // Configurar os dados do formulário apenas se tem contrato
+      setFormData({
+          newSalary: player.contract.currentSalary.toString(),
+          newYears: player.contract.yearsRemaining.toString(),
+          extensionSalary: '',
+          extensionYears: '',
+        });
+    }
+  }, [isOpen, player]);
+
+  // Calcular dead money
   const calculateDeadMoney = () => {
+    if (!player?.contract) return 0;
     const remainingSalary = player.contract.currentSalary * player.contract.yearsRemaining;
     return remainingSalary * 0.25; // 25% do salário restante
   };
 
   // Calcular valor da franchise tag
   const calculateTagValue = () => {
+    if (!player?.contract) return 0;
     const salaryIncrease = player.contract.currentSalary * 1.15;
     const positionAverage = player.contract.currentSalary * 1.2; // Mock da média da posição
     return Math.max(salaryIncrease, positionAverage);
   };
 
   // Verificar elegibilidade para ações
-  const isEligibleForExtension =
-    player.contract.yearsRemaining === 1 && !player.contract.hasBeenExtended;
-  const isEligibleForTag = player.contract.yearsRemaining === 1 && !player.contract.hasBeenTagged;
+  const isEligibleForExtension = player?.contract ? 
+    player.contract.yearsRemaining === 1 && !player.contract.hasBeenExtended : false;
+  const isEligibleForTag = player?.contract ? 
+    player.contract.yearsRemaining === 1 && !player.contract.hasBeenTagged : false;
 
+  // Função para abrir modal de edição de contrato
+  const handleEditContract = () => {
+    if (player && isCommissioner) {
+      contractModal.openModal(player.player, team, league, player.contract);
+      onClose(); // Fechar o modal de ações
+    }
+  };
+  
+  // Função para adicionar novo contrato (para jogadores sem contrato)
+  const handleAddContract = () => {
+    if (player && isCommissioner) {
+      contractModal.openModal(player.player, team, league);
+      onClose(); // Fechar o modal de ações
+    }
+  };
+  
+  // Função para aplicar extensão de contrato
+  const handleExtension = async () => {
+    if (!player?.contract || !formData.extensionSalary || !formData.extensionYears) {
+      alert('Por favor, preencha o salário e anos da extensão.');
+      return;
+    }
+    
+    const result = await extendContract(
+      player.contract,
+      parseInt(formData.extensionYears),
+      parseFloat(formData.extensionSalary),
+      0
+    );
+    
+    if (result.success) {
+      alert(result.message);
+      onClose();
+    } else {
+      alert(`Erro: ${result.message}`);
+    }
+  };
+  
+  // Função para aplicar franchise tag
+  const handleFranchiseTag = async () => {
+    if (!player) return;
+    
+    const tagValue = calculateTagValue();
+    
+    const result = await applyFranchiseTag(player, tagValue);
+    
+    if (result.success) {
+      alert(result.message);
+      onClose();
+    } else {
+      alert(`Erro: ${result.message}`);
+    }
+  };
+  
+
+  
   const handleSubmit = (action: string) => {
-    const actionData = {
-      action,
-      player,
-      formData,
-      calculatedValues: {
-        deadMoney: calculateDeadMoney(),
-        tagValue: calculateTagValue(),
-      },
-    };
-    onAction(action, actionData);
+    switch (action) {
+      case 'edit':
+        handleEditContract();
+        break;
+      case 'extend':
+        handleExtension();
+        break;
+      case 'tag':
+        handleFranchiseTag();
+        break;
+      default:
+        console.warn('Ação não reconhecida:', action);
+    }
   };
 
   const tabs = [
     { id: 'edit', label: 'Editar Contrato', enabled: true },
     { id: 'extend', label: 'Extensão', enabled: isEligibleForExtension },
     { id: 'tag', label: 'Franchise Tag', enabled: isEligibleForTag },
-    { id: 'cut', label: 'Cortar Jogador', enabled: true },
   ] as const;
 
+  // Não renderizar se o modal não estiver aberto
+  if (!isOpen) {
+    return null;
+  }
+
+  // Se não há jogador, não renderizar
+  if (!player) {
+    return null;
+  }
+
   return (
-    <div className="fixed inset-0 bg-slate-900 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl bg-slate-800 rounded-xl shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-700">
-          <div>
-            <h3 className="text-lg font-medium text-slate-100">
-              Ações de Contrato - {player.player.name}
-            </h3>
-            <p className="text-sm text-slate-400">
-              {player.player.position} • {player.player.nflTeam} •{' '}
-              {formatCurrency(player.contract.currentSalary)} • {player.contract.yearsRemaining}{' '}
-              ano(s)
-            </p>
-          </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-300">
-            <XMarkIcon className="h-6 w-6" />
-          </button>
-        </div>
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
 
-        {/* Tabs */}
-        <div className="mt-4">
-          <div className="border-b border-slate-700">
-            <nav className="-mb-px flex space-x-8">
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => tab.enabled && setActiveTab(tab.id)}
-                  disabled={!tab.enabled}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : tab.enabled
-                        ? 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-600'
-                        : 'border-transparent text-slate-500 cursor-not-allowed'
-                  }`}
-                >
-                  {tab.label}
-                  {!tab.enabled && ' (Indisponível)'}
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="mt-6">
-          {/* Editar Contrato */}
-          {activeTab === 'edit' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-100 mb-2">
-                  Salário Atual (em milhões)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={formData.newSalary}
-                  onChange={e => setFormData({ ...formData, newSalary: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-800 text-slate-100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-100 mb-2">
-                  Anos Restantes
-                </label>
-                <select
-                  value={player.contract.yearsRemaining}
-                  disabled
-                  className="w-full px-3 py-2 border border-slate-700 rounded-xl bg-slate-700 text-slate-400"
-                >
-                  <option>{player.contract.yearsRemaining}</option>
-                </select>
-                <p className="text-xs text-slate-400 mt-1">
-                  Anos restantes não podem ser alterados diretamente
-                </p>
-              </div>
-              <button
-                onClick={() => handleSubmit('edit')}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Salvar Alterações
-              </button>
+        {/* Modal */}
+        <div className="relative bg-slate-800 rounded-xl border border-slate-700 shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-4 border-b border-slate-700">
+            <div>
+              <h3 className="text-lg font-medium text-slate-100">
+                Ações de Contrato - {player.player.name}
+              </h3>
+              <p className="text-sm text-slate-400">
+                {player.player.position} • {player.player.nflTeam}
+                {player.contract && (
+                  <>
+                    {' '} • {formatCurrency(player.contract.currentSalary)} • {player.contract.yearsRemaining} ano(s)
+                  </>
+                )}
+              </p>
             </div>
-          )}
+            <button onClick={onClose} className="text-slate-400 hover:text-slate-300">
+              <XMarkIcon className="h-6 w-6" />
+            </button>
+          </div>
 
-          {/* Extensão de Contrato */}
-          {activeTab === 'extend' && (
-            <div className="space-y-4">
-              {isEligibleForExtension ? (
-                <>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">Extensão de Contrato</h4>
-                    <p className="text-sm text-blue-700">
-                      O jogador está no último ano de contrato e é elegível para extensão. A
-                      extensão entrará em vigor na próxima temporada.
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-100 mb-2">
-                      Novo Salário (em milhões)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={formData.newSalary}
-                      onChange={e => setFormData({ ...formData, extensionSalary: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-800 text-slate-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-100 mb-2">
-                      Novos Anos
-                    </label>
-                    <select
-                      value={formData.newYears}
-                      onChange={e => setFormData({ ...formData, extensionYears: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-800 text-slate-100"
-                    >
-                      <option value={1}>1 ano</option>
-                      <option value={2}>2 anos</option>
-                      <option value={3}>3 anos</option>
-                      <option value={4}>4 anos</option>
-                    </select>
-                  </div>
+          {/* Tabs */}
+          <div className="mt-4">
+            <div className="border-b border-slate-700">
+              <nav className="-mb-px flex space-x-8">
+                {tabs.map(tab => (
                   <button
-                    onClick={() => handleSubmit('extend')}
-                    className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    disabled={!tab.enabled}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === tab.id
+                        ? 'border-blue-500 text-blue-400'
+                        : tab.enabled
+                        ? 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300'
+                        : 'border-transparent text-slate-600 cursor-not-allowed'
+                    }`}
                   >
-                    Aplicar Extensão
+                    {tab.label}
                   </button>
-                </>
-              ) : (
-                <div className="bg-slate-700 p-4 rounded-xl text-center">
-                  <p className="text-slate-300">
-                    Jogador não é elegível para extensão de contrato.
-                  </p>
-                  <p className="text-sm text-slate-400 mt-1">
-                    Apenas jogadores no último ano que nunca foram estendidos são elegíveis.
-                  </p>
-                </div>
-              )}
+                ))}
+              </nav>
             </div>
-          )}
 
-          {/* Franchise Tag */}
-          {activeTab === 'tag' && (
-            <div className="space-y-4">
-              {isEligibleForTag ? (
-                <>
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-purple-900 mb-2">Franchise Tag</h4>
-                    <p className="text-sm text-purple-700">
-                      Aplicar franchise tag garante o jogador por mais um ano. O valor será o maior
-                      entre salário +15% ou média dos top 10 da posição.
+            {/* Tab Content */}
+            <div className="mt-6">
+              {activeTab === 'edit' && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-lg font-medium text-slate-100 mb-4">
+                      Editar Contrato
+                    </h4>
+                    <p className="text-slate-400 mb-4">
+                      Abrir o modal de edição de contrato para fazer alterações detalhadas.
                     </p>
-                  </div>
-                  <div className="bg-slate-700 p-4 rounded-xl">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-slate-300">Salário Atual + 15%:</p>
-                        <p className="font-medium">
-                          {formatCurrency(player.contract.currentSalary * 1.15)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-300">Média Top 10 {player.player.position}:</p>
-                        <p className="font-medium">{formatCurrency(calculateTagValue())}</p>
+                    <div className="bg-slate-700 p-4 rounded-lg mb-4">
+                      <h5 className="font-medium text-slate-200 mb-2">Contrato Atual:</h5>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        {player.contract ? (
+                           <>
+                             <div>
+                               <span className="text-slate-400">Salário:</span>
+                               <span className="ml-2 text-slate-100">
+                                 {formatCurrency(player.contract.currentSalary)}
+                               </span>
+                             </div>
+                             <div>
+                               <span className="text-slate-400">Anos Restantes:</span>
+                               <span className="ml-2 text-slate-100">
+                                 {player.contract.yearsRemaining}
+                               </span>
+                             </div>
+                             <div>
+                               <span className="text-slate-400">Valor Total:</span>
+                               <span className="ml-2 text-slate-100">
+                                 {formatCurrency(player.contract.totalValue)}
+                               </span>
+                             </div>
+                             <div>
+                               <span className="text-slate-400">Garantido:</span>
+                               <span className="ml-2 text-slate-100">
+                                 {formatCurrency(player.contract.guaranteedMoney)}
+                               </span>
+                             </div>
+                           </>
+                         ) : (
+                           <div className="text-center py-4">
+                             <span className="text-slate-400">Jogador sem contrato</span>
+                           </div>
+                         )}
                       </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-slate-600">
-                      <p className="text-slate-300">Valor da Tag:</p>
-                      <p className="text-lg font-bold text-purple-600">
-                        {formatCurrency(calculateTagValue())}
+                    <button
+                      onClick={() => handleSubmit('edit')}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium"
+                    >
+                      Abrir Editor de Contrato
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'extend' && (
+                <div className="space-y-4">
+                  {isEligibleForExtension ? (
+                    <div>
+                      <h4 className="text-lg font-medium text-slate-100 mb-4">
+                        Extensão de Contrato
+                      </h4>
+                      <p className="text-slate-400 mb-4">
+                        Estenda o contrato do jogador por mais anos.
+                      </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-300 mb-2">
+                            Novo Salário Anual
+                          </label>
+                          <input
+                            type="number"
+                            value={formData.extensionSalary}
+                            onChange={(e) => setFormData({ ...formData, extensionSalary: e.target.value })}
+                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Ex: 15000000"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-300 mb-2">
+                            Anos de Extensão
+                          </label>
+                          <select
+                            value={formData.extensionYears}
+                            onChange={(e) => setFormData({ ...formData, extensionYears: e.target.value })}
+                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Selecione</option>
+                            <option value="1">1 ano</option>
+                            <option value="2">2 anos</option>
+                            <option value="3">3 anos</option>
+                            <option value="4">4 anos</option>
+                          </select>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleSubmit('extend')}
+                        disabled={!formData.extensionSalary || !formData.extensionYears}
+                        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg font-medium mt-4"
+                      >
+                        Aplicar Extensão
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-slate-400">
+                        Jogador não é elegível para extensão de contrato.
+                      </p>
+                      <p className="text-sm text-slate-500 mt-2">
+                        Extensões só podem ser aplicadas no último ano de contrato.
                       </p>
                     </div>
-                  </div>
-                  <button
-                    onClick={() => handleSubmit('tag')}
-                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors"
-                  >
-                    Aplicar Franchise Tag
-                  </button>
-                </>
-              ) : (
-                <div className="bg-slate-700 p-4 rounded-xl text-center">
-                  <p className="text-slate-300">Jogador não é elegível para franchise tag.</p>
-                  <p className="text-sm text-slate-400 mt-1">
-                    Apenas jogadores no último ano que nunca foram tagueados são elegíveis.
-                  </p>
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Cortar Jogador */}
-          {activeTab === 'cut' && (
-            <div className="space-y-4">
-              <div className="bg-red-50 p-4 rounded-lg">
-                <h4 className="font-medium text-red-900 mb-2">Cortar Jogador</h4>
-                <p className="text-sm text-red-700">
-                  Ao cortar o jogador, você pagará dead money baseado no contrato restante. Esta
-                  ação não pode ser desfeita.
-                </p>
-              </div>
-              <div className="bg-slate-700 p-4 rounded-xl">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-300">Salário Atual:</span>
-                    <span className="font-medium">
-                      {formatCurrency(player.contract.currentSalary)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-300">Anos Restantes:</span>
-                    <span className="font-medium">{player.contract.yearsRemaining}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-300">Salário Total Restante:</span>
-                    <span className="font-medium">
-                      {formatCurrency(
-                        player.contract.currentSalary * player.contract.yearsRemaining,
-                      )}
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t border-slate-600">
-                    <div className="flex justify-between">
-                      <span className="text-red-600 font-medium">Dead Money Estimado:</span>
-                      <span className="font-bold text-red-600">
-                        {formatCurrency(calculateDeadMoney())}
-                      </span>
+              {activeTab === 'tag' && (
+                <div className="space-y-4">
+                  {isEligibleForTag ? (
+                    <div>
+                      <h4 className="text-lg font-medium text-slate-100 mb-4">
+                        Franchise Tag
+                      </h4>
+                      <p className="text-slate-400 mb-4">
+                        Aplicar franchise tag para manter o jogador por mais um ano.
+                      </p>
+                      <div className="bg-slate-700 p-4 rounded-lg mb-4">
+                        <h5 className="font-medium text-slate-200 mb-2">Valor da Tag:</h5>
+                        <p className="text-2xl font-bold text-green-400">
+                          {formatCurrency(calculateTagValue())}
+                        </p>
+                        <p className="text-sm text-slate-400 mt-1">
+                          Baseado no maior valor entre salário +15% ou média da posição
+                        </p>
+                      </div>
+                      <div className="bg-yellow-900/20 border border-yellow-700 p-4 rounded-lg mb-4">
+                        <p className="text-yellow-300 text-sm">
+                          ⚠️ A franchise tag só pode ser usada uma vez por jogador e uma vez por temporada.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleSubmit('tag')}
+                        className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg font-medium"
+                      >
+                        Aplicar Franchise Tag
+                      </button>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-slate-400">
+                        Jogador não é elegível para franchise tag.
+                      </p>
+                      <p className="text-sm text-slate-500 mt-2">
+                        Tags só podem ser aplicadas no último ano de contrato.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <p className="text-sm text-yellow-700">
-                  <strong>Atenção:</strong> O dead money será aplicado ao salary cap da temporada
-                  atual e próxima. Certifique-se de que tem cap suficiente disponível.
-                </p>
-              </div>
-              <button
-                onClick={() => handleSubmit('cut')}
-                className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors"
-              >
-                Confirmar Corte do Jogador
-              </button>
+              )}
+
+
+            </div>
+          </div>
+
+          {/* Error Display */}
+          {operationError && (
+            <div className="mt-4 p-4 bg-red-900/20 border border-red-700 rounded-lg">
+              <p className="text-red-300 text-sm">{operationError}</p>
             </div>
           )}
-        </div>
-
-        {/* Footer */}
-        <div className="mt-6 pt-4 border-t border-slate-700 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-slate-400 hover:text-slate-300 transition-colors"
-          >
-            Cancelar
-          </button>
         </div>
       </div>
+
+      {/* Contract Modal */}
+      <ContractModal
+        isOpen={contractModal.isOpen}
+        onClose={contractModal.closeModal}
+        onSave={handleContractSave}
+        player={contractModal.player}
+        team={contractModal.team}
+        league={contractModal.league}
+        contract={contractModal.contract}
+        isCommissioner={isCommissioner}
+      />
     </div>
   );
 }

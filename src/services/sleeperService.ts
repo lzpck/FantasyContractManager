@@ -238,7 +238,7 @@ export function transformSleeperLeagueToLocal(
   const defaultSettings: LeagueSettings = {
     maxFranchiseTags: 1,
     annualIncreasePercentage: 15.0,
-    minimumSalary: 1.0,
+    minimumSalary: 1000000,
     seasonTurnoverDate: '04-01',
     rookieDraft: {
       rounds: 3,
@@ -375,7 +375,7 @@ export function transformSleeperLeagueToLocal(
     name: sleeperLeague.name,
     season: parseInt(sleeperLeague.season),
     // Valor padrão de salary cap, configurável posteriormente
-    salaryCap: 279.0,
+    salaryCap: 279000000,
     totalTeams:
       sleeperLeague.num_teams ?? sleeperLeague.settings.num_teams ?? sleeperLeague.total_rosters,
     status: mapSleeperStatusToLocal(sleeperLeague.status),
