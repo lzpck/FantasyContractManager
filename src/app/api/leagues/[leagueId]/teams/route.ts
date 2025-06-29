@@ -37,10 +37,10 @@ export async function GET(request: NextRequest, context: { params: { leagueId: s
     const formattedTeams = teams.map(team => ({
       id: team.id,
       name: team.name,
-      abbreviation: team.abbreviation,
+      abbreviation: team.abbreviation || team.name.substring(0, 3).toUpperCase(),
       leagueId: team.leagueId,
       ownerId: team.ownerId,
-      ownerDisplayName: team.owner?.name || team.owner?.email || 'Sem dono',
+      ownerDisplayName: team.ownerDisplayName || team.owner?.name || team.owner?.email || 'Manager não definido',
       currentDeadMoney: team.currentDeadMoney || 0,
       nextSeasonDeadMoney: team.nextSeasonDeadMoney || 0,
       availableCap: 0, // Será calculado no frontend baseado nos contratos
