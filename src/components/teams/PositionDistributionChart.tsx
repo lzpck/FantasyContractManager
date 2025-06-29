@@ -11,14 +11,31 @@ interface PositionDistributionChartProps {
 export default function PositionDistributionChart({ players }: PositionDistributionChartProps) {
   // Filtrar jogadores com contratos
 
-  // Cores para cada posição
+  // Cores distintas para cada posição - otimizadas para acessibilidade e modo escuro
   const POSITION_COLORS: Record<string, string> = {
-    QB: '#3B82F6', // Blue
-    RB: '#10B981', // Green
-    WR: '#F59E0B', // Yellow
-    TE: '#8B5CF6', // Purple
-    K: '#EF4444', // Red
-    DEF: '#6B7280', // Gray
+    QB: '#4F8EF7',   // Azul vibrante
+    RB: '#19C37D',   // Verde esmeralda
+    WR: '#FF9800',   // Laranja
+    TE: '#9C27B0',   // Roxo
+    K: '#E53935',    // Vermelho
+    DL: '#00BCD4',   // Ciano
+    LB: '#FF5722',   // Vermelho-laranja
+    DB: '#795548',   // Marrom
+    DEF: '#607D8B',  // Azul-acinzentado
+    // Posições adicionais com cores de fallback
+    DT: '#3F51B5',   // Índigo
+    DE: '#009688',   // Verde-azulado
+    OLB: '#FF6F00',  // Âmbar escuro
+    ILB: '#8BC34A',  // Verde-lima
+    CB: '#E91E63',   // Rosa
+    S: '#673AB7',    // Roxo escuro
+    FS: '#2196F3',   // Azul
+    SS: '#FFC107',   // Amarelo
+  };
+
+  // Função para obter cor da posição com fallback
+  const getPositionColor = (position: string): string => {
+    return POSITION_COLORS[position] || '#9CA3AF'; // Cinza como fallback
   };
 
   // Filtrar jogadores que têm contratos válidos
@@ -94,11 +111,28 @@ export default function PositionDistributionChart({ players }: PositionDistribut
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-slate-800 p-3 border border-slate-700 rounded-xl shadow-xl">
-          <p className="font-medium text-slate-100">{data.position}</p>
-          <p className="text-sm text-slate-400">{data.count} jogador(es)</p>
-          <p className="text-sm text-slate-400">{formatCurrency(data.totalSalary)} total</p>
-          <p className="text-sm text-slate-400">{data.percentage}% do cap</p>
+        <div className="bg-slate-900 p-4 border-2 border-slate-600 rounded-xl shadow-2xl backdrop-blur-sm">
+          <div className="flex items-center space-x-2 mb-2">
+            <div 
+              className="w-3 h-3 rounded-full border border-slate-400" 
+              style={{ backgroundColor: getPositionColor(data.position) }}
+            ></div>
+            <p className="font-bold text-slate-100 text-base">{data.position}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-slate-300">
+              <span className="font-medium">Jogadores:</span> {data.count}
+            </p>
+            <p className="text-sm text-slate-300">
+              <span className="font-medium">Total:</span> {formatCurrency(data.totalSalary)}
+            </p>
+            <p className="text-sm text-slate-300">
+              <span className="font-medium">Média:</span> {formatCurrency(data.totalSalary / data.count)}
+            </p>
+            <p className="text-sm text-slate-300">
+              <span className="font-medium">% do Cap:</span> {data.percentage}%
+            </p>
+          </div>
         </div>
       );
     }
@@ -107,15 +141,28 @@ export default function PositionDistributionChart({ players }: PositionDistribut
 
   // Componente customizado para legenda
   const CustomLegend = ({ payload }: LegendProps) => (
-    <div className="flex flex-wrap justify-center gap-4 mt-4">
-      {payload?.map((entry, index: number) => (
-        <div key={index} className="flex items-center space-x-2">
-          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
-          <span className="text-sm text-slate-400">
-            {entry.value} ({chartData.find(d => d.position === entry.value)?.count})
-          </span>
-        </div>
-      ))}
+    <div className="flex flex-wrap justify-center gap-3 mt-6 px-2">
+      {payload?.map((entry, index: number) => {
+        const positionData = chartData.find(d => d.position === entry.value);
+        return (
+          <div 
+            key={index} 
+            className="flex items-center space-x-2 bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50"
+          >
+            <div 
+              className="w-4 h-4 rounded-full border border-slate-500/30" 
+              style={{ backgroundColor: entry.color }}
+              aria-label={`Cor da posição ${entry.value}`}
+            ></div>
+            <span className="text-sm font-medium text-slate-200">
+              {entry.value}
+            </span>
+            <span className="text-xs text-slate-400 bg-slate-600/50 px-2 py-1 rounded">
+              {positionData?.count || 0}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -123,13 +170,18 @@ export default function PositionDistributionChart({ players }: PositionDistribut
     return (
       <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-6">
         <h3 className="text-lg font-medium text-slate-100 mb-4">Distribuição por Posição</h3>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center text-slate-400">
-            <p className="text-lg font-medium mb-2">Nenhum dado disponível</p>
-            <p className="text-sm">
+        <div className="flex items-center justify-center h-72">
+          <div className="text-center text-slate-400 max-w-md">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-700 flex items-center justify-center">
+              <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <p className="text-lg font-medium mb-2 text-slate-300">Nenhum dado disponível</p>
+            <p className="text-sm leading-relaxed">
               {players.length === 0
-                ? 'Carregue os jogadores para ver a distribuição por posição.'
-                : 'Nenhum jogador possui contrato válido.'}
+                ? 'Carregue os jogadores para ver a distribuição por posição e análise detalhada dos contratos.'
+                : 'Nenhum jogador possui contrato válido. Adicione contratos para visualizar a distribuição.'}
             </p>
           </div>
         </div>
@@ -142,73 +194,115 @@ export default function PositionDistributionChart({ players }: PositionDistribut
       <h3 className="text-lg font-medium text-slate-100 mb-4">Distribuição por Posição</h3>
 
       {/* Gráfico */}
-      <div className="h-64">
+      <div className="h-72 sm:h-80 lg:h-96">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={chartData}
               cx="50%"
               cy="50%"
-              innerRadius={40}
-              outerRadius={80}
-              paddingAngle={2}
+              innerRadius={50}
+              outerRadius={100}
+              paddingAngle={3}
               dataKey="totalSalary"
               nameKey="position"
+              aria-label="Gráfico de distribuição de jogadores por posição"
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={POSITION_COLORS[entry.position] || '#9CA3AF'} />
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={getPositionColor(entry.position)}
+                  stroke="#1e293b"
+                  strokeWidth={2}
+                  style={{ 
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                    cursor: 'pointer'
+                  }}
+                />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip />} />
-            <Legend content={<CustomLegend />} />
+            <Tooltip 
+              content={<CustomTooltip />} 
+              cursor={{ fill: 'transparent' }}
+              wrapperStyle={{ outline: 'none' }}
+            />
+            <Legend 
+              content={<CustomLegend />} 
+              wrapperStyle={{ outline: 'none' }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>
 
       {/* Tabela de Resumo */}
-      <div className="mt-6">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Resumo por Posição</h4>
-        <div className="overflow-x-auto">
+      <div className="mt-8">
+        <h4 className="text-lg font-medium text-slate-100 mb-4">Resumo por Posição</h4>
+        <div className="overflow-x-auto rounded-lg border border-slate-600">
           <table className="min-w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr className="border-b border-gray-200 dark:border-gray-700">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+            <thead className="bg-slate-700">
+              <tr>
+                <th className="text-left text-xs font-semibold text-slate-300 uppercase tracking-wider px-4 py-3">
                   Posição
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+                <th className="text-left text-xs font-semibold text-slate-300 uppercase tracking-wider px-4 py-3">
                   Jogadores
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+                <th className="text-left text-xs font-semibold text-slate-300 uppercase tracking-wider px-4 py-3">
                   Total
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+                <th className="text-left text-xs font-semibold text-slate-300 uppercase tracking-wider px-4 py-3">
                   Média
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
+                <th className="text-left text-xs font-semibold text-slate-300 uppercase tracking-wider px-4 py-3">
                   % do Cap
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-              {chartData.map(data => (
-                <tr key={data.position}>
-                  <td className="py-2">
-                    <div className="flex items-center space-x-2">
+            <tbody className="bg-slate-800 divide-y divide-slate-600">
+              {chartData.map((data, index) => (
+                <tr 
+                  key={data.position} 
+                  className={`hover:bg-slate-700/50 transition-colors ${
+                    index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-800/70'
+                  }`}
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-3">
                       <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: POSITION_COLORS[data.position] || '#9CA3AF' }}
+                        className="w-4 h-4 rounded-full border border-slate-500/30 flex-shrink-0"
+                        style={{ backgroundColor: getPositionColor(data.position) }}
+                        aria-label={`Cor da posição ${data.position}`}
                       ></div>
-                      <span className="text-sm font-medium text-gray-900">{data.position}</span>
+                      <span className="text-sm font-semibold text-slate-100">{data.position}</span>
                     </div>
                   </td>
-                  <td className="py-2 text-sm text-gray-900">{data.count}</td>
-                  <td className="py-2 text-sm font-medium text-gray-900">
-                    {formatCurrency(data.totalSalary)}
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-slate-200 font-medium">{data.count}</span>
                   </td>
-                  <td className="py-2 text-sm text-gray-900">
-                    {formatCurrency(data.totalSalary / data.count)}
+                  <td className="px-4 py-3">
+                    <span className="text-sm font-semibold text-slate-100">
+                      {formatCurrency(data.totalSalary)}
+                    </span>
                   </td>
-                  <td className="py-2 text-sm text-gray-900">{data.percentage}%</td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-slate-200">
+                      {formatCurrency(data.totalSalary / data.count)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-slate-100">{data.percentage}%</span>
+                      <div className="w-16 bg-slate-600 rounded-full h-2 hidden sm:block">
+                        <div 
+                          className="h-2 rounded-full transition-all duration-300"
+                          style={{ 
+                            width: `${Math.min(parseFloat(data.percentage), 100)}%`,
+                            backgroundColor: getPositionColor(data.position)
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
