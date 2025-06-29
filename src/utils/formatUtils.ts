@@ -4,27 +4,150 @@
  */
 
 /**
- * Formata uma data para o padrão brasileiro (dd/MM/yyyy hh:mm:ss)
- * @param date - Data a ser formatada (Date ou string ISO)
+ * Converte uma data para formato ISO 8601 no fuso horário do Brasil (America/Sao_Paulo)
+ * @param date - Data a ser convertida (Date ou string)
+ * @returns String no formato ISO 8601 com fuso horário do Brasil
+ */
+export function toISOString(date: Date | string = new Date()): string {
+  let dateObj: Date;
+  
+  if (typeof date === 'string') {
+    // Se já for uma string ISO válida, converte para Date primeiro
+    if (isValidISOString(date)) {
+      dateObj = new Date(date);
+    } else {
+      // Tenta converter string para Date
+      dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) {
+        dateObj = new Date();
+      }
+    }
+  } else {
+    dateObj = date;
+  }
+  
+  // Converte para o fuso horário do Brasil usando Intl
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(dateObj);
+  const year = parts.find(p => p.type === 'year')?.value;
+  const month = parts.find(p => p.type === 'month')?.value;
+  const day = parts.find(p => p.type === 'day')?.value;
+  const hour = parts.find(p => p.type === 'hour')?.value;
+  const minute = parts.find(p => p.type === 'minute')?.value;
+  const second = parts.find(p => p.type === 'second')?.value;
+  
+  // Adiciona os milissegundos da data original
+  const ms = dateObj.getMilliseconds().toString().padStart(3, '0');
+  
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}.${ms}Z`;
+}
+
+/**
+ * Cria uma nova data no fuso horário do Brasil
+ * @returns Nova data no fuso horário de São Paulo/Brasília
+ */
+export function nowInBrazil(): Date {
+  const now = new Date();
+  
+  // Converte para o fuso horário do Brasil
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const year = parseInt(parts.find(p => p.type === 'year')?.value || '0');
+  const month = parseInt(parts.find(p => p.type === 'month')?.value || '0') - 1; // Month is 0-indexed
+  const day = parseInt(parts.find(p => p.type === 'day')?.value || '0');
+  const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
+  const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
+  const second = parseInt(parts.find(p => p.type === 'second')?.value || '0');
+  
+  return new Date(year, month, day, hour, minute, second, now.getMilliseconds());
+}
+
+/**
+ * Verifica se uma string está no formato ISO 8601 válido
+ * @param isoString - String a ser verificada
+ * @returns Boolean indicando se é válida
+ */
+export function isValidISOString(isoString: string): boolean {
+  if (!isoString) return false;
+  
+  try {
+    const date = new Date(isoString);
+    return !isNaN(date.getTime()) && isoString === date.toISOString();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Converte uma string ISO 8601 para objeto Date
+ * @param isoString - String no formato ISO 8601
+ * @returns Objeto Date ou null se inválido
+ */
+export function fromISOString(isoString: string): Date | null {
+  if (!isoString) return null;
+  
+  try {
+    const date = new Date(isoString);
+    return isNaN(date.getTime()) ? null : date;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Formata uma data (Date, string ISO ou string) para o padrão brasileiro (dd/MM/yyyy hh:mm:ss)
+ * @param date - Data a ser formatada (Date, string ISO ou string)
  * @param includeTime - Se deve incluir o horário na formatação
  * @returns String formatada no padrão brasileiro
  */
 export function formatDate(date: Date | string, includeTime: boolean = true): string {
   if (!date) return '';
 
-  // Converte para objeto Date se for string
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  let dateObj: Date;
+  
+  if (typeof date === 'string') {
+    // Se for string ISO, converte diretamente
+    if (isValidISOString(date)) {
+      dateObj = new Date(date);
+    } else {
+      // Tenta converter outros formatos de string
+      dateObj = new Date(date);
+    }
+  } else {
+    dateObj = date;
+  }
 
   // Verifica se a data é válida
   if (isNaN(dateObj.getTime())) return '';
 
-  // Formata a data no padrão brasileiro
+  // Formata a data no padrão brasileiro com fuso horário do Brasil
   if (includeTime) {
     // Formata data e hora separadamente e combina para evitar a vírgula
     const datePart = dateObj.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
+      timeZone: 'America/Sao_Paulo',
     });
 
     const timePart = dateObj.toLocaleTimeString('pt-BR', {
@@ -32,6 +155,7 @@ export function formatDate(date: Date | string, includeTime: boolean = true): st
       minute: '2-digit',
       second: '2-digit',
       hour12: false,
+      timeZone: 'America/Sao_Paulo',
     });
 
     return `${datePart} ${timePart}`;
@@ -41,8 +165,22 @@ export function formatDate(date: Date | string, includeTime: boolean = true): st
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
+      timeZone: 'America/Sao_Paulo',
     });
   }
+}
+
+/**
+ * Formata especificamente uma string ISO 8601 para exibição no padrão brasileiro
+ * @param isoString - String no formato ISO 8601
+ * @param includeTime - Se deve incluir o horário
+ * @returns String formatada no padrão brasileiro
+ */
+export function formatISOToBrazilian(isoString: string, includeTime: boolean = true): string {
+  const date = fromISOString(isoString);
+  if (!date) return '';
+  
+  return formatDate(date, includeTime);
 }
 
 /**
