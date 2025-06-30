@@ -30,6 +30,7 @@ Por padrão, todas as ligas começam com a seguinte configuração:
 ```
 
 Isso significa:
+
 - **100%** do salário atual vira dead money
 - **25%** do salário de cada ano restante vira dead money na próxima temporada
 
@@ -76,6 +77,7 @@ Isso significa:
 ```
 
 **Impacto**: Jogador com $10M/ano e 3 anos restantes
+
 - Dead money atual: $5M (50%)
 - Dead money futuro: $2M (10% × 2 anos × $10M)
 - **Total**: $7M
@@ -95,6 +97,7 @@ Isso significa:
 ```
 
 **Impacto**: Jogador com $10M/ano e 3 anos restantes
+
 - Dead money atual: $10M (100%)
 - Dead money futuro: $9M (50% + 40% × $10M)
 - **Total**: $19M
@@ -140,9 +143,9 @@ interface DeadMoneyConfig {
 
 ```typescript
 function calculateDeadMoney(
-  contract: Contract, 
-  rosterStatus: PlayerRosterStatus, 
-  config: DeadMoneyConfig
+  contract: Contract,
+  rosterStatus: PlayerRosterStatus,
+  config: DeadMoneyConfig,
 ): DeadMoneyResult {
   // Lógica de cálculo baseada na configuração
 }
@@ -155,6 +158,7 @@ function calculateDeadMoney(
 Retorna a configuração atual de dead money da liga.
 
 **Resposta**:
+
 ```json
 {
   "config": {
@@ -174,6 +178,7 @@ Retorna a configuração atual de dead money da liga.
 Atualiza a configuração de dead money da liga.
 
 **Corpo da Requisição**:
+
 ```json
 {
   "config": {
@@ -191,11 +196,13 @@ Atualiza a configuração de dead money da liga.
 ## Validações
 
 ### Frontend
+
 - Valores entre 0.0 e 1.0
 - Feedback visual em tempo real
 - Preview de impacto financeiro
 
 ### Backend
+
 - Validação de tipos
 - Verificação de permissões (apenas comissários)
 - Sanitização de dados
@@ -205,6 +212,7 @@ Atualiza a configuração de dead money da liga.
 ### Ligas Existentes
 
 Ligas criadas antes desta funcionalidade:
+
 1. Recebem automaticamente a configuração padrão
 2. Mantêm o comportamento anterior (100% atual + 25% futuro)
 3. Podem ser customizadas a qualquer momento pelo comissário
@@ -212,6 +220,7 @@ Ligas criadas antes desta funcionalidade:
 ### Compatibilidade
 
 O sistema é totalmente compatível com:
+
 - Cálculos existentes de salary cap
 - Relatórios financeiros
 - Exportação de dados
@@ -296,4 +305,4 @@ Para dúvidas ou problemas relacionados à configuração de dead money:
 
 ---
 
-*Última atualização: Janeiro 2025*
+_Última atualização: Janeiro 2025_

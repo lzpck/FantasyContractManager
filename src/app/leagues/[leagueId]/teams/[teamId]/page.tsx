@@ -14,7 +14,6 @@ import ContractModal from '@/components/teams/ContractModal';
 import { useContractModal } from '@/hooks/useContractModal';
 import { useAuth } from '@/hooks/useAuth';
 
-
 /**
  * Página de detalhes do time
  *
@@ -38,7 +37,7 @@ export default function TeamDetailsPage() {
   // Estados para modais
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
-  
+
   // Hook para gerenciar o ContractModal
   const contractModal = useContractModal();
   const { user } = useAuth();
@@ -126,8 +125,8 @@ export default function TeamDetailsPage() {
                 sleeperPlayerId: contract.player.sleeperPlayerId,
                 name: contract.player.name,
                 position: contract.player.position,
-                fantasyPositions: contract.player.fantasyPositions 
-                  ? contract.player.fantasyPositions.split(',') 
+                fantasyPositions: contract.player.fantasyPositions
+                  ? contract.player.fantasyPositions.split(',')
                   : [contract.player.position],
                 nflTeam: contract.player.nflTeam || 'FA',
                 isActive: contract.player.isActive,
@@ -164,7 +163,7 @@ export default function TeamDetailsPage() {
     };
 
     window.addEventListener('contractUpdated', handleContractUpdated);
-    
+
     return () => {
       window.removeEventListener('contractUpdated', handleContractUpdated);
     };
@@ -177,7 +176,7 @@ export default function TeamDetailsPage() {
 
   const handlePlayerAction = (player: PlayerWithContract, action: string) => {
     setSelectedPlayer(player);
-    
+
     if (action === 'add') {
       // Para adicionar contrato, abrir diretamente o ContractModal
       contractModal.openModal(player.player, team, league);
@@ -277,8 +276,6 @@ export default function TeamDetailsPage() {
             <CapProjectionChart team={team} players={playersWithContracts} />
           </div>
 
-
-
           {/* Seções de Jogadores por Status */}
           <PlayerRosterSections
             players={playersWithContracts}
@@ -300,7 +297,7 @@ export default function TeamDetailsPage() {
         onAction={handleContractAction}
         isCommissioner={isCommissioner}
       />
-      
+
       {/* Modal de Contrato */}
       <ContractModal
         isOpen={contractModal.isOpen}

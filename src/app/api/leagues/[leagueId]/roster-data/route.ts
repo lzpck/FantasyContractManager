@@ -7,21 +7,18 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ leagueId: string }> }
+  { params }: { params: Promise<{ leagueId: string }> },
 ) {
   try {
     const { leagueId } = await params;
 
     // Verificar se a liga existe
     const league = await prisma.league.findUnique({
-      where: { id: leagueId }
+      where: { id: leagueId },
     });
 
     if (!league) {
-      return NextResponse.json(
-        { error: 'Liga não encontrada' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Liga não encontrada' }, { status: 404 });
     }
 
     // Buscar todos os times da liga com seus rosters
@@ -30,33 +27,33 @@ export async function GET(
       select: {
         id: true,
         name: true,
-        sleeperTeamId: true
-      }
+        sleeperTeamId: true,
+      },
     });
 
     // Buscar todos os jogadores dos rosters da liga
     const rosterPlayers = await prisma.teamRoster.findMany({
       where: {
         team: {
-          leagueId
-        }
+          leagueId,
+        },
       },
       include: {
         player: {
           select: {
             id: true,
             name: true,
-            sleeperPlayerId: true
-          }
+            sleeperPlayerId: true,
+          },
         },
         team: {
           select: {
             id: true,
             name: true,
-            sleeperTeamId: true
-          }
-        }
-      }
+            sleeperTeamId: true,
+          },
+        },
+      },
     });
 
     // Transformar dados para o formato esperado pelo hook
@@ -65,8 +62,8 @@ export async function GET(
       teamId: rosterEntry.teamId,
       status: rosterEntry.status as 'active' | 'ir' | 'taxi',
       player: {
-        name: rosterEntry.player.name
-      }
+        name: rosterEntry.player.name,
+      },
     }));
 
     return NextResponse.json({
@@ -77,16 +74,12 @@ export async function GET(
         league: {
           id: league.id,
           name: league.name,
-          sleeperLeagueId: league.sleeperLeagueId
-        }
-      }
+          sleeperLeagueId: league.sleeperLeagueId,
+        },
+      },
     });
-
   } catch (error) {
     console.error('Erro ao buscar dados do roster:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

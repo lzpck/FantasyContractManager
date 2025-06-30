@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     // Se foi fornecido um sleeperPlayerId específico, buscar apenas esse jogador
     if (sleeperPlayerId) {
       const player = await prisma.player.findFirst({
-        where: { sleeperPlayerId }
+        where: { sleeperPlayerId },
       });
 
       if (!player) {

@@ -11,14 +11,16 @@ console.log('=== TESTE DE CORREÇÃO DO FUSO HORÁRIO BRASILEIRO ===\n');
 const agora = new Date();
 console.log('1. Data atual:');
 console.log(`   UTC: ${agora.toISOString()}`);
-console.log(`   Brasil (sistema): ${agora.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`);
+console.log(
+  `   Brasil (sistema): ${agora.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
+);
 
 try {
   console.log(`   Brasil (nossa função): ${toISOString(agora)}`);
-  
+
   const brazilNow = nowInBrazil();
   console.log(`   nowInBrazil(): ${brazilNow.toLocaleString('pt-BR')}`);
-  
+
   console.log('\n✅ Funções executadas com sucesso!');
 } catch (error) {
   console.log('\n❌ Erro ao executar funções:', error.message);

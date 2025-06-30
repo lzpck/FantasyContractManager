@@ -69,10 +69,10 @@ export interface DeadMoneyConfig {
 export const DEFAULT_DEAD_MONEY_CONFIG: DeadMoneyConfig = {
   currentSeason: 1.0, // 100% do salário atual
   futureSeasons: {
-    '1': 0,    // 0% para 1 ano restante
-    '2': 0.5,  // 50% para 2 anos restantes
+    '1': 0, // 0% para 1 ano restante
+    '2': 0.5, // 50% para 2 anos restantes
     '3': 0.75, // 75% para 3 anos restantes
-    '4': 1.0,  // 100% para 4 anos restantes
+    '4': 1.0, // 100% para 4 anos restantes
   },
 };
 

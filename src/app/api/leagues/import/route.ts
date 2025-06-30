@@ -35,7 +35,7 @@ export interface ImportProgress {
  * Importa uma liga da Sleeper API e salva no banco de dados
  */
 async function importLeague(
-  leagueId: string, 
+  leagueId: string,
   commissionerId: string,
   customSettings?: {
     salaryCap?: number;
@@ -44,7 +44,7 @@ async function importLeague(
     minimumSalary?: number;
     seasonTurnoverDate?: string;
     deadMoneyConfig?: any;
-  }
+  },
 ): Promise<ImportResult> {
   try {
     // Etapa 1: Validação
@@ -80,11 +80,17 @@ async function importLeague(
         totalTeams: importedData.league.totalTeams,
         sleeperLeagueId: importedData.league.sleeperLeagueId,
         commissionerId: importedData.league.commissionerId,
-        maxFranchiseTags: customSettings?.maxFranchiseTags ?? importedData.league.settings.maxFranchiseTags,
-        annualIncreasePercentage: customSettings?.annualIncreasePercentage ?? importedData.league.settings.annualIncreasePercentage,
+        maxFranchiseTags:
+          customSettings?.maxFranchiseTags ?? importedData.league.settings.maxFranchiseTags,
+        annualIncreasePercentage:
+          customSettings?.annualIncreasePercentage ??
+          importedData.league.settings.annualIncreasePercentage,
         minimumSalary: customSettings?.minimumSalary ?? importedData.league.settings.minimumSalary,
-        seasonTurnoverDate: customSettings?.seasonTurnoverDate ?? importedData.league.settings.seasonTurnoverDate,
-        deadMoneyConfig: customSettings?.deadMoneyConfig ? JSON.stringify(customSettings.deadMoneyConfig) : null,
+        seasonTurnoverDate:
+          customSettings?.seasonTurnoverDate ?? importedData.league.settings.seasonTurnoverDate,
+        deadMoneyConfig: customSettings?.deadMoneyConfig
+          ? JSON.stringify(customSettings.deadMoneyConfig)
+          : null,
       },
     });
 
@@ -108,9 +114,10 @@ async function importLeague(
     let deadMoneyConfig;
     if (createdLeague.deadMoneyConfig) {
       try {
-        deadMoneyConfig = typeof createdLeague.deadMoneyConfig === 'string' 
-          ? JSON.parse(createdLeague.deadMoneyConfig) 
-          : createdLeague.deadMoneyConfig;
+        deadMoneyConfig =
+          typeof createdLeague.deadMoneyConfig === 'string'
+            ? JSON.parse(createdLeague.deadMoneyConfig)
+            : createdLeague.deadMoneyConfig;
       } catch (error) {
         console.warn('Erro ao fazer parse do deadMoneyConfig:', error);
         deadMoneyConfig = undefined;
@@ -233,7 +240,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Obter dados da requisição
-    const { leagueId, salaryCap, maxFranchiseTags, annualIncreasePercentage, minimumSalary, seasonTurnoverDate, deadMoneyConfig } = await request.json();
+    const {
+      leagueId,
+      salaryCap,
+      maxFranchiseTags,
+      annualIncreasePercentage,
+      minimumSalary,
+      seasonTurnoverDate,
+      deadMoneyConfig,
+    } = await request.json();
 
     if (!leagueId) {
       return NextResponse.json({ error: 'ID da liga é obrigatório' }, { status: 400 });

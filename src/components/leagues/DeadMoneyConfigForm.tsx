@@ -17,7 +17,12 @@ interface DeadMoneyConfigFormProps {
 /**
  * Componente para configuração de regras de dead money por liga
  */
-export function DeadMoneyConfigForm({ config, onChange, disabled = false, compact = false }: DeadMoneyConfigFormProps) {
+export function DeadMoneyConfigForm({
+  config,
+  onChange,
+  disabled = false,
+  compact = false,
+}: DeadMoneyConfigFormProps) {
   const [localConfig, setLocalConfig] = useState<DeadMoneyConfig>(config);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -45,9 +50,14 @@ export function DeadMoneyConfigForm({ config, onChange, disabled = false, compac
   // Calcular preview de dead money para um exemplo
   const calculatePreview = (salary: number, yearsRemaining: number) => {
     const currentSeason = salary * localConfig.currentSeason;
-    const futureSeasons = yearsRemaining > 0 
-      ? salary * (localConfig.futureSeasons[Math.min(yearsRemaining, 4).toString() as keyof typeof localConfig.futureSeasons] || 0) * yearsRemaining
-      : 0;
+    const futureSeasons =
+      yearsRemaining > 0
+        ? salary *
+          (localConfig.futureSeasons[
+            Math.min(yearsRemaining, 4).toString() as keyof typeof localConfig.futureSeasons
+          ] || 0) *
+          yearsRemaining
+        : 0;
     return { currentSeason, futureSeasons, total: currentSeason + futureSeasons };
   };
 
@@ -59,7 +69,8 @@ export function DeadMoneyConfigForm({ config, onChange, disabled = false, compac
           <div>
             <h3 className="text-lg font-semibold text-slate-100">Configuração de Dead Money</h3>
             <p className="text-sm text-slate-400 mt-1">
-              Defina os percentuais aplicados ao cortar jogadores conforme anos restantes de contrato
+              Defina os percentuais aplicados ao cortar jogadores conforme anos restantes de
+              contrato
             </p>
           </div>
           <button
@@ -72,7 +83,7 @@ export function DeadMoneyConfigForm({ config, onChange, disabled = false, compac
           </button>
         </div>
       )}
-      
+
       {/* Botão de resetar para modo compacto */}
       {compact && (
         <div className="flex justify-end mb-4">
@@ -101,7 +112,7 @@ export function DeadMoneyConfigForm({ config, onChange, disabled = false, compac
               max="1"
               step="0.01"
               value={localConfig.currentSeason}
-              onChange={(e) => {
+              onChange={e => {
                 const value = parseFloat(e.target.value) || 0;
                 if (validatePercentage(value)) {
                   updateConfig({ ...localConfig, currentSeason: value });
@@ -110,7 +121,9 @@ export function DeadMoneyConfigForm({ config, onChange, disabled = false, compac
               disabled={disabled}
               className="w-24 px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             />
-            <span className="text-slate-400 text-sm">({(localConfig.currentSeason * 100).toFixed(0)}%)</span>
+            <span className="text-slate-400 text-sm">
+              ({(localConfig.currentSeason * 100).toFixed(0)}%)
+            </span>
             {!validatePercentage(localConfig.currentSeason) && (
               <span className="text-red-400 text-sm">Valor deve estar entre 0 e 1</span>
             )}
@@ -134,7 +147,7 @@ export function DeadMoneyConfigForm({ config, onChange, disabled = false, compac
                   max="1"
                   step="0.01"
                   value={percentage}
-                  onChange={(e) => {
+                  onChange={e => {
                     const value = parseFloat(e.target.value) || 0;
                     if (validatePercentage(value)) {
                       updateConfig({
@@ -180,7 +193,7 @@ export function DeadMoneyConfigForm({ config, onChange, disabled = false, compac
             Exemplos de dead money para um jogador com salário de $10M:
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((years) => {
+            {[1, 2, 3, 4].map(years => {
               const preview = calculatePreview(10000000, years);
               return (
                 <div key={years} className="bg-slate-700 rounded-lg p-3">
@@ -190,15 +203,21 @@ export function DeadMoneyConfigForm({ config, onChange, disabled = false, compac
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
                       <span className="text-slate-400">Atual:</span>
-                      <span className="text-slate-200">{formatCurrency(preview.currentSeason)}</span>
+                      <span className="text-slate-200">
+                        {formatCurrency(preview.currentSeason)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Futuro:</span>
-                      <span className="text-slate-200">{formatCurrency(preview.futureSeasons)}</span>
+                      <span className="text-slate-200">
+                        {formatCurrency(preview.futureSeasons)}
+                      </span>
                     </div>
                     <div className="flex justify-between border-t border-slate-600 pt-1">
                       <span className="text-slate-300 font-medium">Total:</span>
-                      <span className="text-slate-100 font-medium">{formatCurrency(preview.total)}</span>
+                      <span className="text-slate-100 font-medium">
+                        {formatCurrency(preview.total)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -213,10 +232,21 @@ export function DeadMoneyConfigForm({ config, onChange, disabled = false, compac
         <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-4">
           <h4 className="text-sm font-medium text-blue-200 mb-2">📋 Como funciona o Dead Money</h4>
           <div className="text-sm text-blue-100 space-y-1">
-            <p>• <strong>Temporada Atual:</strong> Percentual do salário do ano que vira dead money imediatamente</p>
-            <p>• <strong>Temporadas Futuras:</strong> Percentual aplicado aos salários dos anos restantes, pago na próxima temporada</p>
-            <p>• <strong>Practice Squad:</strong> Sempre 25% do salário atual, independente da configuração</p>
-            <p>• <strong>Valores:</strong> 0.0 = 0%, 0.5 = 50%, 1.0 = 100%</p>
+            <p>
+              • <strong>Temporada Atual:</strong> Percentual do salário do ano que vira dead money
+              imediatamente
+            </p>
+            <p>
+              • <strong>Temporadas Futuras:</strong> Percentual aplicado aos salários dos anos
+              restantes, pago na próxima temporada
+            </p>
+            <p>
+              • <strong>Practice Squad:</strong> Sempre 25% do salário atual, independente da
+              configuração
+            </p>
+            <p>
+              • <strong>Valores:</strong> 0.0 = 0%, 0.5 = 50%, 1.0 = 100%
+            </p>
           </div>
         </div>
       )}

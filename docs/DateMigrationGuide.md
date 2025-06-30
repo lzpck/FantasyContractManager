@@ -7,12 +7,14 @@ Este documento descreve a migração do sistema de datas do formato timestamp (D
 ## Motivação
 
 ### Problemas do Sistema Anterior
+
 - **Timestamps ilegíveis**: Datas armazenadas como DATETIME eram difíceis de interpretar em consultas manuais
 - **Complexidade de formatação**: Necessidade de middleware complexo para formatar datas
 - **Incompatibilidade**: Dificuldades na integração com APIs externas que esperam ISO 8601
 - **Manutenção**: Código complexo para conversão entre formatos
 
 ### Benefícios do Novo Sistema
+
 - **Legibilidade**: Datas em formato ISO 8601 são facilmente legíveis (ex: `2024-01-15T10:30:00.000Z`)
 - **Universalidade**: Padrão internacional amplamente suportado
 - **Simplicidade**: Menos código de conversão necessário
@@ -24,6 +26,7 @@ Este documento descreve a migração do sistema de datas do formato timestamp (D
 ### 1. Schema do Banco de Dados
 
 **Antes:**
+
 ```sql
 CREATE TABLE "users" (
   "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -32,6 +35,7 @@ CREATE TABLE "users" (
 ```
 
 **Depois:**
+
 ```sql
 CREATE TABLE "users" (
   "createdAt" TEXT NOT NULL DEFAULT '',
@@ -42,6 +46,7 @@ CREATE TABLE "users" (
 ### 2. Schema Prisma
 
 **Antes:**
+
 ```prisma
 model User {
   createdAt DateTime @default(now())
@@ -50,6 +55,7 @@ model User {
 ```
 
 **Depois:**
+
 ```prisma
 model User {
   createdAt String @default("")
@@ -60,6 +66,7 @@ model User {
 ### 3. Tipos TypeScript
 
 **Antes:**
+
 ```typescript
 interface User {
   createdAt: Date;
@@ -68,6 +75,7 @@ interface User {
 ```
 
 **Depois:**
+
 ```typescript
 interface User {
   createdAt: string; // ISO 8601 format
@@ -81,16 +89,16 @@ interface User {
 
 ```typescript
 // Converte Date para ISO 8601
-export function toISOString(date: Date | string = new Date()): string
+export function toISOString(date: Date | string = new Date()): string;
 
 // Verifica se string é ISO 8601 válida
-export function isValidISOString(isoString: string): boolean
+export function isValidISOString(isoString: string): boolean;
 
 // Converte ISO 8601 para Date
-export function fromISOString(isoString: string): Date | null
+export function fromISOString(isoString: string): Date | null;
 
 // Formata ISO 8601 para padrão brasileiro
-export function formatISOToBrazilian(isoString: string, includeTime?: boolean): string
+export function formatISOToBrazilian(isoString: string, includeTime?: boolean): string;
 ```
 
 ### Funções em `prisma.ts`
@@ -113,16 +121,16 @@ O middleware agora automatiza a criação de timestamps ISO 8601:
 ```typescript
 prisma.$use(async (params, next) => {
   const now = toISOString();
-  
+
   if (params.action === 'create') {
     params.args.data.createdAt = now;
     params.args.data.updatedAt = now;
   }
-  
+
   if (params.action === 'update' || params.action === 'updateMany') {
     params.args.data.updatedAt = now;
   }
-  
+
   return next(params);
 });
 ```
@@ -132,24 +140,26 @@ prisma.$use(async (params, next) => {
 ### 1. Criando Registros
 
 **Antes:**
+
 ```typescript
 const user = await prisma.user.create({
   data: {
     name: 'João',
-    email: 'joao@email.com'
+    email: 'joao@email.com',
     // createdAt e updatedAt eram automáticos
-  }
+  },
 });
 ```
 
 **Depois:**
+
 ```typescript
 const user = await prisma.user.create({
   data: {
     name: 'João',
-    email: 'joao@email.com'
+    email: 'joao@email.com',
     // createdAt e updatedAt são automaticamente definidos pelo middleware
-  }
+  },
 });
 
 // Resultado:
@@ -183,9 +193,9 @@ console.log(formatISOToBrazilian(user.createdAt, false));
 const users = await prisma.user.findMany({
   where: {
     createdAt: {
-      gte: '2024-01-01T00:00:00.000Z'
-    }
-  }
+      gte: '2024-01-01T00:00:00.000Z',
+    },
+  },
 });
 
 // Buscar contratos atualizados na última semana
@@ -195,9 +205,9 @@ lastWeek.setDate(lastWeek.getDate() - 7);
 const contracts = await prisma.contract.findMany({
   where: {
     updatedAt: {
-      gte: lastWeek.toISOString()
-    }
-  }
+      gte: lastWeek.toISOString(),
+    },
+  },
 });
 ```
 
@@ -207,14 +217,14 @@ const contracts = await prisma.contract.findMany({
 // GET /api/users
 export async function GET() {
   const users = await prisma.user.findMany();
-  
+
   return Response.json({
     users: users.map(user => ({
       ...user,
       // Datas já estão em formato ISO 8601, prontas para JSON
       createdAt: user.createdAt, // '2024-01-15T10:30:00.000Z'
-      updatedAt: user.updatedAt  // '2024-01-15T10:30:00.000Z'
-    }))
+      updatedAt: user.updatedAt, // '2024-01-15T10:30:00.000Z'
+    })),
   });
 }
 ```
@@ -261,15 +271,15 @@ import { isValidISOString, formatISOToBrazilian } from '@/utils/formatUtils';
 describe('Date Migration', () => {
   test('should have valid ISO 8601 dates', async () => {
     const user = await prisma.user.findFirst();
-    
+
     expect(isValidISOString(user.createdAt)).toBe(true);
     expect(isValidISOString(user.updatedAt)).toBe(true);
   });
-  
+
   test('should format dates correctly', () => {
     const isoDate = '2024-01-15T10:30:00.000Z';
     const formatted = formatISOToBrazilian(isoDate);
-    
+
     expect(formatted).toBe('15/01/2024 10:30:00');
   });
 });
@@ -278,6 +288,7 @@ describe('Date Migration', () => {
 ## Boas Práticas
 
 ### 1. Sempre Use ISO 8601
+
 ```typescript
 // ✅ Correto
 const now = new Date().toISOString();
@@ -285,8 +296,8 @@ const contract = await prisma.contract.create({
   data: {
     // ... outros campos
     createdAt: now,
-    updatedAt: now
-  }
+    updatedAt: now,
+  },
 });
 
 // ❌ Evitar
@@ -294,29 +305,28 @@ const contract = await prisma.contract.create({
   data: {
     // ... outros campos
     createdAt: new Date(), // Não é string ISO 8601
-  }
+  },
 });
 ```
 
 ### 2. Validação de Entrada
+
 ```typescript
 import { isValidISOString } from '@/utils/formatUtils';
 
 export async function POST(request: Request) {
   const { createdAt } = await request.json();
-  
+
   if (createdAt && !isValidISOString(createdAt)) {
-    return Response.json(
-      { error: 'Data deve estar no formato ISO 8601' },
-      { status: 400 }
-    );
+    return Response.json({ error: 'Data deve estar no formato ISO 8601' }, { status: 400 });
   }
-  
+
   // ... resto da lógica
 }
 ```
 
 ### 3. Formatação para UI
+
 ```typescript
 // Em componentes React
 function UserCard({ user }: { user: User }) {

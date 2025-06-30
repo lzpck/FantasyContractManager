@@ -41,7 +41,7 @@ export function useDeadMoneyConfig(leagueId: string): UseDeadMoneyConfigReturn {
       setError(null);
 
       const response = await fetch(`/api/leagues/${leagueId}/dead-money-config`);
-      
+
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error('Liga não encontrada');
@@ -124,7 +124,11 @@ export function useDeadMoneyValidation() {
     const errors: string[] = [];
 
     // Validar temporada atual
-    if (typeof config.currentSeason !== 'number' || config.currentSeason < 0 || config.currentSeason > 1) {
+    if (
+      typeof config.currentSeason !== 'number' ||
+      config.currentSeason < 0 ||
+      config.currentSeason > 1
+    ) {
       errors.push('Percentual da temporada atual deve estar entre 0 e 1');
     }
 
@@ -142,7 +146,9 @@ export function useDeadMoneyValidation() {
     for (const key of requiredKeys) {
       const totalPenalty = config.currentSeason + config.futureSeasons[key];
       if (totalPenalty > 1) {
-        warnings.push(`Cenário com ${key} ano(s) restante(s) resulta em ${(totalPenalty * 100).toFixed(0)}% de penalidade total`);
+        warnings.push(
+          `Cenário com ${key} ano(s) restante(s) resulta em ${(totalPenalty * 100).toFixed(0)}% de penalidade total`,
+        );
       }
     }
 
@@ -155,10 +161,9 @@ export function useDeadMoneyValidation() {
   const calculateImpact = (config: DeadMoneyConfig, salary: number, yearsRemaining: number) => {
     const currentSeason = salary * config.currentSeason;
     const futureKey = Math.min(yearsRemaining, 4).toString() as keyof typeof config.futureSeasons;
-    const futureSeasons = yearsRemaining > 0 
-      ? salary * config.futureSeasons[futureKey] * yearsRemaining
-      : 0;
-    
+    const futureSeasons =
+      yearsRemaining > 0 ? salary * config.futureSeasons[futureKey] * yearsRemaining : 0;
+
     return {
       currentSeason,
       futureSeasons,

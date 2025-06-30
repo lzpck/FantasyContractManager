@@ -157,7 +157,6 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
           >
             <option value={UserRole.USER}>Usuário</option>
             <option value={UserRole.COMMISSIONER}>Comissário</option>
-            
           </select>
           <p className="mt-1 text-xs text-slate-400">
             Usuário: acesso básico | Comissário: gerencia ligas

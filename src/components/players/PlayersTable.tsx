@@ -11,7 +11,7 @@ interface PlayersTableProps {
  *
  * Exibe lista de jogadores com informações básicas como nome, posições fantasy,
  * time da NFL e status de atividade.
- * 
+ *
  * IMPORTANTE: Sempre exibe fantasyPositions ao invés de position para mostrar
  * os slots fantasy específicos da plataforma Sleeper.
  */
@@ -33,23 +33,29 @@ export function PlayersTable({ players }: PlayersTableProps) {
   const renderFantasyPositions = (player: Player) => {
     // Prioriza fantasyPositions, usa position como fallback
     let positions: string[] = [];
-    
+
     if (player.fantasyPositions) {
       // Se fantasyPositions é array, usa diretamente
       if (Array.isArray(player.fantasyPositions)) {
         positions = player.fantasyPositions.filter(pos => pos && pos.trim() !== '');
-      } 
+      }
       // Se fantasyPositions é string, converte para array
-      else if (typeof player.fantasyPositions === 'string' && player.fantasyPositions.trim() !== '') {
-        positions = player.fantasyPositions.split(',').map(pos => pos.trim()).filter(pos => pos !== '');
+      else if (
+        typeof player.fantasyPositions === 'string' &&
+        player.fantasyPositions.trim() !== ''
+      ) {
+        positions = player.fantasyPositions
+          .split(',')
+          .map(pos => pos.trim())
+          .filter(pos => pos !== '');
       }
     }
-    
+
     // Se não há posições fantasy válidas, usa position como fallback
     if (positions.length === 0) {
       positions = [player.position];
     }
-    
+
     return (
       <div className="flex flex-wrap gap-1">
         {positions.map((pos, index) => (
@@ -123,9 +129,7 @@ export function PlayersTable({ players }: PlayersTableProps) {
               </td>
 
               {/* Posições Fantasy */}
-              <td className="px-6 py-4 whitespace-nowrap">
-                {renderFantasyPositions(player)}
-              </td>
+              <td className="px-6 py-4 whitespace-nowrap">{renderFantasyPositions(player)}</td>
 
               {/* Time NFL */}
               <td className="px-6 py-4 whitespace-nowrap">

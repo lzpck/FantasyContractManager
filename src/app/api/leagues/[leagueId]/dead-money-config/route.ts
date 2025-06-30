@@ -10,7 +10,7 @@ import { DeadMoneyConfig, DEFAULT_DEAD_MONEY_CONFIG } from '@/types';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ leagueId: string }> }
+  { params }: { params: Promise<{ leagueId: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -64,10 +64,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('Erro ao buscar configuração de dead money:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
 
@@ -77,7 +74,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ leagueId: string }> }
+  { params }: { params: Promise<{ leagueId: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -91,10 +88,7 @@ export async function PUT(
 
     // Validar estrutura da configuração
     if (!deadMoneyConfig || typeof deadMoneyConfig !== 'object') {
-      return NextResponse.json(
-        { error: 'Configuração de dead money inválida' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Configuração de dead money inválida' }, { status: 400 });
     }
 
     // Validar campos obrigatórios
@@ -103,10 +97,7 @@ export async function PUT(
       !deadMoneyConfig.futureSeasons ||
       typeof deadMoneyConfig.futureSeasons !== 'object'
     ) {
-      return NextResponse.json(
-        { error: 'Estrutura de configuração inválida' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Estrutura de configuração inválida' }, { status: 400 });
     }
 
     // Validar percentuais (devem estar entre 0 e 1)
@@ -117,7 +108,7 @@ export async function PUT(
     if (!validatePercentage(deadMoneyConfig.currentSeason)) {
       return NextResponse.json(
         { error: 'Percentual da temporada atual deve estar entre 0 e 1' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -127,7 +118,7 @@ export async function PUT(
       if (!validatePercentage(deadMoneyConfig.futureSeasons[key])) {
         return NextResponse.json(
           { error: `Percentual para ${key} ano(s) restante(s) deve estar entre 0 e 1` },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -150,7 +141,7 @@ export async function PUT(
     if (league.commissionerId !== session.user.id) {
       return NextResponse.json(
         { error: 'Apenas o comissário pode alterar as configurações da liga' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -179,9 +170,6 @@ export async function PUT(
     });
   } catch (error) {
     console.error('Erro ao atualizar configuração de dead money:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

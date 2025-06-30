@@ -9,7 +9,10 @@ import { prisma } from '@/lib/prisma';
  * Lista todos os times de uma liga específica.
  * Retorna dados reais do banco de dados exclusivamente.
  */
-export async function GET(request: NextRequest, context: { params: Promise<{ leagueId: string }> }) {
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ leagueId: string }> },
+) {
   const { leagueId } = await context.params;
   try {
     const session = await getServerSession(authOptions);
@@ -40,7 +43,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ lea
       abbreviation: team.abbreviation || team.name.substring(0, 3).toUpperCase(),
       leagueId: team.leagueId,
       ownerId: team.ownerId,
-      ownerDisplayName: team.ownerDisplayName || team.owner?.name || team.owner?.email || 'Manager não definido',
+      ownerDisplayName:
+        team.ownerDisplayName || team.owner?.name || team.owner?.email || 'Manager não definido',
       currentDeadMoney: team.currentDeadMoney || 0,
       nextSeasonDeadMoney: team.nextSeasonDeadMoney || 0,
       availableCap: 0, // Será calculado no frontend baseado nos contratos

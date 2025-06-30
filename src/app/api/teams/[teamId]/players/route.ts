@@ -64,13 +64,17 @@ export async function GET(
       sleeperPlayerId: rosterEntry.sleeperPlayerId,
       name: rosterEntry.player.name,
       position: rosterEntry.player.position,
-      fantasyPositions: rosterEntry.player.fantasyPositions ? rosterEntry.player.fantasyPositions.split(',') : [],
+      fantasyPositions: rosterEntry.player.fantasyPositions
+        ? rosterEntry.player.fantasyPositions.split(',')
+        : [],
       nflTeam: rosterEntry.player.team,
       age: rosterEntry.player.age,
       status: rosterEntry.status, // active, ir, taxi
       player: {
         ...rosterEntry.player,
-        fantasyPositions: rosterEntry.player.fantasyPositions ? rosterEntry.player.fantasyPositions.split(',') : [],
+        fantasyPositions: rosterEntry.player.fantasyPositions
+          ? rosterEntry.player.fantasyPositions.split(',')
+          : [],
       },
     }));
 

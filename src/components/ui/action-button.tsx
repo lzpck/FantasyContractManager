@@ -71,7 +71,7 @@ export function ActionButton({
         'shadow-sm hover:shadow-md',
         'focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50',
         getVariantClasses(),
-        className
+        className,
       )}
       {...props}
     >

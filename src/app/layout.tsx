@@ -58,16 +58,10 @@ export default function RootLayout({
               <main className="bg-[#0f172a] min-h-screen">{children}</main>
             </div>
           </AppProvider>
-         </SessionWrapper>
-         
-         {/* Toaster para notificações */}
-         <Toaster 
-           position="top-right"
-           richColors
-           closeButton
-           duration={4000}
-           theme="dark"
-         />
+        </SessionWrapper>
+
+        {/* Toaster para notificações */}
+        <Toaster position="top-right" richColors closeButton duration={4000} theme="dark" />
       </body>
     </html>
   );

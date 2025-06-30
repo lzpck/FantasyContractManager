@@ -1,6 +1,6 @@
 /**
  * Script de teste para verificar se o perfil ADMIN foi removido completamente
- * 
+ *
  * Este script verifica:
  * 1. Se não há mais usuários com role ADMIN no banco
  * 2. Se todos os usuários antigos ADMIN foram migrados para COMMISSIONER
@@ -18,7 +18,7 @@ async function testAdminRemoval() {
   try {
     // 1. Verificar se não há usuários ADMIN no banco
     const adminUsers = await prisma.user.findMany({
-      where: { role: 'ADMIN' as any }
+      where: { role: 'ADMIN' as any },
     });
 
     if (adminUsers.length > 0) {
@@ -41,8 +41,8 @@ async function testAdminRemoval() {
         id: true,
         name: true,
         email: true,
-        role: true
-      }
+        role: true,
+      },
     });
 
     console.log('📋 Usuários no sistema:');
@@ -60,7 +60,6 @@ async function testAdminRemoval() {
 
     console.log('🎉 Teste de remoção do perfil ADMIN concluído com sucesso!');
     return true;
-
   } catch (error) {
     console.error('❌ Erro durante o teste:', error);
     return false;

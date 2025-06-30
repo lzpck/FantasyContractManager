@@ -162,16 +162,16 @@ async function handleReleasePlayer(body: any, teamId: string, team: any) {
   // Calcular dead money usando a configuração da liga
   const currentYearDeadMoney = contract.currentSalary * deadMoneyConfig.currentSeason;
   let futureYearsDeadMoney = 0;
-  
+
   if (contract.yearsRemaining > 1) {
     const yearsRemaining = contract.yearsRemaining - 1;
     const yearsKey = Math.min(yearsRemaining, 4).toString();
     const penaltyPercentage = deadMoneyConfig.futureSeasons[yearsKey] || 0;
-    
+
     // Calcular salário dos anos restantes (simplificado - usando salário atual)
     futureYearsDeadMoney = contract.currentSalary * penaltyPercentage * yearsRemaining;
   }
-  
+
   const totalDeadMoney = currentYearDeadMoney + futureYearsDeadMoney;
 
   // Atualizar contrato para CUT

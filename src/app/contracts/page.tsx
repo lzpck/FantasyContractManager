@@ -66,7 +66,7 @@ function ContractsContent() {
       if (yearsRemaining <= 1) return 'bg-red-100 text-red-800'; // Último ano - vermelho
       if (yearsRemaining <= 2) return 'bg-yellow-100 text-yellow-800'; // Expira em breve - amarelo
     }
-    
+
     switch (status) {
       case 'ACTIVE':
         return 'bg-green-100 text-green-800';

@@ -13,24 +13,24 @@ export default function PositionDistributionChart({ players }: PositionDistribut
 
   // Cores distintas para cada posição - otimizadas para acessibilidade e modo escuro
   const POSITION_COLORS: Record<string, string> = {
-    QB: '#4F8EF7',   // Azul vibrante
-    RB: '#19C37D',   // Verde esmeralda
-    WR: '#FF9800',   // Laranja
-    TE: '#9C27B0',   // Roxo
-    K: '#E53935',    // Vermelho
-    DL: '#00BCD4',   // Ciano
-    LB: '#FF5722',   // Vermelho-laranja
-    DB: '#795548',   // Marrom
-    DEF: '#607D8B',  // Azul-acinzentado
+    QB: '#4F8EF7', // Azul vibrante
+    RB: '#19C37D', // Verde esmeralda
+    WR: '#FF9800', // Laranja
+    TE: '#9C27B0', // Roxo
+    K: '#E53935', // Vermelho
+    DL: '#00BCD4', // Ciano
+    LB: '#FF5722', // Vermelho-laranja
+    DB: '#795548', // Marrom
+    DEF: '#607D8B', // Azul-acinzentado
     // Posições adicionais com cores de fallback
-    DT: '#3F51B5',   // Índigo
-    DE: '#009688',   // Verde-azulado
-    OLB: '#FF6F00',  // Âmbar escuro
-    ILB: '#8BC34A',  // Verde-lima
-    CB: '#E91E63',   // Rosa
-    S: '#673AB7',    // Roxo escuro
-    FS: '#2196F3',   // Azul
-    SS: '#FFC107',   // Amarelo
+    DT: '#3F51B5', // Índigo
+    DE: '#009688', // Verde-azulado
+    OLB: '#FF6F00', // Âmbar escuro
+    ILB: '#8BC34A', // Verde-lima
+    CB: '#E91E63', // Rosa
+    S: '#673AB7', // Roxo escuro
+    FS: '#2196F3', // Azul
+    SS: '#FFC107', // Amarelo
   };
 
   // Função para obter cor da posição com fallback
@@ -113,8 +113,8 @@ export default function PositionDistributionChart({ players }: PositionDistribut
       return (
         <div className="bg-slate-900 p-4 border-2 border-slate-600 rounded-xl shadow-2xl backdrop-blur-sm">
           <div className="flex items-center space-x-2 mb-2">
-            <div 
-              className="w-3 h-3 rounded-full border border-slate-400" 
+            <div
+              className="w-3 h-3 rounded-full border border-slate-400"
               style={{ backgroundColor: getPositionColor(data.position) }}
             ></div>
             <p className="font-bold text-slate-100 text-base">{data.position}</p>
@@ -127,7 +127,8 @@ export default function PositionDistributionChart({ players }: PositionDistribut
               <span className="font-medium">Total:</span> {formatCurrency(data.totalSalary)}
             </p>
             <p className="text-sm text-slate-300">
-              <span className="font-medium">Média:</span> {formatCurrency(data.totalSalary / data.count)}
+              <span className="font-medium">Média:</span>{' '}
+              {formatCurrency(data.totalSalary / data.count)}
             </p>
             <p className="text-sm text-slate-300">
               <span className="font-medium">% do Cap:</span> {data.percentage}%
@@ -145,18 +146,16 @@ export default function PositionDistributionChart({ players }: PositionDistribut
       {payload?.map((entry, index: number) => {
         const positionData = chartData.find(d => d.position === entry.value);
         return (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className="flex items-center space-x-2 bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50"
           >
-            <div 
-              className="w-4 h-4 rounded-full border border-slate-500/30" 
+            <div
+              className="w-4 h-4 rounded-full border border-slate-500/30"
               style={{ backgroundColor: entry.color }}
               aria-label={`Cor da posição ${entry.value}`}
             ></div>
-            <span className="text-sm font-medium text-slate-200">
-              {entry.value}
-            </span>
+            <span className="text-sm font-medium text-slate-200">{entry.value}</span>
             <span className="text-xs text-slate-400 bg-slate-600/50 px-2 py-1 rounded">
               {positionData?.count || 0}
             </span>
@@ -173,8 +172,18 @@ export default function PositionDistributionChart({ players }: PositionDistribut
         <div className="flex items-center justify-center h-72">
           <div className="text-center text-slate-400 max-w-md">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-700 flex items-center justify-center">
-              <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <svg
+                className="w-8 h-8 text-slate-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
               </svg>
             </div>
             <p className="text-lg font-medium mb-2 text-slate-300">Nenhum dado disponível</p>
@@ -209,27 +218,24 @@ export default function PositionDistributionChart({ players }: PositionDistribut
               aria-label="Gráfico de distribuição de jogadores por posição"
             >
               {chartData.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
+                <Cell
+                  key={`cell-${index}`}
                   fill={getPositionColor(entry.position)}
                   stroke="#1e293b"
                   strokeWidth={2}
-                  style={{ 
+                  style={{
                     filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
                   }}
                 />
               ))}
             </Pie>
-            <Tooltip 
-              content={<CustomTooltip />} 
+            <Tooltip
+              content={<CustomTooltip />}
               cursor={{ fill: 'transparent' }}
               wrapperStyle={{ outline: 'none' }}
             />
-            <Legend 
-              content={<CustomLegend />} 
-              wrapperStyle={{ outline: 'none' }}
-            />
+            <Legend content={<CustomLegend />} wrapperStyle={{ outline: 'none' }} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -260,8 +266,8 @@ export default function PositionDistributionChart({ players }: PositionDistribut
             </thead>
             <tbody className="bg-slate-800 divide-y divide-slate-600">
               {chartData.map((data, index) => (
-                <tr 
-                  key={data.position} 
+                <tr
+                  key={data.position}
                   className={`hover:bg-slate-700/50 transition-colors ${
                     index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-800/70'
                   }`}
@@ -293,11 +299,11 @@ export default function PositionDistributionChart({ players }: PositionDistribut
                     <div className="flex items-center space-x-2">
                       <span className="text-sm font-medium text-slate-100">{data.percentage}%</span>
                       <div className="w-16 bg-slate-600 rounded-full h-2 hidden sm:block">
-                        <div 
+                        <div
                           className="h-2 rounded-full transition-all duration-300"
-                          style={{ 
+                          style={{
                             width: `${Math.min(parseFloat(data.percentage), 100)}%`,
-                            backgroundColor: getPositionColor(data.position)
+                            backgroundColor: getPositionColor(data.position),
                           }}
                         ></div>
                       </div>

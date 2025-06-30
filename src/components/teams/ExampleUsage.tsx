@@ -2,7 +2,7 @@
 
 /**
  * EXEMPLO PRÁTICO DE USO DO SISTEMA DE CONTRATOS
- * 
+ *
  * Este arquivo demonstra como integrar e usar todos os componentes
  * do sistema de gerenciamento de contratos em uma aplicação real.
  */
@@ -27,8 +27,8 @@ const mockLeague: League = {
     WR: 18000000,
     TE: 11000000,
     K: 5000000,
-    DEF: 15000000
-  }
+    DEF: 15000000,
+  },
 };
 
 const mockTeam: Team = {
@@ -40,7 +40,7 @@ const mockTeam: Team = {
   currentSalaryCap: 180000000,
   currentDeadMoney: 5000000,
   availableCap: 15000000,
-  rosterSize: 45
+  rosterSize: 45,
 };
 
 const mockPlayers: PlayerWithContract[] = [
@@ -51,7 +51,7 @@ const mockPlayers: PlayerWithContract[] = [
       position: 'QB',
       nflTeam: 'LAR',
       age: 35,
-      experience: 14
+      experience: 14,
     },
     contract: {
       id: 'contract_1',
@@ -76,8 +76,8 @@ const mockPlayers: PlayerWithContract[] = [
       isRookieContract: false,
       canExtend: true,
       canTag: false,
-      notes: 'Contrato de extensão assinado em 2022'
-    }
+      notes: 'Contrato de extensão assinado em 2022',
+    },
   },
   {
     player: {
@@ -86,7 +86,7 @@ const mockPlayers: PlayerWithContract[] = [
       position: 'WR',
       nflTeam: 'LAR',
       age: 30,
-      experience: 7
+      experience: 7,
     },
     contract: {
       id: 'contract_2',
@@ -111,8 +111,8 @@ const mockPlayers: PlayerWithContract[] = [
       isRookieContract: false,
       canExtend: true,
       canTag: true,
-      notes: 'Contrato após temporada MVP'
-    }
+      notes: 'Contrato após temporada MVP',
+    },
   },
   {
     player: {
@@ -121,7 +121,7 @@ const mockPlayers: PlayerWithContract[] = [
       position: 'DT',
       nflTeam: 'LAR',
       age: 32,
-      experience: 10
+      experience: 10,
     },
     contract: {
       id: 'contract_3',
@@ -146,8 +146,8 @@ const mockPlayers: PlayerWithContract[] = [
       isRookieContract: false,
       canExtend: true,
       canTag: false,
-      notes: 'Extensão após ameaça de aposentadoria'
-    }
+      notes: 'Extensão após ameaça de aposentadoria',
+    },
   },
   {
     player: {
@@ -156,7 +156,7 @@ const mockPlayers: PlayerWithContract[] = [
       position: 'RB',
       nflTeam: 'LAR',
       age: 24,
-      experience: 4
+      experience: 4,
     },
     contract: {
       id: 'contract_4',
@@ -181,8 +181,8 @@ const mockPlayers: PlayerWithContract[] = [
       isRookieContract: true,
       canExtend: true,
       canTag: true,
-      notes: 'Contrato rookie - 2ª rodada do draft 2020'
-    }
+      notes: 'Contrato rookie - 2ª rodada do draft 2020',
+    },
   },
   {
     player: {
@@ -191,10 +191,10 @@ const mockPlayers: PlayerWithContract[] = [
       position: 'WR',
       nflTeam: 'LAR',
       age: 27,
-      experience: 4
+      experience: 4,
     },
-    contract: null // Jogador sem contrato - agente livre
-  }
+    contract: null, // Jogador sem contrato - agente livre
+  },
 ];
 
 /**
@@ -205,26 +205,26 @@ export function ContractSystemExample() {
   const [team, setTeam] = useState<Team>(mockTeam);
   const [league, setLeague] = useState<League>(mockLeague);
   const [notifications, setNotifications] = useState<string[]>([]);
-  
+
   const { user } = useAuth();
   const isCommissioner = user?.role === 'COMMISSIONER';
-  
+
   // Simular carregamento de dados
   const refreshContracts = async () => {
     console.log('Atualizando dados de contratos...');
-    
+
     // Simular delay de API
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // Em uma aplicação real, você faria:
     // const response = await fetch(`/api/teams/${team.id}/contracts`);
     // const updatedData = await response.json();
     // setPlayers(updatedData.players);
     // setTeam(updatedData.team);
-    
+
     addNotification('Dados de contratos atualizados!');
   };
-  
+
   // Adicionar notificação
   const addNotification = (message: string) => {
     setNotifications(prev => [...prev, message]);
@@ -232,12 +232,12 @@ export function ContractSystemExample() {
       setNotifications(prev => prev.slice(1));
     }, 5000);
   };
-  
+
   // Escutar eventos de contrato
   useEffect(() => {
     const handleContractEvent = (event: CustomEvent) => {
       const { type, detail } = event;
-      
+
       switch (type) {
         case 'contractCreated':
           addNotification(`Contrato criado para ${detail.player.name}`);
@@ -252,40 +252,42 @@ export function ContractSystemExample() {
           addNotification(`Franchise tag aplicada para ${detail.player.name}`);
           break;
         case 'playerCut':
-          addNotification(`${detail.player.name} foi cortado - Dead money: ${formatCurrency(detail.deadMoney)}`);
+          addNotification(
+            `${detail.player.name} foi cortado - Dead money: ${formatCurrency(detail.deadMoney)}`,
+          );
           break;
       }
-      
+
       // Atualizar dados após qualquer evento
       refreshContracts();
     };
-    
+
     // Registrar listeners para todos os eventos
     const events = [
       'contractCreated',
-      'contractUpdated', 
+      'contractUpdated',
       'contractExtended',
       'franchiseTagApplied',
-      'playerCut'
+      'playerCut',
     ];
-    
+
     events.forEach(eventType => {
       window.addEventListener(eventType, handleContractEvent as EventListener);
     });
-    
+
     return () => {
       events.forEach(eventType => {
         window.removeEventListener(eventType, handleContractEvent as EventListener);
       });
     };
   }, []);
-  
+
   // Calcular estatísticas
   const totalContracts = players.filter(p => p.contract).length;
   const totalSalaries = players.reduce((sum, p) => sum + (p.contract?.currentSalary || 0), 0);
   const expiring = players.filter(p => p.contract?.yearsRemaining === 0).length;
   const freeAgents = players.filter(p => !p.contract).length;
-  
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
       {/* Header */}
@@ -299,7 +301,7 @@ export function ContractSystemExample() {
           </p>
         </div>
       </div>
-      
+
       {/* Notificações */}
       {notifications.length > 0 && (
         <div className="fixed top-4 right-4 z-50 space-y-2">
@@ -313,7 +315,7 @@ export function ContractSystemExample() {
           ))}
         </div>
       )}
-      
+
       {/* Estatísticas Rápidas */}
       <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -322,9 +324,7 @@ export function ContractSystemExample() {
             <div className="text-sm text-slate-400">Contratos Ativos</div>
           </div>
           <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-            <div className="text-2xl font-bold text-green-400">
-              {formatCurrency(totalSalaries)}
-            </div>
+            <div className="text-2xl font-bold text-green-400">{formatCurrency(totalSalaries)}</div>
             <div className="text-sm text-slate-400">Total em Salários</div>
           </div>
           <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
@@ -336,7 +336,7 @@ export function ContractSystemExample() {
             <div className="text-sm text-slate-400">Agentes Livres</div>
           </div>
         </div>
-        
+
         {/* Informações do Usuário */}
         <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 mb-6">
           <h3 className="text-lg font-semibold mb-2">Informações do Usuário</h3>
@@ -347,9 +347,11 @@ export function ContractSystemExample() {
             </div>
             <div>
               <span className="text-slate-400">Papel:</span>
-              <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                isCommissioner ? 'bg-green-600 text-white' : 'bg-gray-600 text-white'
-              }`}>
+              <span
+                className={`ml-2 px-2 py-1 rounded text-xs ${
+                  isCommissioner ? 'bg-green-600 text-white' : 'bg-gray-600 text-white'
+                }`}
+              >
                 {isCommissioner ? 'Comissário' : 'Membro'}
               </span>
             </div>
@@ -361,7 +363,7 @@ export function ContractSystemExample() {
             </div>
           </div>
         </div>
-        
+
         {/* Sistema Principal */}
         <PlayerContractsManager
           players={players}
@@ -371,7 +373,7 @@ export function ContractSystemExample() {
           title="Gerenciamento de Contratos"
           showCapStats={true}
         />
-        
+
         {/* Instruções de Uso */}
         <div className="mt-8 bg-slate-800 rounded-lg p-6 border border-slate-700">
           <h3 className="text-xl font-semibold mb-4">Como Usar Este Sistema</h3>
@@ -398,16 +400,27 @@ export function ContractSystemExample() {
             </div>
           </div>
         </div>
-        
+
         {/* Dados de Exemplo */}
         <div className="mt-6 bg-slate-800 rounded-lg p-6 border border-slate-700">
           <h3 className="text-xl font-semibold mb-4">Dados de Exemplo</h3>
           <div className="text-sm text-slate-300 space-y-2">
-            <p>• <strong>Matthew Stafford:</strong> Contrato de $160M por 4 anos (2 anos restantes)</p>
-            <p>• <strong>Cooper Kupp:</strong> Contrato de $80M por 3 anos (1 ano restante - elegível para extensão)</p>
-            <p>• <strong>Aaron Donald:</strong> Contrato de $95M por 3 anos (1 ano restante)</p>
-            <p>• <strong>Cam Akers:</strong> Contrato rookie expirando (elegível para franchise tag)</p>
-            <p>• <strong>Van Jefferson:</strong> Agente livre (sem contrato)</p>
+            <p>
+              • <strong>Matthew Stafford:</strong> Contrato de $160M por 4 anos (2 anos restantes)
+            </p>
+            <p>
+              • <strong>Cooper Kupp:</strong> Contrato de $80M por 3 anos (1 ano restante - elegível
+              para extensão)
+            </p>
+            <p>
+              • <strong>Aaron Donald:</strong> Contrato de $95M por 3 anos (1 ano restante)
+            </p>
+            <p>
+              • <strong>Cam Akers:</strong> Contrato rookie expirando (elegível para franchise tag)
+            </p>
+            <p>
+              • <strong>Van Jefferson:</strong> Agente livre (sem contrato)
+            </p>
           </div>
         </div>
       </div>
@@ -417,11 +430,11 @@ export function ContractSystemExample() {
 
 /**
  * EXEMPLO DE INTEGRAÇÃO EM UMA PÁGINA
- * 
+ *
  * ```tsx
  * // pages/example.tsx
  * import { ContractSystemExample } from '@/components/teams/ExampleUsage';
- * 
+ *
  * export default function ExamplePage() {
  *   return <ContractSystemExample />;
  * }

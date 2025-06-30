@@ -2,7 +2,7 @@
 
 /**
  * GERENCIADOR COMPLETO DE CONTRATOS DE JOGADORES
- * 
+ *
  * Este componente integra a tabela de jogadores com contratos
  * e o modal de ações, fornecendo uma solução completa para
  * gerenciamento de contratos.
@@ -34,7 +34,7 @@ interface PlayerContractsManagerProps {
 
 /**
  * Componente principal para gerenciar contratos de jogadores
- * 
+ *
  * Integra tabela de jogadores, modal de ações e estatísticas
  * do salary cap em uma interface unificada.
  */
@@ -52,20 +52,20 @@ export function PlayerContractsManager({
   const [filterText, setFilterText] = useState('');
   const [filterPosition, setFilterPosition] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  
+
   // Estados para o modal de ações
   const [isActionsModalOpen, setIsActionsModalOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
-  
+
   // Hook de autenticação
   const { user } = useAuth();
   const isCommissioner = user?.role === 'COMMISSIONER';
-  
+
   // Filtrar e ordenar jogadores
   const filteredAndSortedPlayers = players
     .filter(playerWithContract => {
       const { player, contract } = playerWithContract;
-      
+
       // Filtro por texto (nome ou time NFL)
       if (filterText) {
         const searchText = filterText.toLowerCase();
@@ -73,12 +73,12 @@ export function PlayerContractsManager({
         const matchesTeam = player.nflTeam?.toLowerCase().includes(searchText);
         if (!matchesName && !matchesTeam) return false;
       }
-      
+
       // Filtro por posição
       if (filterPosition !== 'all' && player.position !== filterPosition) {
         return false;
       }
-      
+
       // Filtro por status (simulado - você pode ajustar conforme sua lógica)
       if (filterStatus !== 'all') {
         // Aqui você pode implementar a lógica de status baseada em suas regras
@@ -87,13 +87,13 @@ export function PlayerContractsManager({
           return false;
         }
       }
-      
+
       return true;
     })
     .sort((a, b) => {
       let aValue: any;
       let bValue: any;
-      
+
       switch (sortBy) {
         case 'name':
           aValue = a.player.name;
@@ -114,17 +114,17 @@ export function PlayerContractsManager({
         default:
           return 0;
       }
-      
+
       if (typeof aValue === 'string') {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
       }
-      
+
       if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
-  
+
   // Função para alterar ordenação
   const handleSortChange = (field: typeof sortBy) => {
     if (sortBy === field) {
@@ -134,18 +134,18 @@ export function PlayerContractsManager({
       setSortOrder('asc');
     }
   };
-  
+
   // Função para lidar com ações de jogadores
   const handlePlayerAction = (playerWithContract: PlayerWithContract, action: string) => {
     setSelectedPlayer(playerWithContract);
     setIsActionsModalOpen(true);
   };
-  
+
   // Função para processar ações do modal
   const handleModalAction = async (action: string, data: any) => {
     try {
       console.log('Processando ação:', action, data);
-      
+
       // Aqui você implementaria a lógica para cada ação
       switch (action) {
         case 'edit':
@@ -166,45 +166,44 @@ export function PlayerContractsManager({
         default:
           console.warn('Ação não reconhecida:', action);
       }
-      
+
       // Atualizar dados após ação
       if (onContractsUpdate) {
         onContractsUpdate();
       }
-      
     } catch (error) {
       console.error('Erro ao processar ação:', error);
       toast.error('Erro ao processar ação. Tente novamente.');
     }
   };
-  
+
   // Funções para processar ações específicas
   const handleContractExtension = async (data: any) => {
     // Implementar lógica de extensão
     console.log('Aplicando extensão de contrato:', data);
     // Aqui você faria a chamada para a API
   };
-  
+
   const handleFranchiseTag = async (data: any) => {
     // Implementar lógica de franchise tag
     console.log('Aplicando franchise tag:', data);
     // Aqui você faria a chamada para a API
   };
-  
+
   const handleCutPlayer = async (data: any) => {
     // Implementar lógica para cortar jogador
     console.log('Cortando jogador:', data);
     // Aqui você faria a chamada para a API
   };
-  
+
   // Calcular estatísticas do salary cap
   const totalSalaries = players.reduce((total, p) => {
     return total + (p.contract?.currentSalary || 0);
   }, 0);
-  
+
   const availableCap = league.salaryCap - totalSalaries;
   const capUsagePercentage = (totalSalaries / league.salaryCap) * 100;
-  
+
   // Escutar atualizações de contratos
   useEffect(() => {
     const handleContractUpdate = () => {
@@ -212,11 +211,11 @@ export function PlayerContractsManager({
         onContractsUpdate();
       }
     };
-    
+
     window.addEventListener('contractUpdated', handleContractUpdate);
     return () => window.removeEventListener('contractUpdated', handleContractUpdate);
   }, [onContractsUpdate]);
-  
+
   return (
     <div className="space-y-6">
       {/* Header com Estatísticas */}
@@ -238,7 +237,7 @@ export function PlayerContractsManager({
             </div>
           </div>
         </div>
-        
+
         {/* Estatísticas do Salary Cap */}
         {showCapStats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -253,15 +252,15 @@ export function PlayerContractsManager({
               <div className="text-lg font-bold text-slate-100">
                 {formatCurrency(totalSalaries)}
               </div>
-              <div className="text-xs text-slate-400">
-                {capUsagePercentage.toFixed(1)}% do cap
-              </div>
+              <div className="text-xs text-slate-400">{capUsagePercentage.toFixed(1)}% do cap</div>
             </div>
             <div className="bg-slate-700 rounded-lg p-4">
               <div className="text-sm text-slate-400">Cap Disponível</div>
-              <div className={`text-lg font-bold ${
-                availableCap < 0 ? 'text-red-400' : 'text-green-400'
-              }`}>
+              <div
+                className={`text-lg font-bold ${
+                  availableCap < 0 ? 'text-red-400' : 'text-green-400'
+                }`}
+              >
                 {formatCurrency(availableCap)}
               </div>
             </div>
@@ -273,7 +272,7 @@ export function PlayerContractsManager({
             </div>
           </div>
         )}
-        
+
         {/* Barra de Progresso do Cap */}
         {showCapStats && (
           <div className="mt-4">
@@ -284,9 +283,11 @@ export function PlayerContractsManager({
             <div className="w-full bg-slate-700 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  capUsagePercentage > 100 ? 'bg-red-500' :
-                  capUsagePercentage > 90 ? 'bg-yellow-500' :
-                  'bg-green-500'
+                  capUsagePercentage > 100
+                    ? 'bg-red-500'
+                    : capUsagePercentage > 90
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
                 }`}
                 style={{ width: `${Math.min(capUsagePercentage, 100)}%` }}
               />
@@ -294,7 +295,7 @@ export function PlayerContractsManager({
           </div>
         )}
       </div>
-      
+
       {/* Tabela de Jogadores */}
       <PlayerContractsTable
         players={filteredAndSortedPlayers}
@@ -309,7 +310,7 @@ export function PlayerContractsManager({
         onFilterStatusChange={setFilterStatus}
         onPlayerAction={handlePlayerAction}
       />
-      
+
       {/* Modal de Ações */}
       <ContractActionsModal
         isOpen={isActionsModalOpen}
@@ -329,13 +330,13 @@ export function PlayerContractsManager({
 
 /**
  * EXEMPLO DE USO:
- * 
+ *
  * ```tsx
  * import { PlayerContractsManager } from '@/components/teams/PlayerContractsManager';
- * 
+ *
  * function TeamPage() {
  *   const { players, team, league, refreshContracts } = useTeamData();
- * 
+ *
  *   return (
  *     <PlayerContractsManager
  *       players={players}

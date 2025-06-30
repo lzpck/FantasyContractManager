@@ -46,23 +46,29 @@ export default function PlayersPage() {
     if (positionFilter !== 'all') {
       filtered = filtered.filter(player => {
         let positions: string[] = [];
-        
+
         if (player.fantasyPositions) {
           // Se fantasyPositions é array, usa diretamente
           if (Array.isArray(player.fantasyPositions)) {
             positions = player.fantasyPositions.filter(pos => pos && pos.trim() !== '');
-          } 
+          }
           // Se fantasyPositions é string, converte para array
-          else if (typeof player.fantasyPositions === 'string' && player.fantasyPositions.trim() !== '') {
-            positions = player.fantasyPositions.split(',').map(pos => pos.trim()).filter(pos => pos !== '');
+          else if (
+            typeof player.fantasyPositions === 'string' &&
+            player.fantasyPositions.trim() !== ''
+          ) {
+            positions = player.fantasyPositions
+              .split(',')
+              .map(pos => pos.trim())
+              .filter(pos => pos !== '');
           }
         }
-        
+
         // Se não há posições fantasy válidas, usa position como fallback
         if (positions.length === 0) {
           positions = [player.position];
         }
-        
+
         return positions.includes(positionFilter);
       });
     }
@@ -87,18 +93,26 @@ export default function PlayersPage() {
           // Usa a primeira posição fantasy para ordenação
           const getFirstFantasyPosition = (player: any) => {
             let positions: string[] = [];
-            
+
             if (player.fantasyPositions) {
               if (Array.isArray(player.fantasyPositions)) {
-                positions = player.fantasyPositions.filter((pos: string) => pos && pos.trim() !== '');
-              } else if (typeof player.fantasyPositions === 'string' && player.fantasyPositions.trim() !== '') {
-                positions = player.fantasyPositions.split(',').map((pos: string) => pos.trim()).filter((pos: string) => pos !== '');
+                positions = player.fantasyPositions.filter(
+                  (pos: string) => pos && pos.trim() !== '',
+                );
+              } else if (
+                typeof player.fantasyPositions === 'string' &&
+                player.fantasyPositions.trim() !== ''
+              ) {
+                positions = player.fantasyPositions
+                  .split(',')
+                  .map((pos: string) => pos.trim())
+                  .filter((pos: string) => pos !== '');
               }
             }
-            
+
             return positions.length > 0 ? positions[0] : player.position;
           };
-          
+
           valueA = getFirstFantasyPosition(a);
           valueB = getFirstFantasyPosition(b);
           break;
@@ -129,26 +143,32 @@ export default function PlayersPage() {
     new Set(
       players.flatMap(player => {
         let positions: string[] = [];
-        
+
         if (player.fantasyPositions) {
           // Se fantasyPositions é array, usa diretamente
           if (Array.isArray(player.fantasyPositions)) {
             positions = player.fantasyPositions.filter(pos => pos && pos.trim() !== '');
-          } 
+          }
           // Se fantasyPositions é string, converte para array
-          else if (typeof player.fantasyPositions === 'string' && player.fantasyPositions.trim() !== '') {
-            positions = player.fantasyPositions.split(',').map(pos => pos.trim()).filter(pos => pos !== '');
+          else if (
+            typeof player.fantasyPositions === 'string' &&
+            player.fantasyPositions.trim() !== ''
+          ) {
+            positions = player.fantasyPositions
+              .split(',')
+              .map(pos => pos.trim())
+              .filter(pos => pos !== '');
           }
         }
-        
+
         // Se não há posições fantasy válidas, usa position como fallback
         if (positions.length === 0) {
           positions = [player.position];
         }
-        
+
         return positions;
-      })
-    )
+      }),
+    ),
   ).sort();
 
   const handleImport = async () => {
@@ -209,7 +229,10 @@ export default function PlayersPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               {/* Busca por texto */}
               <div>
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                <label
+                  htmlFor="search"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+                >
                   Buscar
                 </label>
                 <input
@@ -224,7 +247,10 @@ export default function PlayersPage() {
 
               {/* Filtro por posição fantasy */}
               <div>
-                <label htmlFor="position" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                <label
+                  htmlFor="position"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+                >
                   Posição Fantasy
                 </label>
                 <select
@@ -233,11 +259,18 @@ export default function PlayersPage() {
                   onChange={e => setPositionFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
                 >
-                  <option value="" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
+                  <option
+                    value=""
+                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
                     Todas as posições fantasy
                   </option>
                   {uniquePositions.map(position => (
-                    <option key={position} value={position} className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
+                    <option
+                      key={position}
+                      value={position}
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
                       {position}
                     </option>
                   ))}
@@ -246,7 +279,10 @@ export default function PlayersPage() {
 
               {/* Filtro por status */}
               <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                <label
+                  htmlFor="status"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+                >
                   Status
                 </label>
                 <select
@@ -255,16 +291,28 @@ export default function PlayersPage() {
                   onChange={e => setStatusFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
                 >
-                  <option value="" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
+                  <option
+                    value=""
+                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
                     Todos os status
                   </option>
-                  <option value="Ativo" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
+                  <option
+                    value="Ativo"
+                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
                     Ativo
                   </option>
-                  <option value="Inativo" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
+                  <option
+                    value="Inativo"
+                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
                     Inativo
                   </option>
-                  <option value="Lesionado" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
+                  <option
+                    value="Lesionado"
+                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
                     Lesionado
                   </option>
                 </select>
@@ -272,7 +320,10 @@ export default function PlayersPage() {
 
               {/* Ordenação */}
               <div>
-                <label htmlFor="sort" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                <label
+                  htmlFor="sort"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+                >
                   Ordenar por
                 </label>
                 <div className="flex gap-2">
@@ -282,13 +333,22 @@ export default function PlayersPage() {
                     onChange={e => setSortBy(e.target.value as 'name' | 'position' | 'nflTeam')}
                     className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
                   >
-                    <option value="name" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
+                    <option
+                      value="name"
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
                       Nome
                     </option>
-                    <option value="position" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
+                    <option
+                      value="position"
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
                       Posição Fantasy
                     </option>
-                    <option value="nflTeam" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
+                    <option
+                      value="nflTeam"
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
                       Time NFL
                     </option>
                   </select>

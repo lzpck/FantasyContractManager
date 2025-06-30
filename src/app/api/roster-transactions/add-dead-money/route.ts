@@ -9,7 +9,7 @@ const addDeadMoneySchema = z.object({
   sleeperPlayerId: z.string().min(1, 'ID do jogador é obrigatório'),
   teamId: z.string().min(1, 'ID do time é obrigatório'),
   deadMoneyAmount: z.number().min(0, 'Valor do dead money deve ser positivo').optional(),
-  notes: z.string().optional()
+  notes: z.string().optional(),
 });
 
 /**
@@ -21,36 +21,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = addDeadMoneySchema.parse(body);
 
-    const {
-      sleeperPlayerId,
-      teamId,
-      deadMoneyAmount,
-      notes
-    } = validatedData;
+    const { sleeperPlayerId, teamId, deadMoneyAmount, notes } = validatedData;
 
     // Verificar se o time existe
     const team = await prisma.team.findUnique({
       where: { id: teamId },
-      include: { league: true }
+      include: { league: true },
     });
 
     if (!team) {
-      return NextResponse.json(
-        { error: 'Time não encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Time não encontrado' }, { status: 404 });
     }
 
     // Verificar se o jogador existe
     const player = await prisma.player.findUnique({
-      where: { sleeperPlayerId }
+      where: { sleeperPlayerId },
     });
 
     if (!player) {
-      return NextResponse.json(
-        { error: 'Jogador não encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Jogador não encontrado' }, { status: 404 });
     }
 
     // Buscar contrato ativo do jogador com o time
@@ -58,8 +47,8 @@ export async function POST(request: NextRequest) {
       where: {
         playerId: player.id,
         teamId,
-        status: 'active'
-      }
+        status: 'active',
+      },
     });
 
     let calculatedDeadMoney = deadMoneyAmount || 0;
@@ -70,13 +59,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Usar transação para garantir consistência
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async tx => {
       // 1. Remover jogador do roster
       await tx.teamRoster.deleteMany({
         where: {
           teamId,
-          sleeperPlayerId
-        }
+          sleeperPlayerId,
+        },
       });
 
       // 2. Atualizar status do contrato para 'cut' se existir
@@ -85,8 +74,10 @@ export async function POST(request: NextRequest) {
           where: { id: activeContract.id },
           data: {
             status: 'cut',
-            notes: notes ? `${activeContract.notes || ''} | Cortado: ${notes}` : `${activeContract.notes || ''} | Jogador cortado`
-          }
+            notes: notes
+              ? `${activeContract.notes || ''} | Cortado: ${notes}`
+              : `${activeContract.notes || ''} | Jogador cortado`,
+          },
         });
       }
 
@@ -100,18 +91,18 @@ export async function POST(request: NextRequest) {
             amount: calculatedDeadMoney,
             year: new Date().getFullYear(),
             reason: notes || 'Jogador cortado do roster',
-            contractId: activeContract?.id
+            contractId: activeContract?.id,
           },
           include: {
             player: true,
-            team: true
-          }
+            team: true,
+          },
         });
       }
 
       return {
         contract: activeContract,
-        deadMoney: deadMoneyRecord
+        deadMoney: deadMoneyRecord,
       };
     });
 
@@ -124,23 +115,19 @@ export async function POST(request: NextRequest) {
         removedFromRoster: true,
         contractUpdated: !!result.contract,
         deadMoneyCreated: !!result.deadMoney,
-        deadMoneyAmount: calculatedDeadMoney
-      }
+        deadMoneyAmount: calculatedDeadMoney,
+      },
     });
-
   } catch (error) {
     console.error('Erro ao adicionar dead money:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Dados inválidos', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

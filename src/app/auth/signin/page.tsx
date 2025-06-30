@@ -59,7 +59,7 @@ export default function SignInPage() {
         setIsLoading(false);
       } else if (result?.ok) {
         console.log('Login bem-sucedido, redirecionando...');
-        
+
         // Aguardar a sessão ser atualizada antes de redirecionar
         const checkSession = async () => {
           const session = await getSession();
@@ -72,7 +72,7 @@ export default function SignInPage() {
             setTimeout(checkSession, 200);
           }
         };
-        
+
         // Aguardar um pouco antes de verificar a sessão
         setTimeout(checkSession, 300);
       }
