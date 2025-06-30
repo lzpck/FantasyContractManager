@@ -10,7 +10,7 @@ import { DeadMoneyConfig, DEFAULT_DEAD_MONEY_CONFIG } from '@/types';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { leagueId: string } }
+  { params }: { params: Promise<{ leagueId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,7 +18,7 @@ export async function GET(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const { leagueId } = params;
+    const { leagueId } = await params;
 
     // Buscar a liga e verificar permissões
     const league = await prisma.league.findUnique({
@@ -77,7 +77,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { leagueId: string } }
+  { params }: { params: Promise<{ leagueId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -85,7 +85,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const { leagueId } = params;
+    const { leagueId } = await params;
     const body = await request.json();
     const { deadMoneyConfig } = body;
 

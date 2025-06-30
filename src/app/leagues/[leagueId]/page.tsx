@@ -5,10 +5,14 @@ import { useParams, useRouter } from 'next/navigation';
 import { League, TeamFinancialSummary, Team } from '@/types';
 import { useTeams } from '@/hooks/useTeams';
 import { useLeague } from '@/hooks/useLeagues';
+import { useAuth } from '@/hooks/useAuth';
+import { useRosterDiff, PlayerAdded, PlayerRemoved } from '@/hooks/useRosterDiff';
 import LeagueHeader from '@/components/leagues/LeagueHeader';
 import TeamsTable from '@/components/leagues/TeamsTable';
 import { SyncButton } from '@/components/leagues/SyncButton';
 import { FilterSortBar } from '@/components/leagues/FilterSortBar';
+import RosterTransactions from '@/components/leagues/RosterTransactions';
+import { toast } from 'sonner';
 
 /**
  * Página de detalhes da liga
@@ -21,6 +25,7 @@ export default function LeagueDetailsPage() {
   const router = useRouter();
   const leagueId = params.leagueId as string;
   const { league: fetchedLeague, loading: leagueLoading } = useLeague(leagueId);
+  const { user } = useAuth();
 
   // Estados locais
   const [league, setLeague] = useState<League | null>(null);
@@ -30,8 +35,17 @@ export default function LeagueDetailsPage() {
   const [sortBy, setSortBy] = useState<'name' | 'availableCap' | 'totalSalaries'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filterText, setFilterText] = useState('');
+  
+  // Estados para transações de roster
+  const [playersAdded, setPlayersAdded] = useState<PlayerAdded[]>([]);
+  const [playersRemoved, setPlayersRemoved] = useState<PlayerRemoved[]>([]);
+  const [showTransactions, setShowTransactions] = useState(false);
 
   const { teams, loading: teamsLoading } = useTeams(leagueId);
+  const { calculateRosterDiff, isLoading: rosterDiffLoading } = useRosterDiff();
+
+  // Encontrar o time do usuário atual na liga
+  const userTeam = teams.find(team => team.ownerId === user?.id) || null;
 
   // Definir liga quando carregada
   useEffect(() => {
@@ -191,11 +205,19 @@ export default function LeagueDetailsPage() {
     try {
       // Verificar se a liga tem ID do Sleeper
       if (!league?.sleeperLeagueId) {
-        alert('Esta liga não possui integração com o Sleeper');
-        return;
+          toast.error('Esta liga não possui integração com o Sleeper');
+          return;
+        }
+
+      // 1. Buscar dados atuais do roster antes da sincronização
+      const rosterDataResponse = await fetch(`/api/leagues/${league.id}/roster-data`);
+      const rosterData = await rosterDataResponse.json();
+      
+      if (!rosterData.success) {
+        throw new Error('Erro ao buscar dados do roster');
       }
 
-      // Chamar a API de sincronização
+      // 2. Chamar a API de sincronização
       const response = await fetch('/api/leagues/sync', {
         method: 'POST',
         headers: {
@@ -207,6 +229,29 @@ export default function LeagueDetailsPage() {
       const data = await response.json();
 
       if (data.success) {
+        // 3. Detectar diferenças no roster
+        try {
+          const rosterDiff = await calculateRosterDiff(
+            league.sleeperLeagueId,
+            rosterData.data.currentRosters,
+            rosterData.data.teams
+          );
+
+          // Atualizar estados das transações
+          setPlayersAdded(rosterDiff.playersAdded);
+          setPlayersRemoved(rosterDiff.playersRemoved);
+          setShowTransactions(rosterDiff.playersAdded.length > 0 || rosterDiff.playersRemoved.length > 0);
+
+          if (rosterDiff.playersAdded.length > 0 || rosterDiff.playersRemoved.length > 0) {
+            toast.success(`Sincronização concluída! ${rosterDiff.playersAdded.length} jogadores adicionados, ${rosterDiff.playersRemoved.length} removidos.`);
+          } else {
+            toast.success('Sincronização concluída! Nenhuma alteração no roster detectada.');
+          }
+        } catch (diffError) {
+          console.warn('Erro ao calcular diferenças do roster:', diffError);
+          toast.success('Sincronização concluída, mas não foi possível detectar alterações no roster.');
+        }
+
         // Atualizar dados locais
         setLeague(data.league);
 
@@ -219,19 +264,104 @@ export default function LeagueDetailsPage() {
           setTeamsFinancialSummary(updatedFinancialSummaries);
         }
 
-        alert(data.message);
+        toast.success(data.message);
       } else {
-        alert(`Erro: ${data.error}`);
+        toast.error(`Erro: ${data.error}`);
       }
     } catch (error) {
       console.error('Erro ao sincronizar com Sleeper:', error);
-      alert('Ocorreu um erro ao sincronizar com o Sleeper. Tente novamente mais tarde.');
+      toast.error('Ocorreu um erro ao sincronizar com o Sleeper. Tente novamente mais tarde.');
     }
   };
 
   // Função para navegar para detalhes do time
   const handleTeamClick = (teamId: string) => {
     router.push(`/leagues/${leagueId}/teams/${teamId}`);
+  };
+
+  // Função para adicionar contrato para jogador recém-adicionado
+  const handleAddContract = async (sleeperPlayerId: string, teamId: string) => {
+    try {
+      // Por enquanto, usar valores padrão. Em uma implementação completa,
+      // seria aberto um modal para o usuário inserir os valores
+      const contractData = {
+        sleeperPlayerId,
+        teamId,
+        contractValue: 1000000, // $1M padrão
+        contractYears: 1, // 1 ano padrão
+        guaranteedMoney: 0,
+        notes: 'Contrato criado via transação de roster'
+      };
+
+      const response = await fetch('/api/roster-transactions/add-contract', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(contractData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Remover jogador da lista de adicionados
+        setPlayersAdded(prev => prev.filter(p => p.sleeperPlayerId !== sleeperPlayerId));
+        
+        // Atualizar dados financeiros
+        if (league?.teams) {
+          const summariesPromises = league.teams.map((team: Team) => 
+            calculateTeamFinancials(team)
+          );
+          const updatedFinancialSummaries = await Promise.all(summariesPromises);
+          setTeamsFinancialSummary(updatedFinancialSummaries);
+        }
+      } else {
+        throw new Error(data.error || 'Erro ao adicionar contrato');
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar contrato:', error);
+      throw error;
+    }
+  };
+
+  // Função para adicionar dead money para jogador removido
+  const handleAddDeadMoney = async (sleeperPlayerId: string, teamId: string) => {
+    try {
+      const deadMoneyData = {
+        sleeperPlayerId,
+        teamId,
+        notes: 'Jogador cortado via transação de roster'
+      };
+
+      const response = await fetch('/api/roster-transactions/add-dead-money', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(deadMoneyData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Remover jogador da lista de removidos
+        setPlayersRemoved(prev => prev.filter(p => p.sleeperPlayerId !== sleeperPlayerId));
+        
+        // Atualizar dados financeiros
+        if (league?.teams) {
+          const summariesPromises = league.teams.map((team: Team) => 
+            calculateTeamFinancials(team)
+          );
+          const updatedFinancialSummaries = await Promise.all(summariesPromises);
+          setTeamsFinancialSummary(updatedFinancialSummaries);
+        }
+      } else {
+        throw new Error(data.error || 'Erro ao adicionar dead money');
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar dead money:', error);
+      throw error;
+    }
   };
 
   if (loading) {
@@ -286,6 +416,17 @@ export default function LeagueDetailsPage() {
           <div className="mb-6">
             <SyncButton onSync={handleSync} />
           </div>
+
+          {/* Seção de transações de roster */}
+          <RosterTransactions
+            playersAdded={playersAdded}
+            playersRemoved={playersRemoved}
+            onAddContract={handleAddContract}
+            onAddDeadMoney={handleAddDeadMoney}
+            isVisible={showTransactions}
+            team={userTeam}
+            league={league}
+          />
 
           {/* Barra de filtros e ordenação */}
           <div className="mb-6">
