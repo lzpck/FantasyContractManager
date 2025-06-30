@@ -47,15 +47,15 @@ export async function POST(request: NextRequest) {
       where: {
         playerId: player.id,
         teamId,
-        status: 'active',
+        status: 'ACTIVE',
       },
     });
 
     let calculatedDeadMoney = deadMoneyAmount || 0;
 
-    // Se há contrato ativo, calcular dead money baseado no dinheiro garantido
+    // Se há contrato ativo, calcular dead money baseado no salário atual
     if (activeContract && deadMoneyAmount === undefined) {
-      calculatedDeadMoney = activeContract.guaranteedMoney || 0;
+      calculatedDeadMoney = activeContract.currentSalary || 0;
     }
 
     // Usar transação para garantir consistência
@@ -73,10 +73,7 @@ export async function POST(request: NextRequest) {
         await tx.contract.update({
           where: { id: activeContract.id },
           data: {
-            status: 'cut',
-            notes: notes
-              ? `${activeContract.notes || ''} | Cortado: ${notes}`
-              : `${activeContract.notes || ''} | Jogador cortado`,
+            status: 'CUT',
           },
         });
       }
