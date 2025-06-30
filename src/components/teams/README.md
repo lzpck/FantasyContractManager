@@ -25,20 +25,17 @@ import { useContractModal, useCanManageContracts } from '@/hooks/useContractModa
 function PlayerCard({ player, team, league }) {
   const contractModal = useContractModal();
   const canManage = useCanManageContracts();
-  
+
   if (!canManage) return <PlayerCardReadOnly />;
-  
+
   return (
     <div className="player-card">
       <h3>{player.name}</h3>
-      
-      <button 
-        onClick={() => contractModal.openModal(player, team, league)}
-        className="btn-primary"
-      >
+
+      <button onClick={() => contractModal.openModal(player, team, league)} className="btn-primary">
         Adicionar Contrato
       </button>
-      
+
       <ContractModal
         isOpen={contractModal.isOpen}
         onClose={contractModal.closeModal}
@@ -58,16 +55,16 @@ function PlayerCard({ player, team, league }) {
 ```tsx
 function ContractRow({ playerWithContract, team, league }) {
   const contractModal = useContractModal();
-  
+
   const handleEdit = () => {
     contractModal.openModal(
       playerWithContract.player,
       team,
       league,
-      playerWithContract.contract // Passa o contrato para edição
+      playerWithContract.contract, // Passa o contrato para edição
     );
   };
-  
+
   return (
     <tr>
       <td>{playerWithContract.player.name}</td>
@@ -85,13 +82,16 @@ function ContractRow({ playerWithContract, team, league }) {
 ### Campos do Formulário
 
 #### Modo Adição
+
 - **Anos de Contrato**: 1-4 anos (obrigatório)
 - **Valor Anual**: Em milhões, validado contra salário mínimo
 - **Tipo de Aquisição**: Leilão, FAAB, Rookie Draft, etc.
 - **Opção 4º Ano**: Apenas para rookies
 
 #### Modo Edição
+
 Todos os campos acima, mais:
+
 - **Já foi tagueado**: Controle de franchise tag
 - **Já foi estendido**: Controle de extensões
 - **4º ano ativado**: Para rookies com opção
@@ -106,7 +106,7 @@ const validations = {
   minimumSalary: formData.annualSalary >= league.minimumSalary,
   contractYears: formData.contractYears >= 1 && formData.contractYears <= 4,
   acquisitionType: !!formData.acquisitionType,
-  rookieOptions: isRookie ? validateRookieFields() : true
+  rookieOptions: isRookie ? validateRookieFields() : true,
 };
 ```
 
@@ -122,7 +122,7 @@ let currentValue = initialSalary;
 for (let year = 1; year <= contractYears; year++) {
   projectedValues.push(currentValue);
   if (year < contractYears) {
-    currentValue *= (1 + league.annualIncreasePercentage / 100);
+    currentValue *= 1 + league.annualIncreasePercentage / 100;
   }
 }
 ```
@@ -136,12 +136,12 @@ O sistema usa eventos para comunicar mudanças:
 ```typescript
 // Escutar atualizações de contratos
 useEffect(() => {
-  const handleUpdate = (event) => {
+  const handleUpdate = event => {
     const { player, team, league, isEdit } = event.detail;
     // Recarregar dados ou atualizar cache
     refetchContracts();
   };
-  
+
   window.addEventListener('contractUpdated', handleUpdate);
   return () => window.removeEventListener('contractUpdated', handleUpdate);
 }, []);
@@ -157,17 +157,17 @@ const ContractsContext = createContext();
 
 export function ContractsProvider({ children }) {
   const [contracts, setContracts] = useState([]);
-  
-  const addContract = (contractData) => {
+
+  const addContract = contractData => {
     // Lógica para adicionar contrato
     setContracts(prev => [...prev, newContract]);
   };
-  
+
   const updateContract = (id, contractData) => {
     // Lógica para atualizar contrato
-    setContracts(prev => prev.map(c => c.id === id ? updated : c));
+    setContracts(prev => prev.map(c => (c.id === id ? updated : c)));
   };
-  
+
   return (
     <ContractsContext.Provider value={{ contracts, addContract, updateContract }}>
       {children}
@@ -183,15 +183,15 @@ export function ContractsProvider({ children }) {
 ```tsx
 // Exemplo de customização de estilos
 const customStyles = {
-  modal: "fixed inset-0 bg-custom-dark bg-opacity-75",
-  container: "bg-custom-card rounded-2xl shadow-2xl",
-  input: "bg-custom-input border-custom-border text-custom-text"
+  modal: 'fixed inset-0 bg-custom-dark bg-opacity-75',
+  container: 'bg-custom-card rounded-2xl shadow-2xl',
+  input: 'bg-custom-input border-custom-border text-custom-text',
 };
 
 <ContractModal
   // ... outras props
   className={customStyles}
-/>
+/>;
 ```
 
 ### Validações Customizadas
@@ -199,13 +199,13 @@ const customStyles = {
 ```tsx
 // Adicionar validações específicas
 const customValidations = {
-  salaryCapCheck: (salary) => {
+  salaryCapCheck: salary => {
     return team.availableCap >= salary;
   },
-  positionLimits: (position) => {
+  positionLimits: position => {
     const positionCount = team.players.filter(p => p.position === position).length;
     return positionCount < POSITION_LIMITS[position];
-  }
+  },
 };
 ```
 
@@ -216,7 +216,7 @@ const customValidations = {
 ```tsx
 function PlayersTable({ players, team, league }) {
   const contractModal = useContractModal();
-  
+
   return (
     <table>
       <thead>
@@ -235,7 +235,11 @@ function PlayersTable({ players, team, league }) {
             <td>{player.contract ? formatCurrency(player.contract.currentSalary) : '-'}</td>
             <td>
               {player.contract ? (
-                <button onClick={() => contractModal.openModal(player.player, team, league, player.contract)}>
+                <button
+                  onClick={() =>
+                    contractModal.openModal(player.player, team, league, player.contract)
+                  }
+                >
                   Editar
                 </button>
               ) : (
@@ -258,18 +262,18 @@ function PlayersTable({ players, team, league }) {
 function ContractsDashboard({ team, league }) {
   const [activeTab, setActiveTab] = useState('active');
   const contractModal = useContractModal();
-  
+
   const contractsByStatus = {
     active: contracts.filter(c => c.status === 'active'),
     expiring: contracts.filter(c => c.yearsRemaining === 1),
-    expired: contracts.filter(c => c.status === 'expired')
+    expired: contracts.filter(c => c.status === 'expired'),
   };
-  
+
   return (
     <div>
       <div className="tabs">
         {Object.keys(contractsByStatus).map(status => (
-          <button 
+          <button
             key={status}
             onClick={() => setActiveTab(status)}
             className={activeTab === status ? 'active' : ''}
@@ -278,17 +282,17 @@ function ContractsDashboard({ team, league }) {
           </button>
         ))}
       </div>
-      
+
       <div className="tab-content">
         {contractsByStatus[activeTab].map(contract => (
-          <ContractCard 
-            key={contract.id} 
+          <ContractCard
+            key={contract.id}
             contract={contract}
             onEdit={() => contractModal.openModal(/* ... */)}
           />
         ))}
       </div>
-      
+
       <ContractModal {...contractModal} />
     </div>
   );
@@ -324,7 +328,7 @@ useEffect(() => {
     player: contractModal.player,
     team: contractModal.team,
     league: contractModal.league,
-    error: contractModal.error
+    error: contractModal.error,
   });
 }, [contractModal]);
 ```
@@ -334,18 +338,25 @@ useEffect(() => {
 ### Otimizações
 
 1. **Memoização de cálculos**
+
 ```tsx
 const projectedValues = useMemo(() => {
-  return calculateProjectedValues(formData.annualSalary, formData.contractYears, league.annualIncreasePercentage);
+  return calculateProjectedValues(
+    formData.annualSalary,
+    formData.contractYears,
+    league.annualIncreasePercentage,
+  );
 }, [formData.annualSalary, formData.contractYears, league.annualIncreasePercentage]);
 ```
 
 2. **Debounce em validações**
+
 ```tsx
 const debouncedValidation = useDebounce(validateForm, 300);
 ```
 
 3. **Lazy loading do modal**
+
 ```tsx
 const ContractModal = lazy(() => import('./ContractModal'));
 ```
@@ -361,18 +372,18 @@ import ContractModal from './ContractModal';
 
 test('should validate minimum salary', () => {
   const mockLeague = { minimumSalary: 1.0 };
-  
+
   render(
-    <ContractModal 
+    <ContractModal
       isOpen={true}
       league={mockLeague}
       // ... outras props
-    />
+    />,
   );
-  
+
   const salaryInput = screen.getByLabelText(/valor anual/i);
   fireEvent.change(salaryInput, { target: { value: '0.5' } });
-  
+
   expect(screen.getByText(/não pode ser menor/i)).toBeInTheDocument();
 });
 ```

@@ -74,7 +74,6 @@ export function AuthNavigation() {
                   <p className="text-sm font-medium text-slate-100">{user.name}</p>
                   <p className="text-sm text-slate-400">{user.email}</p>
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-600 text-white mt-1">
-      
                     {user.role === 'COMMISSIONER' && 'Comissário'}
                     {user.role === 'USER' && 'Usuário'}
                   </span>

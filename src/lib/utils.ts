@@ -1,10 +1,10 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 /**
  * Função utilitária para combinar classes CSS de forma inteligente
  * Utiliza clsx para concatenação condicional e tailwind-merge para resolver conflitos
- * 
+ *
  * @param inputs - Classes CSS a serem combinadas
  * @returns String com as classes CSS combinadas e otimizadas
  */
@@ -14,7 +14,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Função para formatar valores monetários em formato brasileiro
- * 
+ *
  * @param value - Valor numérico a ser formatado
  * @returns String formatada como moeda brasileira
  */
@@ -27,7 +27,7 @@ export function formatCurrency(value: number): string {
 
 /**
  * Função para formatar valores monetários em formato americano (para salary cap)
- * 
+ *
  * @param value - Valor numérico a ser formatado
  * @returns String formatada como moeda americana
  */
@@ -42,7 +42,7 @@ export function formatSalaryCap(value: number): string {
 
 /**
  * Função para formatar datas no padrão brasileiro
- * 
+ *
  * @param date - Data a ser formatada
  * @returns String formatada como data brasileira
  */
@@ -53,7 +53,7 @@ export function formatDate(date: Date | string): string {
 
 /**
  * Função para capitalizar a primeira letra de uma string
- * 
+ *
  * @param str - String a ser capitalizada
  * @returns String com a primeira letra maiúscula
  */

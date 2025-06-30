@@ -16,7 +16,7 @@ interface TeamsTableProps {
  *
  * Exibe lista de times com salary cap, valores usados/disponíveis,
  * contratos expirando e ações para acessar detalhes do time.
- * 
+ *
  * IMPORTANTE: Este componente utiliza exclusivamente dados reais da API.
  * Não deve mais recorrer a dados demo ou mock. Todos os dados financeiros
  * são calculados baseados nos contratos reais dos jogadores.

@@ -35,7 +35,7 @@ export default function LeagueDetailsPage() {
   const [sortBy, setSortBy] = useState<'name' | 'availableCap' | 'totalSalaries'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filterText, setFilterText] = useState('');
-  
+
   // Estados para transações de roster
   const [playersAdded, setPlayersAdded] = useState<PlayerAdded[]>([]);
   const [playersRemoved, setPlayersRemoved] = useState<PlayerRemoved[]>([]);
@@ -62,30 +62,33 @@ export default function LeagueDetailsPage() {
       let contracts = [];
       let totalSalaries = 0;
       let contractsExpiring = 0;
-      
+
       if (contractsResponse.ok) {
         const contractsData = await contractsResponse.json();
         contracts = contractsData.contracts || [];
-        
+
         // Calcular total de salários dos contratos ativos
         totalSalaries = contracts.reduce((sum: number, contract: any) => {
           return sum + (contract.currentSalary || 0);
         }, 0);
-        
+
         // Contar contratos expirando (1 ano restante)
-        contractsExpiring = contracts.filter((contract: any) => 
-          contract.yearsRemaining === 1
+        contractsExpiring = contracts.filter(
+          (contract: any) => contract.yearsRemaining === 1,
         ).length;
       }
-      
+
       // Calcular cap disponível
       const currentDeadMoney = team.currentDeadMoney || 0;
       const availableCap = league!.salaryCap - totalSalaries - currentDeadMoney;
-      
+
       // Projetar cap da próxima temporada (considerando aumento de 15% nos salários)
       const projectedSalariesIncrease = totalSalaries * 0.15;
-      const projectedNextSeasonCap = league!.salaryCap - (totalSalaries + projectedSalariesIncrease) - (team.nextSeasonDeadMoney || 0);
-      
+      const projectedNextSeasonCap =
+        league!.salaryCap -
+        (totalSalaries + projectedSalariesIncrease) -
+        (team.nextSeasonDeadMoney || 0);
+
       return {
         team: {
           ...team,
@@ -102,10 +105,10 @@ export default function LeagueDetailsPage() {
       };
     } catch (error) {
       console.error('Erro ao calcular dados financeiros do time:', error);
-      
+
       // Fallback com valores zerados em caso de erro
       const availableCap = league!.salaryCap - (team.currentDeadMoney || 0);
-      
+
       return {
         team: {
           ...team,
@@ -130,11 +133,11 @@ export default function LeagueDetailsPage() {
     async function generateFinancialSummaries() {
       try {
         setLoading(true);
-        
+
         // Calcular dados financeiros para todos os times
         const summariesPromises = teams.map(team => calculateTeamFinancials(team));
         const summaries = await Promise.all(summariesPromises);
-        
+
         setTeamsFinancialSummary(summaries);
       } catch (error) {
         console.error('Erro ao gerar resumos financeiros:', error);
@@ -205,14 +208,14 @@ export default function LeagueDetailsPage() {
     try {
       // Verificar se a liga tem ID do Sleeper
       if (!league?.sleeperLeagueId) {
-          toast.error('Esta liga não possui integração com o Sleeper');
-          return;
-        }
+        toast.error('Esta liga não possui integração com o Sleeper');
+        return;
+      }
 
       // 1. Buscar dados atuais do roster antes da sincronização
       const rosterDataResponse = await fetch(`/api/leagues/${league.id}/roster-data`);
       const rosterData = await rosterDataResponse.json();
-      
+
       if (!rosterData.success) {
         throw new Error('Erro ao buscar dados do roster');
       }
@@ -234,22 +237,28 @@ export default function LeagueDetailsPage() {
           const rosterDiff = await calculateRosterDiff(
             league.sleeperLeagueId,
             rosterData.data.currentRosters,
-            rosterData.data.teams
+            rosterData.data.teams,
           );
 
           // Atualizar estados das transações
           setPlayersAdded(rosterDiff.playersAdded);
           setPlayersRemoved(rosterDiff.playersRemoved);
-          setShowTransactions(rosterDiff.playersAdded.length > 0 || rosterDiff.playersRemoved.length > 0);
+          setShowTransactions(
+            rosterDiff.playersAdded.length > 0 || rosterDiff.playersRemoved.length > 0,
+          );
 
           if (rosterDiff.playersAdded.length > 0 || rosterDiff.playersRemoved.length > 0) {
-            toast.success(`Sincronização concluída! ${rosterDiff.playersAdded.length} jogadores adicionados, ${rosterDiff.playersRemoved.length} removidos.`);
+            toast.success(
+              `Sincronização concluída! ${rosterDiff.playersAdded.length} jogadores adicionados, ${rosterDiff.playersRemoved.length} removidos.`,
+            );
           } else {
             toast.success('Sincronização concluída! Nenhuma alteração no roster detectada.');
           }
         } catch (diffError) {
           console.warn('Erro ao calcular diferenças do roster:', diffError);
-          toast.success('Sincronização concluída, mas não foi possível detectar alterações no roster.');
+          toast.success(
+            'Sincronização concluída, mas não foi possível detectar alterações no roster.',
+          );
         }
 
         // Atualizar dados locais
@@ -257,8 +266,8 @@ export default function LeagueDetailsPage() {
 
         // Atualizar resumos financeiros com os novos times
         if (data.league.teams) {
-          const summariesPromises = data.league.teams.map((team: Team) => 
-            calculateTeamFinancials(team)
+          const summariesPromises = data.league.teams.map((team: Team) =>
+            calculateTeamFinancials(team),
           );
           const updatedFinancialSummaries = await Promise.all(summariesPromises);
           setTeamsFinancialSummary(updatedFinancialSummaries);
@@ -290,7 +299,7 @@ export default function LeagueDetailsPage() {
         contractValue: 1000000, // $1M padrão
         contractYears: 1, // 1 ano padrão
         guaranteedMoney: 0,
-        notes: 'Contrato criado via transação de roster'
+        notes: 'Contrato criado via transação de roster',
       };
 
       const response = await fetch('/api/roster-transactions/add-contract', {
@@ -306,12 +315,10 @@ export default function LeagueDetailsPage() {
       if (data.success) {
         // Remover jogador da lista de adicionados
         setPlayersAdded(prev => prev.filter(p => p.sleeperPlayerId !== sleeperPlayerId));
-        
+
         // Atualizar dados financeiros
         if (league?.teams) {
-          const summariesPromises = league.teams.map((team: Team) => 
-            calculateTeamFinancials(team)
-          );
+          const summariesPromises = league.teams.map((team: Team) => calculateTeamFinancials(team));
           const updatedFinancialSummaries = await Promise.all(summariesPromises);
           setTeamsFinancialSummary(updatedFinancialSummaries);
         }
@@ -330,7 +337,7 @@ export default function LeagueDetailsPage() {
       const deadMoneyData = {
         sleeperPlayerId,
         teamId,
-        notes: 'Jogador cortado via transação de roster'
+        notes: 'Jogador cortado via transação de roster',
       };
 
       const response = await fetch('/api/roster-transactions/add-dead-money', {
@@ -346,12 +353,10 @@ export default function LeagueDetailsPage() {
       if (data.success) {
         // Remover jogador da lista de removidos
         setPlayersRemoved(prev => prev.filter(p => p.sleeperPlayerId !== sleeperPlayerId));
-        
+
         // Atualizar dados financeiros
         if (league?.teams) {
-          const summariesPromises = league.teams.map((team: Team) => 
-            calculateTeamFinancials(team)
-          );
+          const summariesPromises = league.teams.map((team: Team) => calculateTeamFinancials(team));
           const updatedFinancialSummaries = await Promise.all(summariesPromises);
           setTeamsFinancialSummary(updatedFinancialSummaries);
         }

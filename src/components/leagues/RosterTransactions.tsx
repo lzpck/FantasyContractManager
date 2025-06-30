@@ -49,7 +49,9 @@ export default function RosterTransactions({
         id: player.playerId || player.sleeperPlayerId,
         name: player.name || `Jogador ${player.sleeperPlayerId}`,
         position: (player.position as any) || 'UNKNOWN',
-        fantasyPositions: player.fantasyPositions ? player.fantasyPositions.split(', ') as any[] : [],
+        fantasyPositions: player.fantasyPositions
+          ? (player.fantasyPositions.split(', ') as any[])
+          : [],
         nflTeam: player.nflTeam || 'FA',
         age: player.age || null,
         sleeperPlayerId: player.sleeperPlayerId,
@@ -60,7 +62,7 @@ export default function RosterTransactions({
 
       // Abrir modal de contrato
       contractModal.openModal(playerForModal, team, league);
-      
+
       // Feedback visual de que o modal foi aberto
       toast.info(`Abrindo modal de contrato para ${player.name || player.sleeperPlayerId}`);
     } catch (error) {
@@ -128,7 +130,7 @@ export default function RosterTransactions({
                 Jogadores Adicionados ({playersAdded.length})
               </h3>
               <div className="space-y-3">
-                {playersAdded.map((player) => {
+                {playersAdded.map(player => {
                   const actionKey = `add-${player.sleeperPlayerId}`;
                   const isLoading = loadingStates[actionKey];
 
@@ -173,10 +175,8 @@ export default function RosterTransactions({
             </div>
           )}
 
-        {/* Separador */}
-        {playersAdded.length > 0 && playersRemoved.length > 0 && (
-          <Separator />
-        )}
+          {/* Separador */}
+          {playersAdded.length > 0 && playersRemoved.length > 0 && <Separator />}
 
           {/* Jogadores Removidos */}
           {playersRemoved.length > 0 && (
@@ -186,7 +186,7 @@ export default function RosterTransactions({
                 Jogadores Removidos ({playersRemoved.length})
               </h3>
               <div className="space-y-3">
-                {playersRemoved.map((player) => {
+                {playersRemoved.map(player => {
                   const actionKey = `deadmoney-${player.sleeperPlayerId}`;
                   const isLoading = loadingStates[actionKey];
 
@@ -197,7 +197,9 @@ export default function RosterTransactions({
                     >
                       <div className="flex items-center gap-3">
                         <div>
-                          <p className="font-medium">{player.name || player.playerName || player.sleeperPlayerId}</p>
+                          <p className="font-medium">
+                            {player.name || player.playerName || player.sleeperPlayerId}
+                          </p>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             {player.fantasyPositions && (
                               <Badge variant="secondary" className="text-xs">

@@ -56,7 +56,7 @@ export const DEMO_LEAGUES: League[] = [
     seasonTurnoverDate: '2024-04-01',
     commissionerId: 'demo-user-id',
     createdAt: '2024-01-01T00:00:00.000Z',
-  updatedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     settings: {
       maxFranchiseTags: 1,
       annualIncreasePercentage: 15,
@@ -274,7 +274,7 @@ export const DEMO_CONTRACTS: Contract[] = [
     hasFourthYearOption: false,
     fourthYearOptionActivated: false,
     createdAt: '2022-04-01T00:00:00.000Z',
-  updatedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'demo-contract-2',
@@ -312,7 +312,7 @@ export const DEMO_CONTRACTS: Contract[] = [
     hasFourthYearOption: false,
     fourthYearOptionActivated: false,
     createdAt: '2023-05-01T00:00:00.000Z',
-  updatedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'demo-contract-4',
@@ -331,7 +331,7 @@ export const DEMO_CONTRACTS: Contract[] = [
     hasFourthYearOption: false,
     fourthYearOptionActivated: false,
     createdAt: '2020-04-01T00:00:00.000Z',
-  updatedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 

@@ -38,14 +38,14 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
       // Buscar roster atual do time no banco
       const currentRoster = await prisma.teamRoster.findMany({
         where: { teamId: team.id },
-        include: { player: true }
+        include: { player: true },
       });
 
       // Coletar todos os jogadores do Sleeper para este time
       const allSleeperPlayers = [
         ...(sleeperRoster.players || []).map((id: string) => ({ id, status: 'active' })),
         ...(sleeperRoster.reserve || []).map((id: string) => ({ id, status: 'ir' })),
-        ...(sleeperRoster.taxi || []).map((id: string) => ({ id, status: 'taxi' }))
+        ...(sleeperRoster.taxi || []).map((id: string) => ({ id, status: 'taxi' })),
       ];
 
       // Atualizar status dos jogadores existentes e adicionar novos
@@ -101,7 +101,7 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
       // Remover jogadores que não estão mais no roster do Sleeper
       const sleeperPlayerIds = allSleeperPlayers.map(p => p.id);
       const playersToRemove = currentRoster.filter(
-        rosterEntry => !sleeperPlayerIds.includes(rosterEntry.sleeperPlayerId)
+        rosterEntry => !sleeperPlayerIds.includes(rosterEntry.sleeperPlayerId),
       );
 
       for (const rosterEntry of playersToRemove) {
@@ -115,15 +115,15 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
         });
       }
 
-      console.log(`✅ Roster do time ${team.name} sincronizado: ${sleeperRoster.players?.length || 0} ativos, ${sleeperRoster.reserve?.length || 0} IR, ${sleeperRoster.taxi?.length || 0} taxi`);
+      console.log(
+        `✅ Roster do time ${team.name} sincronizado: ${sleeperRoster.players?.length || 0} ativos, ${sleeperRoster.reserve?.length || 0} IR, ${sleeperRoster.taxi?.length || 0} taxi`,
+      );
     }
   } catch (error) {
     console.error('❌ Erro ao sincronizar rosters dos times:', error);
     throw error;
   }
 }
-
-
 
 /**
  * Sincroniza uma liga existente com a Sleeper API

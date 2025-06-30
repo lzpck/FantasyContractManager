@@ -140,7 +140,7 @@ export function calculateDeadMoney(
       // Obter percentual baseado nos anos restantes
       const yearsKey = Math.min(yearsRemaining, 4).toString() as keyof typeof config.futureSeasons;
       const penaltyPercentage = config.futureSeasons[yearsKey] || 0;
-      
+
       // Aplicar percentual ao salário total dos anos restantes
       for (let year = cutYear + 1; year < contract.originalYears; year++) {
         const yearSalary = calculateAnnualSalary(contract, year);

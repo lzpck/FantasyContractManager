@@ -30,6 +30,7 @@ function TeamPage() {
 ```
 
 **Props:**
+
 - `players`: Lista de jogadores com contratos
 - `team`: Informações do time
 - `league`: Informações da liga
@@ -46,8 +47,8 @@ import ContractModal from '@/components/teams/ContractModal';
 
 function MyComponent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const handleSave = (contractData) => {
+
+  const handleSave = contractData => {
     console.log('Contrato salvo:', contractData);
   };
 
@@ -99,7 +100,7 @@ import { useContractModal } from '@/hooks/useContractModal';
 
 function MyComponent() {
   const { isOpen, openModal, closeModal } = useContractModal();
-  
+
   return (
     <div>
       <button onClick={openModal}>Abrir Modal</button>
@@ -125,13 +126,13 @@ function ContractManager() {
     extendContract,
     applyFranchiseTag,
     cutPlayer,
-    clearError
+    clearError,
   } = useContractOperations({
     team,
     league,
-    onUpdate: refreshData
+    onUpdate: refreshData,
   });
-  
+
   const handleCreateContract = async (player, contractData) => {
     const result = await createContract(player, contractData);
     if (result.success) {
@@ -156,9 +157,9 @@ import { useAuth } from '@/hooks/useAuth';
 export default function TeamContractsPage() {
   const { user } = useAuth();
   const { players, team, league, refreshContracts, isLoading } = useTeamData();
-  
+
   if (isLoading) return <div>Carregando...</div>;
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       <PlayerContractsManager
@@ -186,16 +187,16 @@ export function useTeamData(teamId: string) {
   const [team, setTeam] = useState<Team | null>(null);
   const [league, setLeague] = useState<League | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const refreshContracts = async () => {
     try {
       // Buscar dados atualizados da API
       const [playersData, teamData, leagueData] = await Promise.all([
         fetch(`/api/teams/${teamId}/players`).then(r => r.json()),
         fetch(`/api/teams/${teamId}`).then(r => r.json()),
-        fetch(`/api/leagues/${teamData.leagueId}`).then(r => r.json())
+        fetch(`/api/leagues/${teamData.leagueId}`).then(r => r.json()),
       ]);
-      
+
       setPlayers(playersData);
       setTeam(teamData);
       setLeague(leagueData);
@@ -205,17 +206,17 @@ export function useTeamData(teamId: string) {
       setIsLoading(false);
     }
   };
-  
+
   useEffect(() => {
     refreshContracts();
   }, [teamId]);
-  
+
   return {
     players,
     team,
     league,
     refreshContracts,
-    isLoading
+    isLoading,
   };
 }
 ```
@@ -227,19 +228,19 @@ O sistema dispara eventos customizados para comunicação entre componentes:
 ```tsx
 // Escutar eventos de contrato
 useEffect(() => {
-  const handleContractUpdate = (event) => {
+  const handleContractUpdate = event => {
     console.log('Contrato atualizado:', event.detail);
     refreshData();
   };
-  
-  const handleContractCreated = (event) => {
+
+  const handleContractCreated = event => {
     console.log('Contrato criado:', event.detail);
     refreshData();
   };
-  
+
   window.addEventListener('contractUpdated', handleContractUpdate);
   window.addEventListener('contractCreated', handleContractCreated);
-  
+
   return () => {
     window.removeEventListener('contractUpdated', handleContractUpdate);
     window.removeEventListener('contractCreated', handleContractCreated);
@@ -248,6 +249,7 @@ useEffect(() => {
 ```
 
 **Eventos disponíveis:**
+
 - `contractCreated`: Novo contrato criado
 - `contractUpdated`: Contrato editado
 - `contractExtended`: Contrato estendido
@@ -259,17 +261,20 @@ useEffect(() => {
 O sistema inclui validações automáticas:
 
 ### Validações de Contrato
+
 - Valor total > 0
 - Duração entre 1-10 anos
 - Dinheiro garantido ≤ valor total
 - Salário atual ≤ 30% do salary cap
 
 ### Validações de Extensão
+
 - Extensão entre 1-5 anos
 - Valor da extensão > 0
 - Contrato não pode estar expirado
 
 ### Validações de Franchise Tag
+
 - Valor da tag > 0
 - Jogador elegível para tag
 
@@ -313,7 +318,7 @@ const customTheme = {
   primary: 'bg-purple-600 hover:bg-purple-700',
   secondary: 'bg-gray-600 hover:bg-gray-700',
   success: 'bg-green-600 hover:bg-green-700',
-  danger: 'bg-red-600 hover:bg-red-700'
+  danger: 'bg-red-600 hover:bg-red-700',
 };
 ```
 
@@ -324,7 +329,7 @@ const customTheme = {
 const customValidations = {
   maxContractValue: 50000000, // $50M
   maxContractYears: 8,
-  rookieMaxValue: 10000000 // $10M para rookies
+  rookieMaxValue: 10000000, // $10M para rookies
 };
 ```
 
@@ -375,6 +380,7 @@ if (DEBUG) {
 ## Suporte
 
 Para dúvidas ou problemas:
+
 1. Verificar este guia
 2. Consultar a documentação dos componentes individuais
 3. Verificar os exemplos de uso

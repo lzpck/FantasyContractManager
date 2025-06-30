@@ -224,9 +224,7 @@ export default function AdminPage() {
   if (!canManageUsers) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600">
-          Acesso negado. Apenas comissários podem acessar esta página.
-        </p>
+        <p className="text-red-600">Acesso negado. Apenas comissários podem acessar esta página.</p>
       </div>
     );
   }
@@ -403,7 +401,6 @@ export default function AdminPage() {
                                 user.role,
                               )}`}
                             >
-      
                               {user.role === UserRole.COMMISSIONER && 'Comissário'}
                               {user.role === UserRole.USER && 'Usuário'}
                             </span>
@@ -627,7 +624,6 @@ export default function AdminPage() {
                   >
                     <option value={UserRole.USER}>Usuário</option>
                     <option value={UserRole.COMMISSIONER}>Comissário</option>
-                    
                   </select>
                 </div>
                 <div>

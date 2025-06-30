@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { League, LeagueStatus, LeagueFormData, DeadMoneyConfig, DEFAULT_DEAD_MONEY_CONFIG } from '@/types';
+import {
+  League,
+  LeagueStatus,
+  LeagueFormData,
+  DeadMoneyConfig,
+  DEFAULT_DEAD_MONEY_CONFIG,
+} from '@/types';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/components/ui/Toast';
 import { DeadMoneyConfigForm } from './DeadMoneyConfigForm';
@@ -60,14 +66,18 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
         let deadMoneyConfig = DEFAULT_DEAD_MONEY_CONFIG;
         if (league.deadMoneyConfig) {
           try {
-            deadMoneyConfig = typeof league.deadMoneyConfig === 'string' 
-              ? JSON.parse(league.deadMoneyConfig) 
-              : league.deadMoneyConfig;
+            deadMoneyConfig =
+              typeof league.deadMoneyConfig === 'string'
+                ? JSON.parse(league.deadMoneyConfig)
+                : league.deadMoneyConfig;
           } catch (error) {
-            console.warn('Erro ao fazer parse da configuração de dead money, usando padrão:', error);
+            console.warn(
+              'Erro ao fazer parse da configuração de dead money, usando padrão:',
+              error,
+            );
           }
         }
-        
+
         setFormData({
           name: league.name || '',
           sleeperLeagueId: league.sleeperLeagueId || '',
@@ -508,11 +518,13 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
 
               {/* Dead Money Configuration */}
               <div className="mt-6">
-                <h3 className="text-lg font-semibold text-slate-100 mb-4">Configuração de Dead Money</h3>
+                <h3 className="text-lg font-semibold text-slate-100 mb-4">
+                  Configuração de Dead Money
+                </h3>
                 <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
                   <DeadMoneyConfigForm
                     config={formData.deadMoneyConfig || DEFAULT_DEAD_MONEY_CONFIG}
-                    onChange={(config) => updateField('deadMoneyConfig', config)}
+                    onChange={config => updateField('deadMoneyConfig', config)}
                     disabled={isSubmitting}
                     compact={true}
                   />

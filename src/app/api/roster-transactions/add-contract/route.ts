@@ -11,7 +11,7 @@ const addContractSchema = z.object({
   contractValue: z.number().min(0, 'Valor do contrato deve ser positivo'),
   contractYears: z.number().min(1, 'Duração do contrato deve ser pelo menos 1 ano'),
   guaranteedMoney: z.number().min(0, 'Dinheiro garantido deve ser positivo').optional(),
-  notes: z.string().optional()
+  notes: z.string().optional(),
 });
 
 /**
@@ -29,32 +29,26 @@ export async function POST(request: NextRequest) {
       contractValue,
       contractYears,
       guaranteedMoney = 0,
-      notes
+      notes,
     } = validatedData;
 
     // Verificar se o time existe
     const team = await prisma.team.findUnique({
       where: { id: teamId },
-      include: { league: true }
+      include: { league: true },
     });
 
     if (!team) {
-      return NextResponse.json(
-        { error: 'Time não encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Time não encontrado' }, { status: 404 });
     }
 
     // Verificar se o jogador existe
     const player = await prisma.player.findUnique({
-      where: { sleeperPlayerId }
+      where: { sleeperPlayerId },
     });
 
     if (!player) {
-      return NextResponse.json(
-        { error: 'Jogador não encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Jogador não encontrado' }, { status: 404 });
     }
 
     // Verificar se o jogador já tem contrato ativo com este time
@@ -62,14 +56,14 @@ export async function POST(request: NextRequest) {
       where: {
         playerId: player.id,
         teamId,
-        status: 'active'
-      }
+        status: 'active',
+      },
     });
 
     if (existingContract) {
       return NextResponse.json(
         { error: 'Jogador já possui contrato ativo com este time' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -77,15 +71,12 @@ export async function POST(request: NextRequest) {
     const rosterEntry = await prisma.teamRoster.findFirst({
       where: {
         teamId,
-        sleeperPlayerId
-      }
+        sleeperPlayerId,
+      },
     });
 
     if (!rosterEntry) {
-      return NextResponse.json(
-        { error: 'Jogador não está no roster do time' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Jogador não está no roster do time' }, { status: 400 });
     }
 
     // Criar o contrato
@@ -99,37 +90,33 @@ export async function POST(request: NextRequest) {
         notes,
         status: 'active',
         startYear: new Date().getFullYear(),
-        endYear: new Date().getFullYear() + contractYears - 1
+        endYear: new Date().getFullYear() + contractYears - 1,
       },
       include: {
         player: true,
         team: {
           include: {
-            league: true
-          }
-        }
-      }
+            league: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({
       success: true,
       contract,
-      message: `Contrato criado para ${player.name} no valor de $${contractValue.toLocaleString()} por ${contractYears} ano(s)`
+      message: `Contrato criado para ${player.name} no valor de $${contractValue.toLocaleString()} por ${contractYears} ano(s)`,
     });
-
   } catch (error) {
     console.error('Erro ao adicionar contrato:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Dados inválidos', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

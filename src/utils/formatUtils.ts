@@ -10,7 +10,7 @@
  */
 export function toISOString(date: Date | string = new Date()): string {
   let dateObj: Date;
-  
+
   if (typeof date === 'string') {
     // Se já for uma string ISO válida, converte para Date primeiro
     if (isValidISOString(date)) {
@@ -25,7 +25,7 @@ export function toISOString(date: Date | string = new Date()): string {
   } else {
     dateObj = date;
   }
-  
+
   // Converte para o fuso horário do Brasil usando Intl
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Sao_Paulo',
@@ -35,9 +35,9 @@ export function toISOString(date: Date | string = new Date()): string {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false
+    hour12: false,
   });
-  
+
   const parts = formatter.formatToParts(dateObj);
   const year = parts.find(p => p.type === 'year')?.value;
   const month = parts.find(p => p.type === 'month')?.value;
@@ -45,10 +45,10 @@ export function toISOString(date: Date | string = new Date()): string {
   const hour = parts.find(p => p.type === 'hour')?.value;
   const minute = parts.find(p => p.type === 'minute')?.value;
   const second = parts.find(p => p.type === 'second')?.value;
-  
+
   // Adiciona os milissegundos da data original
   const ms = dateObj.getMilliseconds().toString().padStart(3, '0');
-  
+
   return `${year}-${month}-${day}T${hour}:${minute}:${second}.${ms}Z`;
 }
 
@@ -58,7 +58,7 @@ export function toISOString(date: Date | string = new Date()): string {
  */
 export function nowInBrazil(): Date {
   const now = new Date();
-  
+
   // Converte para o fuso horário do Brasil
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Sao_Paulo',
@@ -68,9 +68,9 @@ export function nowInBrazil(): Date {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false
+    hour12: false,
   });
-  
+
   const parts = formatter.formatToParts(now);
   const year = parseInt(parts.find(p => p.type === 'year')?.value || '0');
   const month = parseInt(parts.find(p => p.type === 'month')?.value || '0') - 1; // Month is 0-indexed
@@ -78,7 +78,7 @@ export function nowInBrazil(): Date {
   const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
   const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
   const second = parseInt(parts.find(p => p.type === 'second')?.value || '0');
-  
+
   return new Date(year, month, day, hour, minute, second, now.getMilliseconds());
 }
 
@@ -89,7 +89,7 @@ export function nowInBrazil(): Date {
  */
 export function isValidISOString(isoString: string): boolean {
   if (!isoString) return false;
-  
+
   try {
     const date = new Date(isoString);
     return !isNaN(date.getTime()) && isoString === date.toISOString();
@@ -105,7 +105,7 @@ export function isValidISOString(isoString: string): boolean {
  */
 export function fromISOString(isoString: string): Date | null {
   if (!isoString) return null;
-  
+
   try {
     const date = new Date(isoString);
     return isNaN(date.getTime()) ? null : date;
@@ -124,7 +124,7 @@ export function formatDate(date: Date | string, includeTime: boolean = true): st
   if (!date) return '';
 
   let dateObj: Date;
-  
+
   if (typeof date === 'string') {
     // Se for string ISO, converte diretamente
     if (isValidISOString(date)) {
@@ -179,7 +179,7 @@ export function formatDate(date: Date | string, includeTime: boolean = true): st
 export function formatISOToBrazilian(isoString: string, includeTime: boolean = true): string {
   const date = fromISOString(isoString);
   if (!date) return '';
-  
+
   return formatDate(date, includeTime);
 }
 

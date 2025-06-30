@@ -29,8 +29,8 @@ import { Plus, Trash2, Edit, Info } from 'lucide-react';
 </ActionButton>
 
 // Botão com estado de loading
-<ActionButton 
-  variant="success" 
+<ActionButton
+  variant="success"
   icon={Plus}
   loading={isLoading}
   loadingText="Salvando..."
@@ -42,36 +42,40 @@ import { Plus, Trash2, Edit, Info } from 'lucide-react';
 ## Variantes Disponíveis
 
 ### Success (Verde)
+
 - **Uso**: Ações positivas como adicionar, salvar, confirmar
 - **Cor**: Verde (#16a34a)
 - **Exemplo**: Adicionar contrato, salvar dados
 
 ### Danger (Vermelho)
+
 - **Uso**: Ações destrutivas como remover, deletar, cortar
 - **Cor**: Vermelho (#dc2626)
 - **Exemplo**: Adicionar dead money, cortar jogador
 
 ### Warning (Amarelo)
+
 - **Uso**: Ações que requerem atenção ou cuidado
 - **Cor**: Amarelo (#ca8a04)
 - **Exemplo**: Aplicar franchise tag, extensões
 
 ### Info (Azul)
+
 - **Uso**: Ações informativas ou neutras
 - **Cor**: Azul (#2563eb)
 - **Exemplo**: Visualizar detalhes, exportar dados
 
 ## Props
 
-| Prop | Tipo | Padrão | Descrição |
-|------|------|--------|-----------|
-| `variant` | `'success' \| 'danger' \| 'warning' \| 'info'` | - | **Obrigatório**. Define a variante visual do botão |
-| `icon` | `LucideIcon` | - | Ícone a ser exibido no botão |
-| `loading` | `boolean` | `false` | Se true, exibe indicador de loading |
-| `loadingText` | `string` | `'Carregando...'` | Texto exibido durante o loading |
-| `children` | `ReactNode` | - | Conteúdo do botão |
-| `className` | `string` | - | Classes CSS adicionais |
-| `disabled` | `boolean` | `false` | Se true, desabilita o botão |
+| Prop          | Tipo                                           | Padrão            | Descrição                                          |
+| ------------- | ---------------------------------------------- | ----------------- | -------------------------------------------------- |
+| `variant`     | `'success' \| 'danger' \| 'warning' \| 'info'` | -                 | **Obrigatório**. Define a variante visual do botão |
+| `icon`        | `LucideIcon`                                   | -                 | Ícone a ser exibido no botão                       |
+| `loading`     | `boolean`                                      | `false`           | Se true, exibe indicador de loading                |
+| `loadingText` | `string`                                       | `'Carregando...'` | Texto exibido durante o loading                    |
+| `children`    | `ReactNode`                                    | -                 | Conteúdo do botão                                  |
+| `className`   | `string`                                       | -                 | Classes CSS adicionais                             |
+| `disabled`    | `boolean`                                      | `false`           | Se true, desabilita o botão                        |
 
 ## Exemplos de Uso no Sistema
 
@@ -142,14 +146,9 @@ const handleAction = async () => {
   }
 };
 
-<ActionButton
-  variant="success"
-  icon={Check}
-  onClick={handleAction}
-  loading={loading}
->
+<ActionButton variant="success" icon={Check} onClick={handleAction} loading={loading}>
   Executar Ação
-</ActionButton>
+</ActionButton>;
 ```
 
 ## Boas Práticas
@@ -196,6 +195,7 @@ Para migrar botões existentes para o `ActionButton`:
 ```
 
 Esta migração resulta em:
+
 - Código mais limpo e legível
 - Consistência visual automática
 - Melhor manutenibilidade

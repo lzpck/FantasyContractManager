@@ -173,7 +173,9 @@ async function syncTeamRosterPlayers(teamId: string, roster: any) {
       }
     }
 
-    console.log(`✅ Roster do time sincronizado: ${roster.players?.length || 0} ativos, ${roster.reserve?.length || 0} IR, ${roster.taxi?.length || 0} taxi`);
+    console.log(
+      `✅ Roster do time sincronizado: ${roster.players?.length || 0} ativos, ${roster.reserve?.length || 0} IR, ${roster.taxi?.length || 0} taxi`,
+    );
   } catch (error) {
     console.error(`❌ Erro ao sincronizar jogadores do roster:`, error);
   }
@@ -191,8 +193,8 @@ async function addPlayerToRoster(teamId: string, sleeperPlayerId: string, status
 
     if (!player) {
       // Buscar informações do jogador no Sleeper
-       const sleeperPlayers = await sleeperService.fetchSleeperPlayers();
-       const sleeperPlayer = sleeperPlayers?.[sleeperPlayerId];
+      const sleeperPlayers = await sleeperService.fetchSleeperPlayers();
+      const sleeperPlayer = sleeperPlayers?.[sleeperPlayerId];
 
       if (!sleeperPlayer) {
         console.warn(`⚠️  Jogador ${sleeperPlayerId} não encontrado no Sleeper`);

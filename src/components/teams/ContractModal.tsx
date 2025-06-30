@@ -87,14 +87,14 @@ export default function ContractModal({
     if (league && formData.annualSalary > 0) {
       const values = [];
       let currentValue = formData.annualSalary;
-      
+
       for (let year = 1; year <= formData.contractYears; year++) {
         values.push(currentValue);
         if (year < formData.contractYears) {
           currentValue = currentValue * (1 + league.annualIncreasePercentage / 100);
         }
       }
-      
+
       setProjectedValues(values);
     }
   }, [formData.annualSalary, formData.contractYears, league]);
@@ -124,7 +124,7 @@ export default function ContractModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -135,7 +135,7 @@ export default function ContractModal({
 
   const handleInputChange = (field: keyof ContractFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     // Limpar erro do campo quando o usuário começar a digitar
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -161,12 +161,13 @@ export default function ContractModal({
             </p>
             {isEditMode && contract && (
               <p className="text-xs text-slate-500 mt-1">
-                Anos restantes: {contract.yearsRemaining} • Temporada assinada: {contract.signedSeason}
+                Anos restantes: {contract.yearsRemaining} • Temporada assinada:{' '}
+                {contract.signedSeason}
               </p>
             )}
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="text-slate-400 hover:text-slate-300 transition-colors"
           >
             <XMarkIcon className="h-6 w-6" />
@@ -183,7 +184,7 @@ export default function ContractModal({
               </label>
               <select
                 value={formData.contractYears}
-                onChange={(e) => handleInputChange('contractYears', parseInt(e.target.value))}
+                onChange={e => handleInputChange('contractYears', parseInt(e.target.value))}
                 className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700 text-slate-100 ${
                   errors.contractYears ? 'border-red-500' : 'border-slate-600'
                 }`}
@@ -208,7 +209,7 @@ export default function ContractModal({
                 step="0.1"
                 min={league.minimumSalary}
                 value={formData.annualSalary}
-                onChange={(e) => handleInputChange('annualSalary', parseFloat(e.target.value) || 0)}
+                onChange={e => handleInputChange('annualSalary', parseFloat(e.target.value) || 0)}
                 className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700 text-slate-100 ${
                   errors.annualSalary ? 'border-red-500' : 'border-slate-600'
                 }`}
@@ -229,14 +230,16 @@ export default function ContractModal({
               Tipo de Aquisição *
             </label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {Object.values(AcquisitionType).map((type) => (
+              {Object.values(AcquisitionType).map(type => (
                 <label key={type} className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="radio"
                     name="acquisitionType"
                     value={type}
                     checked={formData.acquisitionType === type}
-                    onChange={(e) => handleInputChange('acquisitionType', e.target.value as AcquisitionType)}
+                    onChange={e =>
+                      handleInputChange('acquisitionType', e.target.value as AcquisitionType)
+                    }
                     className="text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm text-slate-300">
@@ -262,7 +265,7 @@ export default function ContractModal({
                 <input
                   type="checkbox"
                   checked={formData.hasFourthYearOption}
-                  onChange={(e) => handleInputChange('hasFourthYearOption', e.target.checked)}
+                  onChange={e => handleInputChange('hasFourthYearOption', e.target.checked)}
                   className="text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm text-slate-300">
@@ -281,24 +284,20 @@ export default function ContractModal({
                   <input
                     type="checkbox"
                     checked={formData.hasBeenTagged}
-                    onChange={(e) => handleInputChange('hasBeenTagged', e.target.checked)}
+                    onChange={e => handleInputChange('hasBeenTagged', e.target.checked)}
                     className="text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-slate-300">
-                    Já foi tagueado (Franchise Tag)
-                  </span>
+                  <span className="text-sm text-slate-300">Já foi tagueado (Franchise Tag)</span>
                 </label>
-                
+
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.hasBeenExtended}
-                    onChange={(e) => handleInputChange('hasBeenExtended', e.target.checked)}
+                    onChange={e => handleInputChange('hasBeenExtended', e.target.checked)}
                     className="text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-slate-300">
-                    Já recebeu extensão de contrato
-                  </span>
+                  <span className="text-sm text-slate-300">Já recebeu extensão de contrato</span>
                 </label>
 
                 {formData.hasFourthYearOption && (
@@ -306,12 +305,12 @@ export default function ContractModal({
                     <input
                       type="checkbox"
                       checked={formData.fourthYearOptionActivated}
-                      onChange={(e) => handleInputChange('fourthYearOptionActivated', e.target.checked)}
+                      onChange={e =>
+                        handleInputChange('fourthYearOptionActivated', e.target.checked)
+                      }
                       className="text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-slate-300">
-                      Opção de quarto ano ativada
-                    </span>
+                    <span className="text-sm text-slate-300">Opção de quarto ano ativada</span>
                   </label>
                 )}
               </div>

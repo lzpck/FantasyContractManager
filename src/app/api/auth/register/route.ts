@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     if (session.user.role !== UserRole.COMMISSIONER) {
       return NextResponse.json(
         { error: 'Acesso negado. Apenas comissários podem criar usuários.' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 

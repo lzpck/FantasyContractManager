@@ -64,136 +64,133 @@ export function useRosterDiff() {
   /**
    * Compara rosters atuais do banco com os rosters do Sleeper
    */
-  const calculateRosterDiff = useCallback(async (
-    sleeperLeagueId: string,
-    currentRosters: CurrentRosterPlayer[],
-    teams: Array<{ id: string; name: string; sleeperTeamId: string }>
-  ): Promise<RosterDiff> => {
-    setIsLoading(true);
-    setError(null);
+  const calculateRosterDiff = useCallback(
+    async (
+      sleeperLeagueId: string,
+      currentRosters: CurrentRosterPlayer[],
+      teams: Array<{ id: string; name: string; sleeperTeamId: string }>,
+    ): Promise<RosterDiff> => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      // Buscar rosters atuais do Sleeper
-      const sleeperRosters = await fetchSleeperRosters(sleeperLeagueId);
+      try {
+        // Buscar rosters atuais do Sleeper
+        const sleeperRosters = await fetchSleeperRosters(sleeperLeagueId);
 
-      const playersAdded: PlayerAdded[] = [];
-      const playersRemoved: PlayerRemoved[] = [];
+        const playersAdded: PlayerAdded[] = [];
+        const playersRemoved: PlayerRemoved[] = [];
 
-      // Buscar informações dos jogadores do banco de dados
-      const fetchPlayerInfo = async (sleeperPlayerId: string) => {
-        try {
-          const response = await fetch(`/api/players?sleeperPlayerId=${sleeperPlayerId}`);
-          if (response.ok) {
-            const player = await response.json();
-            return {
-              playerId: player.id,
-              name: player.name,
-              position: player.position,
-              fantasyPositions: Array.isArray(player.fantasyPositions) 
-                ? player.fantasyPositions.join(', ') 
-                : player.fantasyPositions,
-              nflTeam: player.nflTeam,
-              age: player.age
-            };
+        // Buscar informações dos jogadores do banco de dados
+        const fetchPlayerInfo = async (sleeperPlayerId: string) => {
+          try {
+            const response = await fetch(`/api/players?sleeperPlayerId=${sleeperPlayerId}`);
+            if (response.ok) {
+              const player = await response.json();
+              return {
+                playerId: player.id,
+                name: player.name,
+                position: player.position,
+                fantasyPositions: Array.isArray(player.fantasyPositions)
+                  ? player.fantasyPositions.join(', ')
+                  : player.fantasyPositions,
+                nflTeam: player.nflTeam,
+                age: player.age,
+              };
+            }
+          } catch (error) {
+            console.warn(`Erro ao buscar informações do jogador ${sleeperPlayerId}:`, error);
           }
-        } catch (error) {
-          console.warn(`Erro ao buscar informações do jogador ${sleeperPlayerId}:`, error);
-        }
-        return null;
-      };
-
-      // Para cada time, comparar jogadores
-      for (const team of teams) {
-        const sleeperRoster = sleeperRosters.find(
-          roster => roster.roster_id.toString() === team.sleeperTeamId
-        );
-
-        if (!sleeperRoster) continue;
-
-        // Jogadores atuais do time no banco
-        const currentTeamPlayers = currentRosters.filter(
-          player => player.teamId === team.id
-        );
-
-        // Criar mapa de jogadores atuais por status
-        const currentPlayersByStatus = {
-          active: currentTeamPlayers
-            .filter(p => p.status === 'active')
-            .map(p => p.sleeperPlayerId),
-          ir: currentTeamPlayers
-            .filter(p => p.status === 'ir')
-            .map(p => p.sleeperPlayerId),
-          taxi: currentTeamPlayers
-            .filter(p => p.status === 'taxi')
-            .map(p => p.sleeperPlayerId)
+          return null;
         };
 
-        // Jogadores do Sleeper por status
-        const sleeperPlayersByStatus = {
-          active: sleeperRoster.players || [],
-          ir: sleeperRoster.reserve || [],
-          taxi: sleeperRoster.taxi || []
-        };
+        // Para cada time, comparar jogadores
+        for (const team of teams) {
+          const sleeperRoster = sleeperRosters.find(
+            roster => roster.roster_id.toString() === team.sleeperTeamId,
+          );
 
-        // Detectar jogadores adicionados
-        for (const [status, sleeperPlayers] of Object.entries(sleeperPlayersByStatus)) {
-          for (const playerId of sleeperPlayers) {
-            // Se o jogador não está no banco em nenhum status para este time
-            const isInCurrentRoster = currentTeamPlayers.some(
-              p => p.sleeperPlayerId === playerId
-            );
+          if (!sleeperRoster) continue;
 
-            if (!isInCurrentRoster) {
-              const playerInfo = await fetchPlayerInfo(playerId);
-              playersAdded.push({
-                sleeperPlayerId: playerId,
+          // Jogadores atuais do time no banco
+          const currentTeamPlayers = currentRosters.filter(player => player.teamId === team.id);
+
+          // Criar mapa de jogadores atuais por status
+          const currentPlayersByStatus = {
+            active: currentTeamPlayers
+              .filter(p => p.status === 'active')
+              .map(p => p.sleeperPlayerId),
+            ir: currentTeamPlayers.filter(p => p.status === 'ir').map(p => p.sleeperPlayerId),
+            taxi: currentTeamPlayers.filter(p => p.status === 'taxi').map(p => p.sleeperPlayerId),
+          };
+
+          // Jogadores do Sleeper por status
+          const sleeperPlayersByStatus = {
+            active: sleeperRoster.players || [],
+            ir: sleeperRoster.reserve || [],
+            taxi: sleeperRoster.taxi || [],
+          };
+
+          // Detectar jogadores adicionados
+          for (const [status, sleeperPlayers] of Object.entries(sleeperPlayersByStatus)) {
+            for (const playerId of sleeperPlayers) {
+              // Se o jogador não está no banco em nenhum status para este time
+              const isInCurrentRoster = currentTeamPlayers.some(
+                p => p.sleeperPlayerId === playerId,
+              );
+
+              if (!isInCurrentRoster) {
+                const playerInfo = await fetchPlayerInfo(playerId);
+                playersAdded.push({
+                  sleeperPlayerId: playerId,
+                  teamId: team.id,
+                  teamName: team.name,
+                  status: status as 'active' | 'ir' | 'taxi',
+                  ...playerInfo,
+                });
+              }
+            }
+          }
+
+          // Detectar jogadores removidos
+          for (const currentPlayer of currentTeamPlayers) {
+            // Verificar se o jogador ainda está no roster do Sleeper
+            const isInSleeperRoster = [
+              ...sleeperPlayersByStatus.active,
+              ...sleeperPlayersByStatus.ir,
+              ...sleeperPlayersByStatus.taxi,
+            ].includes(currentPlayer.sleeperPlayerId);
+
+            if (!isInSleeperRoster) {
+              playersRemoved.push({
+                sleeperPlayerId: currentPlayer.sleeperPlayerId,
                 teamId: team.id,
                 teamName: team.name,
-                status: status as 'active' | 'ir' | 'taxi',
-                ...playerInfo
+                playerName: currentPlayer.player.name,
+                status: currentPlayer.status,
+                name: currentPlayer.player.name,
               });
             }
           }
         }
 
-        // Detectar jogadores removidos
-        for (const currentPlayer of currentTeamPlayers) {
-          // Verificar se o jogador ainda está no roster do Sleeper
-          const isInSleeperRoster = [
-            ...sleeperPlayersByStatus.active,
-            ...sleeperPlayersByStatus.ir,
-            ...sleeperPlayersByStatus.taxi
-          ].includes(currentPlayer.sleeperPlayerId);
-
-          if (!isInSleeperRoster) {
-            playersRemoved.push({
-              sleeperPlayerId: currentPlayer.sleeperPlayerId,
-              teamId: team.id,
-              teamName: team.name,
-              playerName: currentPlayer.player.name,
-              status: currentPlayer.status,
-              name: currentPlayer.player.name
-            });
-          }
-        }
+        return {
+          playersAdded,
+          playersRemoved,
+        };
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setIsLoading(false);
       }
-
-      return {
-        playersAdded,
-        playersRemoved
-      };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   return {
     calculateRosterDiff,
     isLoading,
-    error
+    error,
   };
 }

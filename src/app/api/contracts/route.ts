@@ -154,14 +154,14 @@ export async function POST(request: Request) {
       hasBeenExtended,
       fourthYearOptionActivated,
       signedSeason,
-      status
+      status,
     } = body;
 
     // Validação básica
     if (!playerId || !teamId || !leagueId || !originalSalary || !originalYears) {
       return NextResponse.json(
         { error: 'Campos obrigatórios: playerId, teamId, leagueId, originalSalary, originalYears' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -184,7 +184,7 @@ export async function POST(request: Request) {
         signedSeason: signedSeason || new Date().getFullYear(),
         status: status || 'active',
         createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       console.log('Contrato criado (modo demo):', mockContract);
@@ -200,16 +200,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
     }
 
-    // Verificar se o jogador existe (buscar pelo sleeperPlayerId)
+    // Verificar se o jogador existe (buscar pelo id)
     const player = await prisma.player.findUnique({
-      where: { sleeperPlayerId: playerId },
+      where: { id: playerId },
     });
 
     if (!player) {
-      return NextResponse.json(
-        { error: 'Jogador não encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Jogador não encontrado' }, { status: 404 });
     }
 
     // Verificar se a liga existe
@@ -218,10 +215,7 @@ export async function POST(request: Request) {
     });
 
     if (!league) {
-      return NextResponse.json(
-        { error: 'Liga não encontrada' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Liga não encontrada' }, { status: 404 });
     }
 
     // Verificar se o time pertence ao usuário e está na liga correta
@@ -236,7 +230,7 @@ export async function POST(request: Request) {
     if (!team) {
       return NextResponse.json(
         { error: 'Time não encontrado, não pertence ao usuário ou não está na liga especificada' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -252,7 +246,7 @@ export async function POST(request: Request) {
     if (existingContract) {
       return NextResponse.json(
         { error: 'Jogador já possui contrato ativo neste time' },
-        { status: 409 }
+        { status: 409 },
       );
     }
 

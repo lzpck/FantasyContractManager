@@ -16,7 +16,7 @@ interface ContractManagementProps {
 
 /**
  * Componente para gerenciamento de contratos
- * 
+ *
  * Permite aos comissários:
  * - Visualizar jogadores com e sem contrato
  * - Adicionar novos contratos
@@ -31,26 +31,28 @@ export default function ContractManagement({
 }: ContractManagementProps) {
   const canManageContracts = useCanManageContracts();
   const contractModal = useContractModal();
-  
+
   const [activeTab, setActiveTab] = useState<'with-contract' | 'without-contract'>('with-contract');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filtrar jogadores sem contrato
   const playersWithoutContract = players.filter(
-    player => !playersWithContracts.some(pwc => pwc.player.id === player.id)
+    player => !playersWithContracts.some(pwc => pwc.player.id === player.id),
   );
 
   // Filtrar jogadores baseado na busca
-  const filteredPlayersWithContracts = playersWithContracts.filter(pwc =>
-    pwc.player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pwc.player.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pwc.player.nflTeam.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPlayersWithContracts = playersWithContracts.filter(
+    pwc =>
+      pwc.player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pwc.player.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pwc.player.nflTeam.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const filteredPlayersWithoutContract = playersWithoutContract.filter(player =>
-    player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    player.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    player.nflTeam.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPlayersWithoutContract = playersWithoutContract.filter(
+    player =>
+      player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      player.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      player.nflTeam.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Recarregar dados quando contrato for atualizado
@@ -70,21 +72,14 @@ export default function ContractManagement({
   };
 
   const handleEditContract = (playerWithContract: PlayerWithContract) => {
-    contractModal.openModal(
-      playerWithContract.player,
-      team,
-      league,
-      playerWithContract.contract
-    );
+    contractModal.openModal(playerWithContract.player, team, league, playerWithContract.contract);
   };
 
   // Se não for comissário, não mostrar controles de gerenciamento
   if (!canManageContracts) {
     return (
       <div className="bg-slate-800 rounded-xl p-6">
-        <p className="text-slate-400 text-center">
-          Apenas comissários podem gerenciar contratos.
-        </p>
+        <p className="text-slate-400 text-center">Apenas comissários podem gerenciar contratos.</p>
       </div>
     );
   }
@@ -95,9 +90,7 @@ export default function ContractManagement({
       <div className="bg-slate-800 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-semibold text-slate-100">
-              Gerenciamento de Contratos
-            </h2>
+            <h2 className="text-xl font-semibold text-slate-100">Gerenciamento de Contratos</h2>
             <p className="text-slate-400 text-sm mt-1">
               {team.name} • {league.name} • Temporada {league.season}
             </p>
@@ -116,7 +109,7 @@ export default function ContractManagement({
             type="text"
             placeholder="Buscar jogadores..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -154,9 +147,7 @@ export default function ContractManagement({
           <div>
             {/* Header da tabela */}
             <div className="px-6 py-4 border-b border-slate-700">
-              <h3 className="text-lg font-medium text-slate-100">
-                Jogadores com Contrato
-              </h3>
+              <h3 className="text-lg font-medium text-slate-100">Jogadores com Contrato</h3>
             </div>
 
             {/* Lista de jogadores com contrato */}
@@ -166,8 +157,11 @@ export default function ContractManagement({
                   {searchTerm ? 'Nenhum jogador encontrado.' : 'Nenhum jogador com contrato.'}
                 </div>
               ) : (
-                filteredPlayersWithContracts.map((playerWithContract) => (
-                  <div key={playerWithContract.player.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-700 transition-colors">
+                filteredPlayersWithContracts.map(playerWithContract => (
+                  <div
+                    key={playerWithContract.player.id}
+                    className="px-6 py-4 flex items-center justify-between hover:bg-slate-700 transition-colors"
+                  >
                     <div className="flex items-center space-x-4">
                       <div>
                         <div className="text-sm font-medium text-slate-100">
@@ -178,7 +172,7 @@ export default function ContractManagement({
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-6">
                       <div className="text-right">
                         <div className="text-sm font-medium text-slate-100">
@@ -188,7 +182,7 @@ export default function ContractManagement({
                           {playerWithContract.contract.yearsRemaining} ano(s) restante(s)
                         </div>
                       </div>
-                      
+
                       <button
                         onClick={() => handleEditContract(playerWithContract)}
                         className="p-2 text-blue-400 hover:text-blue-300 hover:bg-slate-600 rounded-lg transition-colors"
@@ -208,9 +202,7 @@ export default function ContractManagement({
           <div>
             {/* Header da tabela */}
             <div className="px-6 py-4 border-b border-slate-700">
-              <h3 className="text-lg font-medium text-slate-100">
-                Jogadores sem Contrato
-              </h3>
+              <h3 className="text-lg font-medium text-slate-100">Jogadores sem Contrato</h3>
               <p className="text-sm text-slate-400 mt-1">
                 Clique no botão + para adicionar um contrato
               </p>
@@ -223,19 +215,20 @@ export default function ContractManagement({
                   {searchTerm ? 'Nenhum jogador encontrado.' : 'Todos os jogadores têm contrato.'}
                 </div>
               ) : (
-                filteredPlayersWithoutContract.map((player) => (
-                  <div key={player.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-700 transition-colors">
+                filteredPlayersWithoutContract.map(player => (
+                  <div
+                    key={player.id}
+                    className="px-6 py-4 flex items-center justify-between hover:bg-slate-700 transition-colors"
+                  >
                     <div className="flex items-center space-x-4">
                       <div>
-                        <div className="text-sm font-medium text-slate-100">
-                          {player.name}
-                        </div>
+                        <div className="text-sm font-medium text-slate-100">{player.name}</div>
                         <div className="text-xs text-slate-400">
                           {player.position} • {player.nflTeam}
                         </div>
                       </div>
                     </div>
-                    
+
                     <button
                       onClick={() => handleAddContract(player)}
                       className="p-2 text-green-400 hover:text-green-300 hover:bg-slate-600 rounded-lg transition-colors"

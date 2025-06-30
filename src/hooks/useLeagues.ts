@@ -58,9 +58,10 @@ export function useLeagues() {
             let deadMoneyConfig;
             if (l.deadMoneyConfig) {
               try {
-                deadMoneyConfig = typeof l.deadMoneyConfig === 'string' 
-                  ? JSON.parse(l.deadMoneyConfig) 
-                  : l.deadMoneyConfig;
+                deadMoneyConfig =
+                  typeof l.deadMoneyConfig === 'string'
+                    ? JSON.parse(l.deadMoneyConfig)
+                    : l.deadMoneyConfig;
               } catch (error) {
                 console.warn('Erro ao fazer parse do deadMoneyConfig:', error);
                 deadMoneyConfig = undefined;

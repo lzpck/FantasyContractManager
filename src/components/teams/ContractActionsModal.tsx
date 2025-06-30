@@ -52,7 +52,7 @@ export default function ContractActionsModal({
   });
 
   const contractModal = useContractModal();
-  
+
   const {
     createContract,
     updateContract,
@@ -88,15 +88,15 @@ export default function ContractActionsModal({
         fourthYearOptionActivated: formData.fourthYearOptionActivated,
         signedSeason: new Date().getFullYear(),
       };
-      
+
       let result;
-      
+
       if (player.contract) {
         result = await updateContract(player.contract, contractData);
       } else {
         result = await createContract(player.player, contractData);
       }
-      
+
       if (result.success) {
         toast.success(result.message);
         onClose();
@@ -112,11 +112,11 @@ export default function ContractActionsModal({
     if (isOpen && player && player.contract) {
       // Configurar os dados do formulário apenas se tem contrato
       setFormData({
-          newSalary: player.contract.currentSalary.toString(),
-          newYears: player.contract.yearsRemaining.toString(),
-          extensionSalary: '',
-          extensionYears: '',
-        });
+        newSalary: player.contract.currentSalary.toString(),
+        newYears: player.contract.yearsRemaining.toString(),
+        extensionSalary: '',
+        extensionYears: '',
+      });
     }
   }, [isOpen, player]);
 
@@ -136,10 +136,12 @@ export default function ContractActionsModal({
   };
 
   // Verificar elegibilidade para ações
-  const isEligibleForExtension = player?.contract ? 
-    player.contract.yearsRemaining === 1 && !player.contract.hasBeenExtended : false;
-  const isEligibleForTag = player?.contract ? 
-    player.contract.yearsRemaining === 1 && !player.contract.hasBeenTagged : false;
+  const isEligibleForExtension = player?.contract
+    ? player.contract.yearsRemaining === 1 && !player.contract.hasBeenExtended
+    : false;
+  const isEligibleForTag = player?.contract
+    ? player.contract.yearsRemaining === 1 && !player.contract.hasBeenTagged
+    : false;
 
   // Função para abrir modal de edição de contrato
   const handleEditContract = () => {
@@ -148,7 +150,7 @@ export default function ContractActionsModal({
       onClose(); // Fechar o modal de ações
     }
   };
-  
+
   // Função para adicionar novo contrato (para jogadores sem contrato)
   const handleAddContract = () => {
     if (player && isCommissioner) {
@@ -156,21 +158,21 @@ export default function ContractActionsModal({
       onClose(); // Fechar o modal de ações
     }
   };
-  
+
   // Função para aplicar extensão de contrato
   const handleExtension = async () => {
     if (!player?.contract || !formData.extensionSalary || !formData.extensionYears) {
       toast.error('Por favor, preencha o salário e anos da extensão.');
       return;
     }
-    
+
     const result = await extendContract(
       player.contract,
       parseInt(formData.extensionYears),
       parseFloat(formData.extensionSalary),
-      0
+      0,
     );
-    
+
     if (result.success) {
       toast.success(result.message);
       onClose();
@@ -178,15 +180,15 @@ export default function ContractActionsModal({
       toast.error(`Erro: ${result.message}`);
     }
   };
-  
+
   // Função para aplicar franchise tag
   const handleFranchiseTag = async () => {
     if (!player) return;
-    
+
     const tagValue = calculateTagValue();
-    
+
     const result = await applyFranchiseTag(player, tagValue);
-    
+
     if (result.success) {
       toast.success(result.message);
       onClose();
@@ -194,9 +196,7 @@ export default function ContractActionsModal({
       toast.error(`Erro: ${result.message}`);
     }
   };
-  
 
-  
   const handleSubmit = (action: string) => {
     switch (action) {
       case 'edit':
@@ -247,7 +247,9 @@ export default function ContractActionsModal({
                 {player.player.position} • {player.player.nflTeam}
                 {player.contract && (
                   <>
-                    {' '} • {formatCurrency(player.contract.currentSalary)} • {player.contract.yearsRemaining} ano(s)
+                    {' '}
+                    • {formatCurrency(player.contract.currentSalary)} •{' '}
+                    {player.contract.yearsRemaining} ano(s)
                   </>
                 )}
               </p>
@@ -270,8 +272,8 @@ export default function ContractActionsModal({
                       activeTab === tab.id
                         ? 'border-blue-500 text-blue-400'
                         : tab.enabled
-                        ? 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300'
-                        : 'border-transparent text-slate-600 cursor-not-allowed'
+                          ? 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300'
+                          : 'border-transparent text-slate-600 cursor-not-allowed'
                     }`}
                   >
                     {tab.label}
@@ -285,9 +287,7 @@ export default function ContractActionsModal({
               {activeTab === 'edit' && (
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-lg font-medium text-slate-100 mb-4">
-                      Editar Contrato
-                    </h4>
+                    <h4 className="text-lg font-medium text-slate-100 mb-4">Editar Contrato</h4>
                     <p className="text-slate-400 mb-4">
                       Abrir o modal de edição de contrato para fazer alterações detalhadas.
                     </p>
@@ -295,26 +295,25 @@ export default function ContractActionsModal({
                       <h5 className="font-medium text-slate-200 mb-2">Contrato Atual:</h5>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         {player.contract ? (
-                           <>
-                             <div>
-                               <span className="text-slate-400">Salário:</span>
-                               <span className="ml-2 text-slate-100">
-                                 {formatCurrency(player.contract.currentSalary)}
-                               </span>
-                             </div>
-                             <div>
-                               <span className="text-slate-400">Anos Restantes:</span>
-                               <span className="ml-2 text-slate-100">
-                                 {player.contract.yearsRemaining}
-                               </span>
-                             </div>
-
-                           </>
-                         ) : (
-                           <div className="text-center py-4">
-                             <span className="text-slate-400">Jogador sem contrato</span>
-                           </div>
-                         )}
+                          <>
+                            <div>
+                              <span className="text-slate-400">Salário:</span>
+                              <span className="ml-2 text-slate-100">
+                                {formatCurrency(player.contract.currentSalary)}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400">Anos Restantes:</span>
+                              <span className="ml-2 text-slate-100">
+                                {player.contract.yearsRemaining}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center py-4">
+                            <span className="text-slate-400">Jogador sem contrato</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <button
@@ -345,7 +344,9 @@ export default function ContractActionsModal({
                           <input
                             type="number"
                             value={formData.extensionSalary}
-                            onChange={(e) => setFormData({ ...formData, extensionSalary: e.target.value })}
+                            onChange={e =>
+                              setFormData({ ...formData, extensionSalary: e.target.value })
+                            }
                             className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Ex: 15000000"
                           />
@@ -356,7 +357,9 @@ export default function ContractActionsModal({
                           </label>
                           <select
                             value={formData.extensionYears}
-                            onChange={(e) => setFormData({ ...formData, extensionYears: e.target.value })}
+                            onChange={e =>
+                              setFormData({ ...formData, extensionYears: e.target.value })
+                            }
                             className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                             <option value="">Selecione</option>
@@ -392,9 +395,7 @@ export default function ContractActionsModal({
                 <div className="space-y-4">
                   {isEligibleForTag ? (
                     <div>
-                      <h4 className="text-lg font-medium text-slate-100 mb-4">
-                        Franchise Tag
-                      </h4>
+                      <h4 className="text-lg font-medium text-slate-100 mb-4">Franchise Tag</h4>
                       <p className="text-slate-400 mb-4">
                         Aplicar franchise tag para manter o jogador por mais um ano.
                       </p>
@@ -409,7 +410,8 @@ export default function ContractActionsModal({
                       </div>
                       <div className="bg-yellow-900/20 border border-yellow-700 p-4 rounded-lg mb-4">
                         <p className="text-yellow-300 text-sm">
-                          ⚠️ A franchise tag só pode ser usada uma vez por jogador e uma vez por temporada.
+                          ⚠️ A franchise tag só pode ser usada uma vez por jogador e uma vez por
+                          temporada.
                         </p>
                       </div>
                       <button
@@ -421,9 +423,7 @@ export default function ContractActionsModal({
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-slate-400">
-                        Jogador não é elegível para franchise tag.
-                      </p>
+                      <p className="text-slate-400">Jogador não é elegível para franchise tag.</p>
                       <p className="text-sm text-slate-500 mt-2">
                         Tags só podem ser aplicadas no último ano de contrato.
                       </p>
@@ -431,8 +431,6 @@ export default function ContractActionsModal({
                   )}
                 </div>
               )}
-
-
             </div>
           </div>
 

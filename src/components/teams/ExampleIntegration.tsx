@@ -2,7 +2,7 @@
 
 /**
  * EXEMPLO DE INTEGRAÇÃO DO MODAL DE CONTRATOS
- * 
+ *
  * Este arquivo demonstra como integrar o Modal de Contratos
  * em diferentes cenários de uso dentro do sistema.
  */
@@ -29,7 +29,7 @@ const EXAMPLE_LEAGUE: League = {
   seasonTurnoverDate: '2024-04-01',
   settings: {} as any,
   createdAt: new Date(),
-  updatedAt: new Date()
+  updatedAt: new Date(),
 };
 
 const EXAMPLE_TEAM: Team = {
@@ -43,7 +43,7 @@ const EXAMPLE_TEAM: Team = {
   nextSeasonDeadMoney: 0,
   franchiseTagsUsed: 0,
   createdAt: new Date(),
-  updatedAt: new Date()
+  updatedAt: new Date(),
 };
 
 const EXAMPLE_PLAYERS: Player[] = [
@@ -57,7 +57,7 @@ const EXAMPLE_PLAYERS: Player[] = [
     jerseyNumber: 17,
     isActive: true,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: 'player-2',
@@ -69,7 +69,7 @@ const EXAMPLE_PLAYERS: Player[] = [
     jerseyNumber: 23,
     isActive: true,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: 'player-3',
@@ -81,14 +81,19 @@ const EXAMPLE_PLAYERS: Player[] = [
     jerseyNumber: 10,
     isActive: true,
     createdAt: new Date(),
-    updatedAt: new Date()
-  }
+    updatedAt: new Date(),
+  },
 ];
 
 /**
  * EXEMPLO 1: Card de Jogador com Botão de Contrato
  */
-function PlayerCard({ player, team, league, contract }: {
+function PlayerCard({
+  player,
+  team,
+  league,
+  contract,
+}: {
   player: Player;
   team: Team;
   league: League;
@@ -110,7 +115,9 @@ function PlayerCard({ player, team, league, contract }: {
       <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="text-lg font-semibold text-slate-100">{player.name}</h3>
-          <p className="text-sm text-slate-400">{player.position} • {player.nflTeam}</p>
+          <p className="text-sm text-slate-400">
+            {player.position} • {player.nflTeam}
+          </p>
         </div>
         <div className="text-right">
           {contract ? (
@@ -118,9 +125,7 @@ function PlayerCard({ player, team, league, contract }: {
               <div className="text-sm font-medium text-slate-100">
                 {formatCurrency(contract.currentSalary)}
               </div>
-              <div className="text-xs text-slate-400">
-                {contract.yearsRemaining} ano(s)
-              </div>
+              <div className="text-xs text-slate-400">{contract.yearsRemaining} ano(s)</div>
             </>
           ) : (
             <div className="text-sm text-slate-400">Sem contrato</div>
@@ -168,7 +173,11 @@ function PlayerCard({ player, team, league, contract }: {
 /**
  * EXEMPLO 2: Tabela de Contratos com Ações
  */
-function ContractsTable({ playersWithContracts, team, league }: {
+function ContractsTable({
+  playersWithContracts,
+  team,
+  league,
+}: {
   playersWithContracts: PlayerWithContract[];
   team: Team;
   league: League;
@@ -177,12 +186,7 @@ function ContractsTable({ playersWithContracts, team, league }: {
   const canManage = useCanManageContracts();
 
   const handleEditContract = (playerWithContract: PlayerWithContract) => {
-    contractModal.openModal(
-      playerWithContract.player,
-      team,
-      league,
-      playerWithContract.contract
-    );
+    contractModal.openModal(playerWithContract.player, team, league, playerWithContract.contract);
   };
 
   return (
@@ -218,15 +222,16 @@ function ContractsTable({ playersWithContracts, team, league }: {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700">
-            {playersWithContracts.map((playerWithContract) => (
-              <tr key={playerWithContract.player.id} className="hover:bg-slate-700 transition-colors">
+            {playersWithContracts.map(playerWithContract => (
+              <tr
+                key={playerWithContract.player.id}
+                className="hover:bg-slate-700 transition-colors"
+              >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-slate-100">
                     {playerWithContract.player.name}
                   </div>
-                  <div className="text-sm text-slate-400">
-                    {playerWithContract.player.nflTeam}
-                  </div>
+                  <div className="text-sm text-slate-400">{playerWithContract.player.nflTeam}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -290,8 +295,8 @@ function ContractsDashboard() {
         currentSalary: 45000000,
         yearsRemaining: 3,
         acquisitionType: 'auction',
-        status: 'active'
-      }
+        status: 'active',
+      },
     ]);
   }, []);
 
@@ -306,27 +311,23 @@ function ContractsDashboard() {
     return () => window.removeEventListener('contractUpdated', handleContractUpdate);
   }, []);
 
-  const playersWithContracts: PlayerWithContract[] = EXAMPLE_PLAYERS
-    .filter((_, index) => index < mockContracts.length)
-    .map((player, index) => ({
-      player,
-      contract: { ...mockContracts[index], playerId: player.id, teamId: EXAMPLE_TEAM.id }
-    }));
+  const playersWithContracts: PlayerWithContract[] = EXAMPLE_PLAYERS.filter(
+    (_, index) => index < mockContracts.length,
+  ).map((player, index) => ({
+    player,
+    contract: { ...mockContracts[index], playerId: player.id, teamId: EXAMPLE_TEAM.id },
+  }));
 
   const playersWithoutContracts = EXAMPLE_PLAYERS.filter(
-    player => !playersWithContracts.some(pwc => pwc.player.id === player.id)
+    player => !playersWithContracts.some(pwc => pwc.player.id === player.id),
   );
 
   if (!canManage) {
     return (
       <div className="bg-slate-800 rounded-xl p-8 text-center">
         <EyeIcon className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold text-slate-100 mb-2">
-          Acesso Restrito
-        </h2>
-        <p className="text-slate-400">
-          Apenas comissários podem gerenciar contratos.
-        </p>
+        <h2 className="text-xl font-semibold text-slate-100 mb-2">Acesso Restrito</h2>
+        <p className="text-slate-400">Apenas comissários podem gerenciar contratos.</p>
       </div>
     );
   }
@@ -337,9 +338,7 @@ function ContractsDashboard() {
       <div className="bg-slate-800 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">
-              Gerenciamento de Contratos
-            </h1>
+            <h1 className="text-2xl font-bold text-slate-100">Gerenciamento de Contratos</h1>
             <p className="text-slate-400">
               {EXAMPLE_TEAM.name} • {EXAMPLE_LEAGUE.name}
             </p>
@@ -384,8 +383,8 @@ function ContractsDashboard() {
         <div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {EXAMPLE_PLAYERS.map(player => {
-              const contract = mockContracts.find((_, index) => 
-                EXAMPLE_PLAYERS[index]?.id === player.id
+              const contract = mockContracts.find(
+                (_, index) => EXAMPLE_PLAYERS[index]?.id === player.id,
               );
               return (
                 <PlayerCard
@@ -413,15 +412,11 @@ function ContractsDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-slate-800 rounded-xl p-4">
           <div className="text-sm text-slate-400">Total de Contratos</div>
-          <div className="text-2xl font-bold text-slate-100">
-            {playersWithContracts.length}
-          </div>
+          <div className="text-2xl font-bold text-slate-100">{playersWithContracts.length}</div>
         </div>
         <div className="bg-slate-800 rounded-xl p-4">
           <div className="text-sm text-slate-400">Jogadores Livres</div>
-          <div className="text-2xl font-bold text-slate-100">
-            {playersWithoutContracts.length}
-          </div>
+          <div className="text-2xl font-bold text-slate-100">{playersWithoutContracts.length}</div>
         </div>
         <div className="bg-slate-800 rounded-xl p-4">
           <div className="text-sm text-slate-400">Cap Utilizado</div>
@@ -446,8 +441,8 @@ export default function ExampleIntegration() {
             Exemplo de Integração - Modal de Contratos
           </h1>
           <p className="text-slate-400">
-            Esta página demonstra diferentes formas de integrar o Modal de Contratos
-            no sistema de gerenciamento de fantasy football.
+            Esta página demonstra diferentes formas de integrar o Modal de Contratos no sistema de
+            gerenciamento de fantasy football.
           </p>
         </div>
 
@@ -459,22 +454,22 @@ export default function ExampleIntegration() {
 
 /**
  * NOTAS DE IMPLEMENTAÇÃO:
- * 
+ *
  * 1. Este exemplo mostra três padrões de integração:
  *    - PlayerCard: Card individual com botão de ação
  *    - ContractsTable: Tabela com ações em linha
  *    - ContractsDashboard: Dashboard completo com tabs
- * 
+ *
  * 2. Cada componente gerencia seu próprio estado do modal
  *    usando o hook useContractModal()
- * 
+ *
  * 3. As permissões são verificadas usando useCanManageContracts()
- * 
+ *
  * 4. O sistema escuta eventos 'contractUpdated' para recarregar dados
- * 
+ *
  * 5. Os dados são mockados para demonstração, mas a estrutura
  *    é idêntica ao que seria usado com dados reais
- * 
+ *
  * 6. O modal é integrado em cada componente que precisa dele,
  *    mantendo o estado isolado e reutilizável
  */

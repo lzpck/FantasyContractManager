@@ -25,11 +25,9 @@ export default function TeamHeader({ team, league, players, onBack }: TeamHeader
   const contractsExpiring = playersWithContracts.filter(
     p => p.contract?.yearsRemaining === 1,
   ).length;
-  
+
   // Calcula jogadores que já foram tagueados
-  const playersTagged = playersWithContracts.filter(
-    p => p.contract?.hasBeenTagged === true,
-  ).length;
+  const playersTagged = playersWithContracts.filter(p => p.contract?.hasBeenTagged === true).length;
 
   // Calcula informações do salary cap
   const capInfo = formatCapUsage(totalSalaries + team.currentDeadMoney, league.salaryCap);

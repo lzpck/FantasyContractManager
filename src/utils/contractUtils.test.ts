@@ -50,7 +50,7 @@ const joshAllenContract: Contract = {
   hasFourthYearOption: false,
   fourthYearOptionActivated: false,
   createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: '2024-01-01T00:00:00.000Z',
 };
 
 /**
@@ -66,7 +66,7 @@ const joshAllenPlayer: Player = {
   rookieYear: 2018,
   isActive: true,
   createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: '2024-01-01T00:00:00.000Z',
 };
 
 /**
@@ -85,7 +85,7 @@ const billsTeam: Team = {
   nextSeasonDeadMoney: 3.1,
   franchiseTagsUsed: 0,
   createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: '2024-01-01T00:00:00.000Z',
 };
 
 /**
