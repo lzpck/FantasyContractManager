@@ -173,7 +173,7 @@ export async function PUT(
         ...(minimumSalary && { minimumSalary }),
         ...(annualIncreasePercentage !== undefined && { annualIncreasePercentage }),
         ...(seasonTurnoverDate && { seasonTurnoverDate }),
-        ...(deadMoneyConfig && { deadMoneyConfig: JSON.stringify(deadMoneyConfig) }),
+        ...(deadMoneyConfig !== undefined && { deadMoneyConfig: JSON.stringify(deadMoneyConfig) }),
       },
       include: {
         teams: {
