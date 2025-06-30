@@ -98,7 +98,10 @@ function DashboardContent() {
           <p className="text-slate-400 mb-6">
             Você ainda não possui ligas cadastradas. Importe uma liga do Sleeper para começar!
           </p>
-          <button className="bg-slate-700 text-slate-100 px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors border border-slate-600">
+          <button 
+            onClick={() => router.push('/leagues')}
+            className="bg-slate-700 text-slate-100 px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors border border-slate-600"
+          >
             Importar Liga
           </button>
         </div>
