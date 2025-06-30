@@ -175,6 +175,7 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
             annualIncreasePercentage: formData.annualIncreasePercentage,
             minimumSalary: formData.minimumSalary,
             seasonTurnoverDate: formData.seasonTurnoverDate,
+            deadMoneyConfig: formData.deadMoneyConfig,
           }),
         });
 
@@ -244,6 +245,7 @@ export default function LeagueModal({ isOpen, onClose, league }: LeagueModalProp
             annualIncreasePercentage: formData.annualIncreasePercentage,
             minimumSalary: formData.minimumSalary,
             seasonTurnoverDate: formData.seasonTurnoverDate,
+            deadMoneyConfig: formData.deadMoneyConfig,
           }),
         });
 

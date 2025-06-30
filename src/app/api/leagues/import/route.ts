@@ -34,7 +34,18 @@ export interface ImportProgress {
 /**
  * Importa uma liga da Sleeper API e salva no banco de dados
  */
-async function importLeague(leagueId: string, commissionerId: string): Promise<ImportResult> {
+async function importLeague(
+  leagueId: string, 
+  commissionerId: string,
+  customSettings?: {
+    salaryCap?: number;
+    maxFranchiseTags?: number;
+    annualIncreasePercentage?: number;
+    minimumSalary?: number;
+    seasonTurnoverDate?: string;
+    deadMoneyConfig?: any;
+  }
+): Promise<ImportResult> {
   try {
     // Etapa 1: Validação
     const isValid = await validateSleeperLeagueId(leagueId);
@@ -65,14 +76,15 @@ async function importLeague(leagueId: string, commissionerId: string): Promise<I
       data: {
         name: importedData.league.name,
         season: importedData.league.season,
-        salaryCap: importedData.league.salaryCap,
+        salaryCap: customSettings?.salaryCap ?? importedData.league.salaryCap,
         totalTeams: importedData.league.totalTeams,
         sleeperLeagueId: importedData.league.sleeperLeagueId,
         commissionerId: importedData.league.commissionerId,
-        maxFranchiseTags: importedData.league.settings.maxFranchiseTags,
-        annualIncreasePercentage: importedData.league.settings.annualIncreasePercentage,
-        minimumSalary: importedData.league.settings.minimumSalary,
-        seasonTurnoverDate: importedData.league.settings.seasonTurnoverDate,
+        maxFranchiseTags: customSettings?.maxFranchiseTags ?? importedData.league.settings.maxFranchiseTags,
+        annualIncreasePercentage: customSettings?.annualIncreasePercentage ?? importedData.league.settings.annualIncreasePercentage,
+        minimumSalary: customSettings?.minimumSalary ?? importedData.league.settings.minimumSalary,
+        seasonTurnoverDate: customSettings?.seasonTurnoverDate ?? importedData.league.settings.seasonTurnoverDate,
+        deadMoneyConfig: customSettings?.deadMoneyConfig ? JSON.stringify(customSettings.deadMoneyConfig) : null,
       },
     });
 
@@ -92,6 +104,19 @@ async function importLeague(leagueId: string, commissionerId: string): Promise<I
       ),
     );
 
+    // Parse do deadMoneyConfig se existir
+    let deadMoneyConfig;
+    if (createdLeague.deadMoneyConfig) {
+      try {
+        deadMoneyConfig = typeof createdLeague.deadMoneyConfig === 'string' 
+          ? JSON.parse(createdLeague.deadMoneyConfig) 
+          : createdLeague.deadMoneyConfig;
+      } catch (error) {
+        console.warn('Erro ao fazer parse do deadMoneyConfig:', error);
+        deadMoneyConfig = undefined;
+      }
+    }
+
     // Transformar para o formato esperado pelo frontend
     const leagueWithSettings: League = {
       id: createdLeague.id,
@@ -106,6 +131,7 @@ async function importLeague(leagueId: string, commissionerId: string): Promise<I
       annualIncreasePercentage: createdLeague.annualIncreasePercentage,
       minimumSalary: createdLeague.minimumSalary,
       seasonTurnoverDate: createdLeague.seasonTurnoverDate,
+      deadMoneyConfig,
       settings: {
         maxFranchiseTags: createdLeague.maxFranchiseTags,
         annualIncreasePercentage: createdLeague.annualIncreasePercentage,
@@ -207,14 +233,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Obter dados da requisição
-    const { leagueId } = await request.json();
+    const { leagueId, salaryCap, maxFranchiseTags, annualIncreasePercentage, minimumSalary, seasonTurnoverDate, deadMoneyConfig } = await request.json();
 
     if (!leagueId) {
       return NextResponse.json({ error: 'ID da liga é obrigatório' }, { status: 400 });
     }
 
     // Importar a liga
-    const result = await importLeague(leagueId, session.user.id);
+    const result = await importLeague(leagueId, session.user.id, {
+      salaryCap,
+      maxFranchiseTags,
+      annualIncreasePercentage,
+      minimumSalary,
+      seasonTurnoverDate,
+      deadMoneyConfig,
+    });
 
     if (result.success) {
       return NextResponse.json({
