@@ -1,6 +1,6 @@
 'use client';
 
-import { Player } from '@/types';
+import { Player, PlayerPosition } from '@/types';
 
 interface PlayersTableProps {
   players: Player[];
@@ -9,11 +9,14 @@ interface PlayersTableProps {
 /**
  * Componente de tabela de jogadores
  *
- * Exibe lista de jogadores com informações básicas como nome, posição,
+ * Exibe lista de jogadores com informações básicas como nome, posições fantasy,
  * time da NFL e status de atividade.
+ * 
+ * IMPORTANTE: Sempre exibe fantasyPositions ao invés de position para mostrar
+ * os slots fantasy específicos da plataforma Sleeper.
  */
 export function PlayersTable({ players }: PlayersTableProps) {
-  // Função para obter cor do badge de posição
+  // Função para obter cor do badge de posição fantasy
   const getPositionColor = (position: string) => {
     const colors: { [key: string]: string } = {
       QB: 'bg-purple-600 text-purple-100',
@@ -24,6 +27,41 @@ export function PlayersTable({ players }: PlayersTableProps) {
       DEF: 'bg-red-600 text-red-100',
     };
     return colors[position] || 'bg-slate-600 text-slate-100';
+  };
+
+  // Função para renderizar as posições fantasy do jogador
+  const renderFantasyPositions = (player: Player) => {
+    // Prioriza fantasyPositions, usa position como fallback
+    let positions: string[] = [];
+    
+    if (player.fantasyPositions) {
+      // Se fantasyPositions é array, usa diretamente
+      if (Array.isArray(player.fantasyPositions)) {
+        positions = player.fantasyPositions.filter(pos => pos && pos.trim() !== '');
+      } 
+      // Se fantasyPositions é string, converte para array
+      else if (typeof player.fantasyPositions === 'string' && player.fantasyPositions.trim() !== '') {
+        positions = player.fantasyPositions.split(',').map(pos => pos.trim()).filter(pos => pos !== '');
+      }
+    }
+    
+    // Se não há posições fantasy válidas, usa position como fallback
+    if (positions.length === 0) {
+      positions = [player.position];
+    }
+    
+    return (
+      <div className="flex flex-wrap gap-1">
+        {positions.map((pos, index) => (
+          <span
+            key={index}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPositionColor(pos)}`}
+          >
+            {pos}
+          </span>
+        ))}
+      </div>
+    );
   };
 
   // Função para obter cor do status
@@ -50,7 +88,7 @@ export function PlayersTable({ players }: PlayersTableProps) {
               Jogador
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-slate-100 uppercase tracking-wider">
-              Posição
+              Posições Fantasy
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-slate-100 uppercase tracking-wider">
               Time NFL
@@ -84,13 +122,9 @@ export function PlayersTable({ players }: PlayersTableProps) {
                 </div>
               </td>
 
-              {/* Posição */}
+              {/* Posições Fantasy */}
               <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPositionColor(player.position)}`}
-                >
-                  {player.position}
-                </span>
+                {renderFantasyPositions(player)}
               </td>
 
               {/* Time NFL */}
