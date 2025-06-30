@@ -139,9 +139,6 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
                   Posição
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Time NFL
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Salário Atual
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
@@ -216,9 +213,6 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {displayPositions}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
-                      {player.nflTeam}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-100">
                       {contract ? formatCurrency(contract.currentSalary) : '-'}
