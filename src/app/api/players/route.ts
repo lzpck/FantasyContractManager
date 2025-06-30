@@ -1,8 +1,38 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const sleeperPlayerId = searchParams.get('sleeperPlayerId');
+
+    // Se foi fornecido um sleeperPlayerId específico, buscar apenas esse jogador
+    if (sleeperPlayerId) {
+      const player = await prisma.player.findFirst({
+        where: { sleeperPlayerId }
+      });
+
+      if (!player) {
+        return NextResponse.json({ error: 'Jogador não encontrado' }, { status: 404 });
+      }
+
+      const playerData = {
+        id: player.id,
+        name: player.name,
+        position: player.position,
+        fantasyPositions: player.fantasyPositions.split(',').filter(s => s),
+        nflTeam: player.team,
+        age: player.age,
+        sleeperPlayerId: player.sleeperPlayerId,
+        isActive: player.isActive,
+        createdAt: player.createdAt,
+        updatedAt: player.updatedAt,
+      };
+
+      return NextResponse.json(playerData);
+    }
+
+    // Caso contrário, retornar todos os jogadores
     const dbPlayers = await prisma.player.findMany({ orderBy: { name: 'asc' } });
     const players = dbPlayers.map(p => ({
       id: p.id,

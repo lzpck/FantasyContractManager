@@ -26,6 +26,106 @@ export interface SyncResult {
 // ============================================================================
 
 /**
+ * Sincroniza os rosters dos times, persistindo jogadores em team_rosters
+ */
+async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any[]) {
+  try {
+    for (const sleeperRoster of sleeperRosters) {
+      // Encontrar o time correspondente
+      const team = teams.find(t => t.sleeperTeamId === sleeperRoster.roster_id.toString());
+      if (!team) continue;
+
+      // Buscar roster atual do time no banco
+      const currentRoster = await prisma.teamRoster.findMany({
+        where: { teamId: team.id },
+        include: { player: true }
+      });
+
+      // Coletar todos os jogadores do Sleeper para este time
+      const allSleeperPlayers = [
+        ...(sleeperRoster.players || []).map((id: string) => ({ id, status: 'active' })),
+        ...(sleeperRoster.reserve || []).map((id: string) => ({ id, status: 'ir' })),
+        ...(sleeperRoster.taxi || []).map((id: string) => ({ id, status: 'taxi' }))
+      ];
+
+      // Atualizar status dos jogadores existentes e adicionar novos
+      for (const { id: sleeperPlayerId, status } of allSleeperPlayers) {
+        // Buscar ou criar o jogador
+        let player = await prisma.player.findUnique({
+          where: { sleeperPlayerId },
+        });
+
+        if (!player) {
+          // Buscar dados do jogador nos dados sincronizados
+          const playerData = players.find(p => p.sleeperPlayerId === sleeperPlayerId);
+          if (!playerData) {
+            console.warn(`⚠️  Jogador ${sleeperPlayerId} não encontrado nos dados sincronizados`);
+            continue;
+          }
+
+          // Criar novo jogador
+          player = await prisma.player.create({
+            data: {
+              name: playerData.name,
+              position: playerData.position,
+              fantasyPositions: playerData.fantasyPositions,
+              team: playerData.team,
+              age: playerData.age,
+              sleeperPlayerId,
+              isActive: playerData.isActive,
+            },
+          });
+        }
+
+        // Adicionar/atualizar jogador no roster do time
+        await prisma.teamRoster.upsert({
+          where: {
+            teamId_playerId: {
+              teamId: team.id,
+              playerId: player.id,
+            },
+          },
+          update: {
+            sleeperPlayerId,
+            status,
+          },
+          create: {
+            teamId: team.id,
+            playerId: player.id,
+            sleeperPlayerId,
+            status,
+          },
+        });
+      }
+
+      // Remover jogadores que não estão mais no roster do Sleeper
+      const sleeperPlayerIds = allSleeperPlayers.map(p => p.id);
+      const playersToRemove = currentRoster.filter(
+        rosterEntry => !sleeperPlayerIds.includes(rosterEntry.sleeperPlayerId)
+      );
+
+      for (const rosterEntry of playersToRemove) {
+        await prisma.teamRoster.delete({
+          where: {
+            teamId_playerId: {
+              teamId: team.id,
+              playerId: rosterEntry.playerId,
+            },
+          },
+        });
+      }
+
+      console.log(`✅ Roster do time ${team.name} sincronizado: ${sleeperRoster.players?.length || 0} ativos, ${sleeperRoster.reserve?.length || 0} IR, ${sleeperRoster.taxi?.length || 0} taxi`);
+    }
+  } catch (error) {
+    console.error('❌ Erro ao sincronizar rosters dos times:', error);
+    throw error;
+  }
+}
+
+
+
+/**
  * Sincroniza uma liga existente com a Sleeper API
  */
 async function syncLeague(leagueId: string): Promise<SyncResult> {
@@ -174,6 +274,9 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
     });
 
     const updatedTeams = await Promise.all(teamUpdatePromises);
+
+    // Sincronizar rosters dos times (persistir jogadores em team_rosters)
+    await syncTeamRosters(syncedData.sleeperData.rosters, updatedTeams, syncedData.players);
 
     // Converter o status do Prisma para o formato esperado pelo tipo League
     let frontendStatus;
