@@ -280,6 +280,7 @@ export default function TeamDetailsPage() {
           <PlayerRosterSections
             players={playersWithContracts}
             onPlayerAction={handlePlayerAction}
+            league={league}
           />
         </div>
       </div>
