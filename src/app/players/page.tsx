@@ -132,11 +132,11 @@ export default function PlayersPage() {
 
           {importProgress && (
             <div className="mb-6">
-              <div className="flex justify-between text-sm text-gray-600 mb-1">
+              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-1">
                 <span>{importProgress.message}</span>
                 <span>{importProgress.progress}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
                   className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${importProgress.progress}%` }}
@@ -150,7 +150,7 @@ export default function PlayersPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               {/* Busca por texto */}
               <div>
-                <label htmlFor="search" className="block text-sm font-medium text-gray-900 mb-2">
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Buscar
                 </label>
                 <input
@@ -165,7 +165,7 @@ export default function PlayersPage() {
 
               {/* Filtro por posição */}
               <div>
-                <label htmlFor="position" className="block text-sm font-medium text-gray-900 mb-2">
+                <label htmlFor="position" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Posição
                 </label>
                 <select
@@ -174,11 +174,11 @@ export default function PlayersPage() {
                   onChange={e => setPositionFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
                 >
-                  <option value="" className="text-gray-900">
+                  <option value="" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
                     Todas as posições
                   </option>
                   {uniquePositions.map(position => (
-                    <option key={position} value={position} className="text-gray-900">
+                    <option key={position} value={position} className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
                       {position}
                     </option>
                   ))}
@@ -187,7 +187,7 @@ export default function PlayersPage() {
 
               {/* Filtro por status */}
               <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-900 mb-2">
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Status
                 </label>
                 <select
@@ -196,16 +196,16 @@ export default function PlayersPage() {
                   onChange={e => setStatusFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
                 >
-                  <option value="" className="text-gray-900">
+                  <option value="" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
                     Todos os status
                   </option>
-                  <option value="Ativo" className="text-gray-900">
+                  <option value="Ativo" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
                     Ativo
                   </option>
-                  <option value="Inativo" className="text-gray-900">
+                  <option value="Inativo" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
                     Inativo
                   </option>
-                  <option value="Lesionado" className="text-gray-900">
+                  <option value="Lesionado" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
                     Lesionado
                   </option>
                 </select>
@@ -213,7 +213,7 @@ export default function PlayersPage() {
 
               {/* Ordenação */}
               <div>
-                <label htmlFor="sort" className="block text-sm font-medium text-gray-900 mb-2">
+                <label htmlFor="sort" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Ordenar por
                 </label>
                 <div className="flex gap-2">
@@ -223,13 +223,13 @@ export default function PlayersPage() {
                     onChange={e => setSortBy(e.target.value as 'name' | 'position' | 'nflTeam')}
                     className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
                   >
-                    <option value="name" className="text-gray-900">
+                    <option value="name" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
                       Nome
                     </option>
-                    <option value="position" className="text-gray-900">
+                    <option value="position" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
                       Posição
                     </option>
-                    <option value="nflTeam" className="text-gray-900">
+                    <option value="nflTeam" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
                       Time NFL
                     </option>
                   </select>
@@ -254,7 +254,7 @@ export default function PlayersPage() {
                   setSortOrder('asc');
                   setCurrentPage(1);
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 Limpar Filtros
               </button>
@@ -264,7 +264,7 @@ export default function PlayersPage() {
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando jogadores...</p>
+              <p className="text-gray-600 dark:text-gray-300">Carregando jogadores...</p>
             </div>
           ) : (
             <>
@@ -291,7 +291,7 @@ export default function PlayersPage() {
                   </div>
                   <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm text-gray-700 dark:text-gray-200">
                         Mostrando <span className="font-medium">{indexOfFirstPlayer + 1}</span> a{' '}
                         <span className="font-medium">
                           {Math.min(indexOfLastPlayer, filteredPlayers.length)}
