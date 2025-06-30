@@ -42,9 +42,29 @@ export default function PlayersPage() {
       );
     }
 
-    // Aplicar filtro de posição
+    // Aplicar filtro de posição fantasy
     if (positionFilter !== 'all') {
-      filtered = filtered.filter(player => player.position === positionFilter);
+      filtered = filtered.filter(player => {
+        let positions: string[] = [];
+        
+        if (player.fantasyPositions) {
+          // Se fantasyPositions é array, usa diretamente
+          if (Array.isArray(player.fantasyPositions)) {
+            positions = player.fantasyPositions.filter(pos => pos && pos.trim() !== '');
+          } 
+          // Se fantasyPositions é string, converte para array
+          else if (typeof player.fantasyPositions === 'string' && player.fantasyPositions.trim() !== '') {
+            positions = player.fantasyPositions.split(',').map(pos => pos.trim()).filter(pos => pos !== '');
+          }
+        }
+        
+        // Se não há posições fantasy válidas, usa position como fallback
+        if (positions.length === 0) {
+          positions = [player.position];
+        }
+        
+        return positions.includes(positionFilter);
+      });
     }
 
     // Aplicar filtro de status
@@ -64,8 +84,23 @@ export default function PlayersPage() {
           valueB = b.name;
           break;
         case 'position':
-          valueA = a.position;
-          valueB = b.position;
+          // Usa a primeira posição fantasy para ordenação
+          const getFirstFantasyPosition = (player: any) => {
+            let positions: string[] = [];
+            
+            if (player.fantasyPositions) {
+              if (Array.isArray(player.fantasyPositions)) {
+                positions = player.fantasyPositions.filter((pos: string) => pos && pos.trim() !== '');
+              } else if (typeof player.fantasyPositions === 'string' && player.fantasyPositions.trim() !== '') {
+                positions = player.fantasyPositions.split(',').map((pos: string) => pos.trim()).filter((pos: string) => pos !== '');
+              }
+            }
+            
+            return positions.length > 0 ? positions[0] : player.position;
+          };
+          
+          valueA = getFirstFantasyPosition(a);
+          valueB = getFirstFantasyPosition(b);
           break;
         case 'nflTeam':
           valueA = a.nflTeam || '';
@@ -89,8 +124,32 @@ export default function PlayersPage() {
   const currentPlayers = filteredPlayers.slice(indexOfFirstPlayer, indexOfLastPlayer);
   const totalPages = Math.ceil(filteredPlayers.length / playersPerPage);
 
-  // Obter posições únicas para o filtro
-  const uniquePositions = Array.from(new Set(players.map(player => player.position))).sort();
+  // Obter posições fantasy únicas para o filtro
+  const uniquePositions = Array.from(
+    new Set(
+      players.flatMap(player => {
+        let positions: string[] = [];
+        
+        if (player.fantasyPositions) {
+          // Se fantasyPositions é array, usa diretamente
+          if (Array.isArray(player.fantasyPositions)) {
+            positions = player.fantasyPositions.filter(pos => pos && pos.trim() !== '');
+          } 
+          // Se fantasyPositions é string, converte para array
+          else if (typeof player.fantasyPositions === 'string' && player.fantasyPositions.trim() !== '') {
+            positions = player.fantasyPositions.split(',').map(pos => pos.trim()).filter(pos => pos !== '');
+          }
+        }
+        
+        // Se não há posições fantasy válidas, usa position como fallback
+        if (positions.length === 0) {
+          positions = [player.position];
+        }
+        
+        return positions;
+      })
+    )
+  ).sort();
 
   const handleImport = async () => {
     setImporting(true);
@@ -163,10 +222,10 @@ export default function PlayersPage() {
                 />
               </div>
 
-              {/* Filtro por posição */}
+              {/* Filtro por posição fantasy */}
               <div>
                 <label htmlFor="position" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                  Posição
+                  Posição Fantasy
                 </label>
                 <select
                   id="position"
@@ -175,7 +234,7 @@ export default function PlayersPage() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
                 >
                   <option value="" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
-                    Todas as posições
+                    Todas as posições fantasy
                   </option>
                   {uniquePositions.map(position => (
                     <option key={position} value={position} className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
@@ -227,7 +286,7 @@ export default function PlayersPage() {
                       Nome
                     </option>
                     <option value="position" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
-                      Posição
+                      Posição Fantasy
                     </option>
                     <option value="nflTeam" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">
                       Time NFL
