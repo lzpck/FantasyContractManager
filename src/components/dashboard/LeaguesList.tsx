@@ -140,7 +140,10 @@ export function LeaguesList({ leagues }: LeaguesListProps) {
         <div className="text-4xl mb-4">🏆</div>
         <h3 className="text-lg font-medium text-slate-100 mb-2">Nenhuma liga encontrada</h3>
         <p className="text-slate-400 text-sm mb-4">Você ainda não possui ligas cadastradas.</p>
-        <button className="bg-slate-700 text-slate-100 px-4 py-2 rounded-lg hover:bg-slate-600 transition-colors border border-slate-600 text-sm">
+        <button 
+          onClick={() => router.push('/leagues')}
+          className="bg-slate-700 text-slate-100 px-4 py-2 rounded-lg hover:bg-slate-600 transition-colors border border-slate-600 text-sm"
+        >
           Importar Liga
         </button>
       </div>
