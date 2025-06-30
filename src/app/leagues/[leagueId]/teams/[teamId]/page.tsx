@@ -12,6 +12,7 @@ import PositionDistributionChart from '@/components/teams/PositionDistributionCh
 import ContractActionsModal from '@/components/teams/ContractActionsModal';
 import ContractModal from '@/components/teams/ContractModal';
 import { useContractModal } from '@/hooks/useContractModal';
+import { useAuth } from '@/hooks/useAuth';
 
 
 /**
@@ -40,6 +41,8 @@ export default function TeamDetailsPage() {
   
   // Hook para gerenciar o ContractModal
   const contractModal = useContractModal();
+  const { user } = useAuth();
+  const isCommissioner = user?.role === 'COMMISSIONER';
 
   // Carregar dados do time
   useEffect(() => {
@@ -69,46 +72,16 @@ export default function TeamDetailsPage() {
         }
         setTeam(foundTeam);
 
-        // 3. Buscar roster do Sleeper
-        let sleeperRoster = [];
-        if (leagueData.league.sleeperLeagueId && foundTeam.sleeperOwnerId) {
-          try {
-            const rosters = await SleeperService.fetchRosters(leagueData.league.sleeperLeagueId);
-            const teamRoster = rosters.find(
-              r => String(r.owner_id) === String(foundTeam.sleeperOwnerId),
-            );
-
-            if (teamRoster) {
-              // Buscar informações detalhadas dos jogadores
-              const allPlayers = await SleeperService.fetchPlayers();
-              sleeperRoster = teamRoster.players
-                .map(playerId => {
-                  const playerInfo = allPlayers[playerId];
-                  if (!playerInfo) return null;
-
-                  // Determinar status do jogador (ativo, IR, taxi)
-                  let status: PlayerRosterStatus = 'active';
-                  if (teamRoster.reserve && teamRoster.reserve.includes(playerId)) {
-                    status = 'ir';
-                  } else if (teamRoster.taxi && teamRoster.taxi.includes(playerId)) {
-                    status = 'taxi';
-                  }
-
-                  return {
-                    sleeperPlayerId: playerId,
-                    name:
-                      playerInfo.full_name || `${playerInfo.first_name} ${playerInfo.last_name}`,
-                    position: playerInfo.position || 'N/A',
-                    nflTeam: playerInfo.team || 'FA',
-                    age: playerInfo.age,
-                    status,
-                  };
-                })
-                .filter(Boolean);
-            }
-          } catch (sleeperError) {
-            console.warn('Erro ao buscar dados do Sleeper:', sleeperError);
+        // 3. Buscar jogadores do roster do time
+        let rosterPlayers = [];
+        try {
+          const playersResponse = await fetch(`/api/teams/${teamId}/players`);
+          if (playersResponse.ok) {
+            const playersData = await playersResponse.json();
+            rosterPlayers = playersData.players || [];
           }
+        } catch (playersError) {
+          console.warn('Erro ao buscar jogadores do roster:', playersError);
         }
 
         // 4. Buscar contratos existentes
@@ -125,27 +98,17 @@ export default function TeamDetailsPage() {
           const { getDemoPlayersWithContracts } = await import('@/data/demoData');
           playersWithContractsData = getDemoPlayersWithContracts(teamId);
         } else {
-          // Usuário real: combinar dados do Sleeper com contratos locais
+          // Usuário real: combinar dados do roster com contratos locais
           // Mostrar todos os jogadores do roster, mesmo sem contrato
-          playersWithContractsData = sleeperRoster.map(player => {
+          playersWithContractsData = rosterPlayers.map(rosterPlayer => {
             const existingContract = contractsData.contracts.find(
-              (c: Contract) => c.player.sleeperPlayerId === player.sleeperPlayerId,
+              (c: Contract) => c.player.sleeperPlayerId === rosterPlayer.sleeperPlayerId,
             );
 
             return {
-              player: {
-                id: player.sleeperPlayerId,
-                sleeperPlayerId: player.sleeperPlayerId,
-                name: player.name,
-                position: player.position,
-                fantasyPositions: [player.position],
-                nflTeam: player.nflTeam,
-                isActive: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              },
+              player: rosterPlayer.player,
               contract: existingContract || null,
-              rosterStatus: player.status,
+              rosterStatus: rosterPlayer.status as PlayerRosterStatus,
             };
           });
 
@@ -153,7 +116,7 @@ export default function TeamDetailsPage() {
           // (jogadores que foram cortados mas ainda têm dead money)
           const playersNotInRoster = contractsData.contracts.filter(
             (c: Contract) =>
-              !sleeperRoster.some(p => p.sleeperPlayerId === c.player.sleeperPlayerId),
+              !rosterPlayers.some(p => p.sleeperPlayerId === c.player.sleeperPlayerId),
           );
 
           playersNotInRoster.forEach((contract: Contract) => {
@@ -163,7 +126,9 @@ export default function TeamDetailsPage() {
                 sleeperPlayerId: contract.player.sleeperPlayerId,
                 name: contract.player.name,
                 position: contract.player.position,
-                fantasyPositions: contract.player.fantasyPositions || [contract.player.position],
+                fantasyPositions: contract.player.fantasyPositions 
+                  ? contract.player.fantasyPositions.split(',') 
+                  : [contract.player.position],
                 nflTeam: contract.player.nflTeam || 'FA',
                 isActive: contract.player.isActive,
                 createdAt: contract.player.createdAt,
@@ -333,7 +298,7 @@ export default function TeamDetailsPage() {
           setSelectedPlayer(null);
         }}
         onAction={handleContractAction}
-        isCommissioner={true}
+        isCommissioner={isCommissioner}
       />
       
       {/* Modal de Contrato */}
@@ -345,7 +310,7 @@ export default function TeamDetailsPage() {
         league={contractModal.league}
         contract={contractModal.contract}
         onSave={contractModal.saveContract}
-        isCommissioner={true}
+        isCommissioner={isCommissioner}
       />
     </div>
   );

@@ -175,6 +175,8 @@ model Team {
   ownerId   String
   owner     User       @relation(fields: [ownerId], references: [id])
   contracts Contract[]
+  roster    TeamRoster[]
+  deadMoney DeadMoney[]
 
   // Timestamps (ISO 8601 format)
   createdAt String @default("")
@@ -207,8 +209,34 @@ model Player {
   updatedAt String @default("")
 
   contracts Contract[]
+  teamRosters TeamRoster[]
+  deadMoney DeadMoney[]
 
   @@map("players")
+}
+
+/**
+ * Modelo para associar jogadores aos rosters dos times
+ */
+model TeamRoster {
+  id              String @id @default(cuid())
+  teamId          String
+  playerId        String
+  sleeperPlayerId String
+  status          String @default("active") // active, ir, taxi
+  
+  // Timestamps (ISO 8601 format)
+  createdAt String @default("")
+  updatedAt String @default("")
+
+  // Relacionamentos
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, playerId])
+  @@index([teamId])
+  @@index([sleeperPlayerId])
+  @@map("team_rosters")
 }
 
 /**
@@ -255,9 +283,31 @@ model Contract {
   createdAt                 String          @default("")
   updatedAt                 String          @default("")
 
-  player Player @relation(fields: [playerId], references: [id])
-  team   Team   @relation(fields: [teamId], references: [id])
-  league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  player   Player     @relation(fields: [playerId], references: [id])
+  team     Team       @relation(fields: [teamId], references: [id])
+  league   League     @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  deadMoney DeadMoney[]
 
   @@map("contracts")
+}
+
+/**
+ * Registro de dead money para jogadores cortados
+ */
+model DeadMoney {
+  id         String  @id @default(cuid())
+  teamId     String
+  playerId   String
+  contractId String?
+  amount     Float
+  year       Int
+  reason     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player   Player   @relation(fields: [playerId], references: [id])
+  contract Contract? @relation(fields: [contractId], references: [id])
+
+  @@map("dead_money")
 }

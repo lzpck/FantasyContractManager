@@ -6,6 +6,7 @@ import { XMarkIcon, PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/formatUtils';
 import { useContractModal } from '@/hooks/useContractModal';
 import { useContractOperations } from '@/hooks/useContractOperations';
+import { toast } from 'sonner';
 import ContractModal from './ContractModal';
 
 interface ContractActionData {
@@ -97,10 +98,10 @@ export default function ContractActionsModal({
       }
       
       if (result.success) {
-        alert(result.message);
+        toast.success(result.message);
         onClose();
       } else {
-        alert(`Erro: ${result.message}`);
+        toast.error(`Erro: ${result.message}`);
       }
     } catch (error) {
       console.error('Erro ao salvar contrato:', error);
@@ -159,7 +160,7 @@ export default function ContractActionsModal({
   // Função para aplicar extensão de contrato
   const handleExtension = async () => {
     if (!player?.contract || !formData.extensionSalary || !formData.extensionYears) {
-      alert('Por favor, preencha o salário e anos da extensão.');
+      toast.error('Por favor, preencha o salário e anos da extensão.');
       return;
     }
     
@@ -171,10 +172,10 @@ export default function ContractActionsModal({
     );
     
     if (result.success) {
-      alert(result.message);
+      toast.success(result.message);
       onClose();
     } else {
-      alert(`Erro: ${result.message}`);
+      toast.error(`Erro: ${result.message}`);
     }
   };
   
@@ -187,10 +188,10 @@ export default function ContractActionsModal({
     const result = await applyFranchiseTag(player, tagValue);
     
     if (result.success) {
-      alert(result.message);
+      toast.success(result.message);
       onClose();
     } else {
-      alert(`Erro: ${result.message}`);
+      toast.error(`Erro: ${result.message}`);
     }
   };
   

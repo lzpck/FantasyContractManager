@@ -9,7 +9,7 @@ import { prisma } from '@/lib/prisma';
  * Lista todos os times de uma liga específica.
  * Retorna dados reais do banco de dados exclusivamente.
  */
-export async function GET(request: NextRequest, context: { params: { leagueId: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ leagueId: string }> }) {
   const { leagueId } = await context.params;
   try {
     const session = await getServerSession(authOptions);
