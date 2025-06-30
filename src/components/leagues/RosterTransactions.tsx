@@ -20,6 +20,7 @@ interface RosterTransactionsProps {
   league: League;
   onAddContract: (sleeperPlayerId: string, teamId: string) => Promise<void>;
   onAddDeadMoney: (sleeperPlayerId: string, teamId: string) => Promise<void>;
+  onContractSaved?: (sleeperPlayerId: string) => void;
 }
 
 /**
@@ -32,6 +33,7 @@ export default function RosterTransactions({
   league,
   onAddContract,
   onAddDeadMoney,
+  onContractSaved,
 }: RosterTransactionsProps) {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const contractModal = useContractModal();
@@ -243,7 +245,20 @@ export default function RosterTransactions({
         team={contractModal.team}
         league={contractModal.league}
         contract={contractModal.contract}
-        onSave={contractModal.saveContract}
+        onSave={async (contractData) => {
+          try {
+            await contractModal.saveContract(contractData);
+            // Remover jogador da lista após salvar contrato com sucesso
+            if (contractModal.player && onContractSaved) {
+              onContractSaved(contractModal.player.sleeperPlayerId);
+            }
+            // Exibir toast de sucesso
+            toast.success(`Contrato criado com sucesso para ${contractModal.player?.name || 'jogador'}`);
+          } catch (error) {
+            // Em caso de erro, o toast de erro já é exibido pelo hook useContractModal
+            console.error('Erro ao salvar contrato:', error);
+          }
+        }}
         isCommissioner={isCommissioner}
       />
     </>
