@@ -24,153 +24,47 @@ export interface TeamSalaryCapData {
  * Hook para gerenciar dados de salary cap
  */
 export function useSalaryCap() {
-  const { isDemoUser } = useAuth();
-  const { contracts, loading: contractsLoading } = useContracts();
-  const { leagues, loading: leaguesLoading } = useLeagues();
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
+  const { contracts } = useContracts();
+  const { leagues } = useLeagues();
 
-  useEffect(() => {
-    async function loadTeams() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        if (isDemoUser) {
-          // Para usuário demo, gerar dados fictícios baseados nas ligas
-          const demoTeams: Team[] = [];
-          leagues.forEach(league => {
-            for (let i = 1; i <= league.totalTeams; i++) {
-              demoTeams.push({
-                id: `demo-team-${league.id}-${i}`,
-                name: `Time ${i}`,
-                leagueId: league.id,
-                ownerId: 'demo-user',
-                sleeperOwnerId: `demo-owner-${i}`,
-                ownerDisplayName: `Proprietário ${i}`,
-                sleeperTeamId: `demo-sleeper-${i}`,
-                currentSalaryCap: 0, // Será calculado
-                currentDeadMoney: Math.random() * 5000000, // 0-5M de dead money
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              });
-            }
-          });
-          setTeams(demoTeams);
-        } else {
-          // Usuários reais: buscar times da API
-          const response = await fetch('/api/teams');
-
-          if (!response.ok) {
-            throw new Error('Erro ao carregar times');
-          }
-
-          const data = await response.json();
-          setTeams(data.teams || []);
-        }
-      } catch (err) {
-        console.error('Erro ao carregar times:', err);
-        setError(err instanceof Error ? err.message : 'Erro desconhecido');
-      } finally {
-        setLoading(false);
-      }
+  const calculateTeamSalaryCap = (teamId: string): TeamSalaryCapData | null => {
+    if (!isAuthenticated || !contracts || !leagues) {
+      return null;
     }
 
-    if (!contractsLoading && !leaguesLoading) {
-      loadTeams();
+    const teamContracts = contracts.filter(contract => contract.teamId === teamId);
+    const team = leagues.flatMap(league => league.teams || []).find(team => team.id === teamId);
+    
+    if (!team) {
+      return null;
     }
-  }, [isDemoUser, contractsLoading, leaguesLoading, leagues]);
 
-  /**
-   * Calcula dados de salary cap para todos os times
-   */
-  const calculateSalaryCapData = (): TeamSalaryCapData[] => {
-    return teams.map(team => {
-      const league = leagues.find(l => l.id === team.leagueId);
-      const teamContracts = contracts.filter(c => c.teamId === team.id && c.status === 'ACTIVE');
+    const totalCap = 200000000; // $200M salary cap padrão
+    const usedCap = teamContracts.reduce((sum, contract) => sum + (contract.currentSalary || 0), 0);
+    const availableCap = totalCap - usedCap;
+    const usedPercentage = (usedCap / totalCap) * 100;
+    const deadMoney = teamContracts.reduce((sum, contract) => sum + (contract.deadMoney || 0), 0);
+    const activeContracts = teamContracts.filter(contract => contract.status === 'ACTIVE').length;
+    const expiringContracts = teamContracts.filter(contract => 
+      contract.yearsRemaining === 1 && contract.status === 'ACTIVE'
+    ).length;
 
-      const totalCap = league?.salaryCap || 279000000; // Default $279M
-      const usedCap = teamContracts.reduce((sum, contract) => sum + contract.currentSalary, 0);
-      const availableCap = totalCap - usedCap - team.currentDeadMoney;
-      const usedPercentage = (usedCap / totalCap) * 100;
-      const expiringContracts = teamContracts.filter(c => c.yearsRemaining === 1).length;
-
-      return {
-        teamId: team.id,
-        teamName: team.name,
-        leagueId: team.leagueId,
-        totalCap,
-        usedCap,
-        availableCap,
-        usedPercentage,
-        deadMoney: team.currentDeadMoney,
-        activeContracts: teamContracts.length,
-        expiringContracts,
-      };
-    });
+    return {
+      teamId,
+      teamName: team.name,
+      leagueId: team.leagueId,
+      totalCap,
+      usedCap,
+      availableCap,
+      usedPercentage,
+      deadMoney,
+      activeContracts,
+      expiringContracts,
+    };
   };
-
-  /**
-   * Calcula a média de cap utilizado por todas as ligas do usuário
-   */
-  const calculateAverageCapUsed = (): number => {
-    const salaryCapData = calculateSalaryCapData();
-
-    if (salaryCapData.length === 0) return 0;
-
-    const totalPercentage = salaryCapData.reduce((sum, data) => sum + data.usedPercentage, 0);
-    return totalPercentage / salaryCapData.length;
-  };
-
-  /**
-   * Retorna dados de salary cap para uma liga específica
-   */
-  const getLeagueSalaryCapData = (leagueId: string): TeamSalaryCapData[] => {
-    return calculateSalaryCapData().filter(data => data.leagueId === leagueId);
-  };
-
-  /**
-   * Retorna times próximos de estourar o cap (acima de 90%)
-   */
-  const getTeamsNearCapLimit = (): TeamSalaryCapData[] => {
-    return calculateSalaryCapData().filter(data => data.usedPercentage > 90);
-  };
-
-  const isLoading = loading || contractsLoading || leaguesLoading;
 
   return {
-    teams,
-    loading: isLoading,
-    error,
-    // Funções de cálculo
-    calculateSalaryCapData,
-    calculateAverageCapUsed,
-    getLeagueSalaryCapData,
-    getTeamsNearCapLimit,
-    // Dados calculados
-    salaryCapData: calculateSalaryCapData(),
-    averageCapUsed: calculateAverageCapUsed(),
-    teamsNearLimit: getTeamsNearCapLimit(),
-  };
-}
-
-/**
- * Hook para dados de salary cap de uma liga específica
- */
-export function useLeagueSalaryCap(leagueId: string) {
-  const { getLeagueSalaryCapData, loading, error } = useSalaryCap();
-
-  const leagueData = getLeagueSalaryCapData(leagueId);
-
-  return {
-    teams: leagueData,
-    loading,
-    error,
-    totalTeams: leagueData.length,
-    averageUsedPercentage:
-      leagueData.length > 0
-        ? leagueData.reduce((sum, team) => sum + team.usedPercentage, 0) / leagueData.length
-        : 0,
+    calculateTeamSalaryCap,
   };
 }

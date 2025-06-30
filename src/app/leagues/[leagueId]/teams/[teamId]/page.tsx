@@ -117,63 +117,56 @@ export default function TeamDetailsPage() {
           ? await contractsResponse.json()
           : { contracts: [] };
 
-        // 5. Verificar se é usuário demo e usar dados demo se necessário
+        // 5. Combinar dados do Sleeper com contratos locais
         let playersWithContractsData: PlayerWithContract[] = [];
 
-        if (contractsData.message === 'Dados demo gerenciados no frontend') {
-          // Usuário demo: usar dados demo
-          const { getDemoPlayersWithContracts } = await import('@/data/demoData');
-          playersWithContractsData = getDemoPlayersWithContracts(teamId);
-        } else {
-          // Usuário real: combinar dados do Sleeper com contratos locais
-          // Mostrar todos os jogadores do roster, mesmo sem contrato
-          playersWithContractsData = sleeperRoster.map(player => {
-            const existingContract = contractsData.contracts.find(
-              (c: Contract) => c.player.sleeperPlayerId === player.sleeperPlayerId,
-            );
-
-            return {
-              player: {
-                id: player.sleeperPlayerId,
-                sleeperPlayerId: player.sleeperPlayerId,
-                name: player.name,
-                position: player.position,
-                fantasyPositions: [player.position],
-                nflTeam: player.nflTeam,
-                isActive: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              },
-              contract: existingContract || null,
-              rosterStatus: player.status,
-            };
-          });
-
-          // Adicionar também jogadores com contratos que não estão no roster atual
-          // (jogadores que foram cortados mas ainda têm dead money)
-          const playersNotInRoster = contractsData.contracts.filter(
-            (c: Contract) =>
-              !sleeperRoster.some(p => p.sleeperPlayerId === c.player.sleeperPlayerId),
+        // Mostrar todos os jogadores do roster, mesmo sem contrato
+        playersWithContractsData = sleeperRoster.map(player => {
+          const existingContract = contractsData.contracts.find(
+            (c: Contract) => c.player.sleeperPlayerId === player.sleeperPlayerId,
           );
 
-          playersNotInRoster.forEach((contract: Contract) => {
-            playersWithContractsData.push({
-              player: {
-                id: contract.player.id,
-                sleeperPlayerId: contract.player.sleeperPlayerId,
-                name: contract.player.name,
-                position: contract.player.position,
-                fantasyPositions: contract.player.fantasyPositions || [contract.player.position],
-                nflTeam: contract.player.nflTeam || 'FA',
-                isActive: contract.player.isActive,
-                createdAt: contract.player.createdAt,
-                updatedAt: contract.player.updatedAt,
-              },
-              contract: contract,
-              rosterStatus: 'cut' as PlayerRosterStatus, // Jogador foi cortado
-            });
+          return {
+            player: {
+              id: player.sleeperPlayerId,
+              sleeperPlayerId: player.sleeperPlayerId,
+              name: player.name,
+              position: player.position,
+              fantasyPositions: [player.position],
+              nflTeam: player.nflTeam,
+              isActive: true,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            contract: existingContract || null,
+            rosterStatus: player.status,
+          };
+        });
+
+        // Adicionar também jogadores com contratos que não estão no roster atual
+        // (jogadores que foram cortados mas ainda têm dead money)
+        const playersNotInRoster = contractsData.contracts.filter(
+          (c: Contract) =>
+            !sleeperRoster.some(p => p.sleeperPlayerId === c.player.sleeperPlayerId),
+        );
+
+        playersNotInRoster.forEach((contract: Contract) => {
+          playersWithContractsData.push({
+            player: {
+              id: contract.player.id,
+              sleeperPlayerId: contract.player.sleeperPlayerId,
+              name: contract.player.name,
+              position: contract.player.position,
+              fantasyPositions: contract.player.fantasyPositions || [contract.player.position],
+              nflTeam: contract.player.nflTeam || 'FA',
+              isActive: contract.player.isActive,
+              createdAt: contract.player.createdAt,
+              updatedAt: contract.player.updatedAt,
+            },
+            contract: contract,
+            rosterStatus: 'cut' as PlayerRosterStatus, // Jogador foi cortado
           });
-        }
+        });
 
         setPlayersWithContracts(playersWithContractsData);
       } catch (err) {

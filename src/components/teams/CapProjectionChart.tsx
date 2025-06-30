@@ -464,7 +464,7 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
               <div className="ml-3 flex-1">
                 <h3 className="text-sm font-bold text-purple-400">Alto Dead Money</h3>
                 <p className="text-sm text-purple-300 mt-1">
-                  O time tem dead money significativo (>$10M) em algumas temporadas, impactando a flexibilidade financeira.
+                  O time tem dead money significativo (&gt;$10M) em algumas temporadas, impactando a flexibilidade financeira.
                 </p>
               </div>
             </div>

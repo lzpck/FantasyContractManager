@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { User, League } from '../types';
-import { isDemoUser } from '@/data/demoData';
+
 
 export interface AppState {
   user: User | null;
@@ -11,7 +11,7 @@ export interface AppState {
   currentLeague: League | null;
   loading: boolean;
   error: string | null;
-  isDemoUser: boolean;
+
 }
 
 // Tipos para as ações
@@ -22,7 +22,7 @@ type AppAction =
   | { type: 'SET_CURRENT_LEAGUE'; payload: League | null }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_DEMO_USER'; payload: boolean }
+
   | { type: 'CLEAR_ERROR' };
 
 // Estado inicial
@@ -32,19 +32,17 @@ const initialState: AppState = {
   currentLeague: null,
   loading: false,
   error: null,
-  isDemoUser: false,
+
 };
 
 // Reducer para gerenciar o estado
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_USER':
-      const newIsDemoUser = isDemoUser(action.payload?.email);
       return {
-        ...state,
-        user: action.payload,
-        isDemoUser: newIsDemoUser,
-      };
+    ...state,
+    user: action.payload,
+  };
     case 'SET_LEAGUES':
       return { ...state, leagues: action.payload };
     case 'ADD_LEAGUE':
@@ -55,8 +53,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, loading: action.payload };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
-    case 'SET_DEMO_USER':
-      return { ...state, isDemoUser: action.payload };
+
     case 'CLEAR_ERROR':
       return { ...state, error: null };
     default:
@@ -73,7 +70,7 @@ interface AppContextType {
   setCurrentLeague: (league: League | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  setDemoUser: (isDemoUser: boolean) => void;
+
   clearError: () => void;
 }
 
@@ -113,9 +110,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CLEAR_ERROR' });
   };
 
-  const setDemoUser = (isDemoUser: boolean) => {
-    dispatch({ type: 'SET_DEMO_USER', payload: isDemoUser });
-  };
+
 
   const value: AppContextType = {
     state,
@@ -125,7 +120,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCurrentLeague,
     setLoading,
     setError,
-    setDemoUser,
+
     clearError,
   };
 

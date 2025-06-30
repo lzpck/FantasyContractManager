@@ -1,47 +1,48 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { Player } from '@/types';
-import { getDemoPlayers } from '@/data/demoData';
+import { useAuth } from './useAuth';
 
 export function usePlayers() {
-  const { isDemoUser } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadPlayers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      if (isDemoUser) {
-        setPlayers(getDemoPlayers());
-      } else {
+  useEffect(() => {
+    async function loadPlayers() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        if (!isAuthenticated) {
+          setPlayers([]);
+          return;
+        }
+
+        // Carregar jogadores da API
         const response = await fetch('/api/players');
+
         if (!response.ok) {
           throw new Error('Erro ao carregar jogadores');
         }
+
         const data = await response.json();
-        const parsed: Player[] = (data.players || []).map((p: any) => ({
-          ...p,
-          nflTeam: p.nflTeam ?? p.team,
-          fantasyPositions: Array.isArray(p.fantasyPositions)
-            ? p.fantasyPositions
-            : p.fantasyPositions.split(',').filter((s: string) => s),
-        }));
-        setPlayers(parsed);
+        setPlayers(data.players || []);
+      } catch (err) {
+        console.error('Erro ao carregar jogadores:', err);
+        setError(err instanceof Error ? err.message : 'Erro desconhecido');
+        setPlayers([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Erro ao carregar jogadores:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
-      setPlayers([]);
-    } finally {
-      setLoading(false);
     }
-  };
 
-  useEffect(() => {
     loadPlayers();
-  }, [isDemoUser]);
+  }, [isAuthenticated]);
 
-  return { players, loading, error, refreshPlayers: loadPlayers };
+  return {
+    players,
+    loading,
+    error,
+  };
 }

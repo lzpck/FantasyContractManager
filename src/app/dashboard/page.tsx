@@ -1,296 +1,207 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAppContext } from '@/contexts/AppContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useLeagues } from '@/hooks/useLeagues';
-import { useUserTeams } from '@/hooks/useUserTeams';
+import { useTeams } from '@/hooks/useTeams';
 import { useContracts } from '@/hooks/useContracts';
-import { useSalaryCap } from '@/hooks/useSalaryCap';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { WelcomeCard } from '@/components/WelcomeCard';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Users, Trophy, DollarSign, TrendingUp, Plus } from 'lucide-react';
+import Link from 'next/link';
 
-import { SummaryCard } from '@/components/dashboard/SummaryCard';
-import { SalaryCapChart } from '@/components/dashboard/SalaryCapChart';
-import { LeaguesList } from '@/components/dashboard/LeaguesList';
-
-import { getNFLState } from '@/services/nflStateService';
-import {
-  TrophyIcon,
-  DocumentTextIcon,
-  CurrencyDollarIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-} from '@heroicons/react/24/outline';
-
-/**
- * Conteúdo principal do Dashboard
- *
- * Exibe uma visão geral das ligas, contratos, salary cap e próximos vencimentos.
- * Para usuário demo, utiliza dados fictícios. Para outros usuários, carrega dados reais.
- */
-function DashboardContent() {
-  const router = useRouter();
-  const { state, setUser } = useAppContext();
-  const { user: authUser, isAuthenticated, isDemoUser } = useAuth();
-  const { leagues, loading: leaguesLoading, error: leaguesError, hasLeagues } = useLeagues();
-  const { teams, loading: teamsLoading, error: teamsError } = useUserTeams();
-  const { contracts, loading: contractsLoading } = useContracts();
-  const { teamSalaryCapData, loading: salaryCapLoading } = useSalaryCap();
-  const [nflState, setNflState] = useState<{ season: string; week: number } | null>(null);
-
-  // Inicializar dados do usuário autenticado
-  useEffect(() => {
-    if (isAuthenticated && authUser && !state.user) {
-      setUser({
-        id: authUser.id,
-        name: authUser.name || 'Usuário',
-        email: authUser.email || '',
-        avatar: authUser.image || undefined,
-        role: authUser.role,
-        isActive: true,
-        isCommissioner: authUser.role === 'COMMISSIONER',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-    }
-  }, [isAuthenticated, authUser, state.user, setUser]);
-
-  // Buscar estado atual da NFL
-  useEffect(() => {
-    const fetchNFLState = async () => {
-      try {
-        const state = await getNFLState();
-        setNflState({
-          season: state.season,
-          week: state.week,
-        });
-      } catch (error) {
-        console.error('Erro ao buscar estado da NFL:', error);
-      }
-    };
-
-    fetchNFLState();
-  }, []);
-
-  // Estados de carregamento
-  const isLoading = leaguesLoading || teamsLoading || contractsLoading || salaryCapLoading;
-  const error = leaguesError || teamsError;
-
-  // Renderização condicional baseada no tipo de usuário
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-400">Carregando dados...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Mensagem para usuários sem dados (exceto demo)
-  if (!isDemoUser && !hasLeagues) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Nenhuma liga encontrada</h2>
-          <p className="text-slate-400 mb-6">
-            Você ainda não possui ligas cadastradas. Importe uma liga do Sleeper para começar!
-          </p>
-          <button className="bg-slate-700 text-slate-100 px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors border border-slate-600">
-            Importar Liga
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Erro ao carregar dados</h2>
-          <p className="text-slate-400 mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-slate-700 text-slate-100 px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors border border-slate-600"
-          >
-            Tentar Novamente
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Cálculos dinâmicos baseados em dados reais
-  const totalLeagues = leagues.length;
-
-  // Contratos ativos: filtrar apenas contratos com status ACTIVE
-  const activeContracts = contracts.filter(contract => contract.status === 'ACTIVE').length;
-
-  // Contratos vencendo: filtrar contratos com yearsRemaining = 1
-  const expiringContracts = contracts.filter(
-    contract => contract.status === 'ACTIVE' && contract.yearsRemaining === 1,
-  ).length;
-
-  // Cap médio utilizado: calcular média de utilização do cap dos times do usuário
-  const userTeams = teams.filter(team => team.ownerId === authUser?.id);
-  const averageCapUsed =
-    userTeams.length > 0 && teamSalaryCapData
-      ? userTeams.reduce((acc, team) => {
-          const teamCapData = teamSalaryCapData.find(data => data.teamId === team.id);
-          return acc + (teamCapData?.usedPercentage || 0);
-        }, 0) / userTeams.length
-      : 0;
-
-  // Calcular valor médio em milhões
-  const averageCapUsedInMillions =
-    userTeams.length > 0 && teamSalaryCapData
-      ? userTeams.reduce((acc, team) => {
-          const teamCapData = teamSalaryCapData.find(data => data.teamId === team.id);
-          const league = leagues.find(l => l.id === team.leagueId);
-          const salaryCap = league?.salaryCap || 279000000; // Default $279M
-          const usedAmount = ((teamCapData?.usedPercentage || 0) * salaryCap) / 100;
-          return acc + usedAmount;
-        }, 0) /
-        userTeams.length /
-        1000000 // Converter para milhões
-      : 0;
-
-  // Verificar alertas
-  const hasCapAlert =
-    teamSalaryCapData &&
-    userTeams.some(team => {
-      const teamCapData = teamSalaryCapData.find(data => data.teamId === team.id);
-      return (teamCapData?.usedPercentage || 0) > 90;
-    });
-
-  const hasExpiringAlert = expiringContracts > 0;
-
-  // Handlers para navegação
-  const handleActiveContractsClick = () => {
-    router.push('/contracts?status=active');
-  };
-
-  const handleExpiringContractsClick = () => {
-    router.push('/contracts?yearsRemaining=1');
-  };
-
-  // Indicador visual para usuário demo
-  const demoIndicator = isDemoUser ? (
-    <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-      <div className="flex items-center">
-        <div className="flex-shrink-0">
-          <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />
-        </div>
-        <div className="ml-3">
-          <p className="text-sm text-yellow-800">
-            <strong>Modo Demonstração:</strong> Você está visualizando dados fictícios para fins de
-            demonstração.
-          </p>
-        </div>
-      </div>
-    </div>
-  ) : null;
-
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Conteúdo principal */}
-      <div>
-        <div className="px-4 sm:px-6 lg:px-8 py-8">
-          {/* Indicador de modo demo */}
-          {demoIndicator}
-
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="mt-2 text-slate-400">
-              Bem-vindo de volta, {authUser?.name || 'Usuário'}!
-            </p>
-          </div>
-
-          {/* Cards de resumo */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <SummaryCard
-              title="Total de Ligas"
-              value={totalLeagues.toString()}
-              subtitle={
-                nflState ? `Temporada ${nflState.season} - Semana ${nflState.week}` : undefined
-              }
-              icon={TrophyIcon}
-            />
-            <SummaryCard
-              title="Contratos Ativos"
-              value={activeContracts.toString()}
-              icon={DocumentTextIcon}
-              onClick={handleActiveContractsClick}
-              hasAlert={false}
-            />
-            <SummaryCard
-              title="Cap Médio Utilizado"
-              value={`$${averageCapUsedInMillions.toFixed(1)}M`}
-              icon={CurrencyDollarIcon}
-              progressPercentage={averageCapUsed}
-              subtitle={`${averageCapUsed.toFixed(1)}% do cap total`}
-              hasAlert={hasCapAlert}
-            />
-            <SummaryCard
-              title="Contratos Vencendo"
-              value={expiringContracts.toString()}
-              icon={ClockIcon}
-              onClick={handleExpiringContractsClick}
-              hasAlert={hasExpiringAlert}
-            />
-          </div>
-
-          {/* Grid principal com gráfico e lista de ligas */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
-            {/* Gráfico de distribuição do salary cap */}
-            <div className="xl:col-span-2 order-2 xl:order-1">
-              <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-4 sm:p-6 h-full">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Distribuição do Salary Cap por Time
-                  </h2>
-                  <div className="text-xs text-slate-400 hidden sm:block">
-                    Clique nas barras para mais detalhes
-                  </div>
-                </div>
-                <div className="min-h-[300px] sm:min-h-[400px]">
-                  <SalaryCapChart leagues={leagues} />
-                </div>
-              </div>
-            </div>
-
-            {/* Lista de ligas */}
-            <div className="xl:col-span-1 order-1 xl:order-2">
-              <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-4 sm:p-6 h-full">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-foreground">Suas Ligas</h2>
-                  <div className="text-xs text-slate-400">
-                    {leagues.length} {leagues.length === 1 ? 'liga' : 'ligas'}
-                  </div>
-                </div>
-                <div className="overflow-hidden">
-                  <LeaguesList leagues={leagues} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Página principal do Dashboard com proteção de autenticação
- */
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const { leagues, loading: leaguesLoading } = useLeagues();
+  const { teams, loading: teamsLoading } = useTeams();
+  const { contracts, loading: contractsLoading } = useContracts();
+
+  const loading = leaguesLoading || teamsLoading || contractsLoading;
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Carregando dashboard...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <ProtectedRoute>
-      <DashboardContent />
-    </ProtectedRoute>
+    <div className="container mx-auto px-4 py-8">
+      <WelcomeCard />
+
+      {/* Estatísticas principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Ligas</CardTitle>
+            <Trophy className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{leagues.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {leagues.length === 0 ? 'Nenhuma liga encontrada' : 'Ligas ativas'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Meus Times</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{teams.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {teams.length === 0 ? 'Nenhum time encontrado' : 'Times gerenciados'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Contratos Ativos</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{contracts.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {contracts.length === 0 ? 'Nenhum contrato encontrado' : 'Contratos gerenciados'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Salary Cap Total</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${((leagues.reduce((sum, league) => sum + (league.salaryCap || 0), 0)) / 1000000).toFixed(0)}M
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Soma de todas as ligas
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Seções principais */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Ligas Recentes */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Minhas Ligas</CardTitle>
+                <CardDescription>
+                  Ligas onde você participa ou é comissário
+                </CardDescription>
+              </div>
+              <Link href="/leagues">
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Liga
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {leagues.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhuma liga encontrada</p>
+                <p className="text-sm">Crie sua primeira liga para começar</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {leagues.slice(0, 3).map((league) => (
+                  <div key={league.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{league.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {league.totalTeams} times • Salary Cap: ${(league.salaryCap / 1000000).toFixed(0)}M
+                      </p>
+                    </div>
+                    <Link href={`/leagues/${league.id}`}>
+                      <Button variant="outline" size="sm">
+                        Ver Liga
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+                {leagues.length > 3 && (
+                  <div className="text-center pt-2">
+                    <Link href="/leagues">
+                      <Button variant="ghost" size="sm">
+                        Ver todas as ligas ({leagues.length})
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Contratos Recentes */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Contratos Recentes</CardTitle>
+                <CardDescription>
+                  Últimos contratos criados ou modificados
+                </CardDescription>
+              </div>
+              <Link href="/contracts">
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Contrato
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {contracts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhum contrato encontrado</p>
+                <p className="text-sm">Crie seu primeiro contrato</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {contracts.slice(0, 3).map((contract) => (
+                  <div key={contract.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{contract.player?.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        ${(contract.currentSalary / 1000000).toFixed(1)}M • {contract.yearsRemaining} anos restantes
+                      </p>
+                    </div>
+                    <Badge variant={contract.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                      {contract.status}
+                    </Badge>
+                  </div>
+                ))}
+                {contracts.length > 3 && (
+                  <div className="text-center pt-2">
+                    <Link href="/contracts">
+                      <Button variant="ghost" size="sm">
+                        Ver todos os contratos ({contracts.length})
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

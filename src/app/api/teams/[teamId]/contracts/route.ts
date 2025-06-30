@@ -2,57 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { isDemoUser } from '@/data/demoData';
 
-/**
- * GET /api/teams/[teamId]/contracts
- *
- * Busca todos os contratos de um time específico.
- */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ teamId: string }> },
+  { params }: { params: { teamId: string } }
 ) {
   try {
-    // Verificar autenticação
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const userEmail = session.user.email;
-    const { teamId } = await params;
-
-    // Usuário demo: retornar dados fictícios
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json({
-        contracts: [], // Dados demo são gerenciados no frontend
-        message: 'Dados demo gerenciados no frontend',
-      });
-    }
-
-    // Verificar se o time existe e pertence ao usuário
-    const team = await prisma.team.findFirst({
-      where: {
-        id: teamId,
-        owner: {
-          email: userEmail!,
-        },
-      },
-    });
-
-    if (!team) {
-      return NextResponse.json({ error: 'Time não encontrado' }, { status: 404 });
-    }
+    const { teamId } = params;
 
     // Buscar contratos do time
     const contracts = await prisma.contract.findMany({
       where: {
-        teamId: teamId,
+        teamId,
+        team: {
+          ownerId: session.user.id,
+        },
       },
       include: {
         player: true,
+        team: {
+          include: {
+            league: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -62,7 +40,10 @@ export async function GET(
     return NextResponse.json({ contracts });
   } catch (error) {
     console.error('Erro ao buscar contratos do time:', error);
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    );
   }
 }
 
@@ -86,10 +67,7 @@ export async function POST(
     const userEmail = session.user.email;
     const { teamId } = await params;
 
-    // Usuário demo: não permitir modificações
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json({ error: 'Usuário demo não pode modificar dados' }, { status: 403 });
-    }
+
 
     // Verificar se o time existe e pertence ao usuário
     const team = await prisma.team.findFirst({

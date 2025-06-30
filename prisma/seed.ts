@@ -1,135 +1,41 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-import { toISOString, nowInBrazil } from '../src/lib/prisma';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 /**
  * Script de seed para popular o banco de dados com dados iniciais
  *
- * Garante que o usuário de demonstração sempre exista no sistema.
+ * ATENÇÃO: Este seed foi limpo e não cria mais dados de demonstração.
+ * O banco será inicializado vazio, pronto para uso em produção.
  */
 async function main() {
   console.log('🌱 Iniciando seed do banco de dados...');
 
   try {
-    // Criar usuário de demonstração
-    const demoUserEmail = 'demo@demo.com';
-    const demoUserPassword = 'demo';
+    // Verificar se o banco está vazio
+    const userCount = await prisma.user.count();
+    const leagueCount = await prisma.league.count();
+    const teamCount = await prisma.team.count();
+    const playerCount = await prisma.player.count();
+    const contractCount = await prisma.contract.count();
 
-    // Criar usuário comissário (substitui o antigo admin)
-    const commissionerUserEmail = 'commissioner@demo.com';
-    const commissionerUserPassword = 'commissioner';
+    console.log('📊 Estado atual do banco:');
+    console.log(`- Usuários: ${userCount}`);
+    console.log(`- Ligas: ${leagueCount}`);
+    console.log(`- Times: ${teamCount}`);
+    console.log(`- Jogadores: ${playerCount}`);
+    console.log(`- Contratos: ${contractCount}`);
 
-    // Verificar se o usuário demo já existe
-    const existingDemoUser = await prisma.user.findUnique({
-      where: { email: demoUserEmail },
-    });
-
-    // Verificar se o usuário comissário já existe
-    const existingCommissionerUser = await prisma.user.findUnique({
-      where: { email: commissionerUserEmail },
-    });
-
-    let demoUser;
-    if (existingDemoUser) {
-      demoUser = existingDemoUser;
-      console.log('✅ Usuário de demonstração já existe:', demoUserEmail);
+    if (userCount === 0 && leagueCount === 0 && teamCount === 0 && playerCount === 0 && contractCount === 0) {
+      console.log('✅ Banco de dados está vazio e pronto para uso em produção.');
     } else {
-      // Hash da senha
-      const hashedPassword = await bcrypt.hash(demoUserPassword, 12);
-
-      // Criar usuário demo
-      demoUser = await prisma.user.create({
-        data: {
-          name: 'Usuário Demonstração',
-          email: demoUserEmail,
-          password: hashedPassword,
-          role: 'USER',
-          isActive: true,
-          emailVerified: toISOString(nowInBrazil()),
-        },
-      });
-
-      console.log('✅ Usuário de demonstração criado:', {
-        id: demoUser.id,
-        email: demoUser.email,
-        name: demoUser.name,
-        role: demoUser.role,
-      });
+      console.log('ℹ️  Banco contém dados. Para limpar dados demo, execute: npm run clean-demo-data');
     }
 
-    let commissionerUser;
-    if (existingCommissionerUser) {
-      commissionerUser = existingCommissionerUser;
-      console.log('✅ Usuário comissário já existe:', commissionerUserEmail);
-    } else {
-      const hashedPassword = await bcrypt.hash(commissionerUserPassword, 12);
-
-      commissionerUser = await prisma.user.create({
-        data: {
-          name: 'Comissário Demo',
-          email: commissionerUserEmail,
-          password: hashedPassword,
-          role: 'COMMISSIONER',
-          isActive: true,
-          emailVerified: toISOString(nowInBrazil()),
-        },
-      });
-
-      console.log('✅ Usuário comissário criado:', {
-        id: commissionerUser.id,
-        email: commissionerUser.email,
-        name: commissionerUser.name,
-        role: commissionerUser.role,
-      });
-    }
-
-    // Garantir que exista uma liga de demonstração vinculada ao usuário demo
-    const demoLeagueName = 'Liga The Bad Place - Demo';
-    let demoLeague = await prisma.league.findFirst({
-      where: { name: demoLeagueName },
-    });
-
-    if (demoLeague) {
-      if (demoLeague.commissionerId !== demoUser.id) {
-        await prisma.league.update({
-          where: { id: demoLeague.id },
-          data: { commissionerId: demoUser.id },
-        });
-        console.log('✅ Liga de demonstração atualizada para o usuário demo.');
-      } else {
-        console.log('✅ Liga de demonstração já vinculada ao usuário demo.');
-      }
-    } else {
-      demoLeague = await prisma.league.create({
-        data: {
-          name: demoLeagueName,
-          season: new Date().getFullYear(),
-          salaryCap: 279_000_000,
-          totalTeams: 12,
-          status: 'ACTIVE',
-          sleeperLeagueId: 'demo-sleeper-1',
-          commissionerId: demoUser.id,
-          maxFranchiseTags: 1,
-          annualIncreasePercentage: 15,
-          minimumSalary: 1_000_000,
-          seasonTurnoverDate: '04-01',
-        },
-      });
-      console.log('✅ Liga de demonstração criada e vinculada ao usuário demo');
-    }
-
-    // Caso existam times da liga vinculados ao comissário, transferir para o usuário demo
-    if (demoLeague) {
-      await prisma.team.updateMany({
-        where: { leagueId: demoLeague.id, ownerId: commissionerUser.id },
-        data: { ownerId: demoUser.id },
-      });
-    }
-
-    // Aqui você pode adicionar outros dados de seed se necessário
-    // Por exemplo: ligas padrão, configurações do sistema, etc.
+    // Aqui você pode adicionar configurações do sistema se necessário
+    // Por exemplo: configurações padrão, tabelas de referência, etc.
+    // IMPORTANTE: NÃO adicione dados de usuários, ligas ou times demo
 
     console.log('🎉 Seed concluído com sucesso!');
   } catch (error) {

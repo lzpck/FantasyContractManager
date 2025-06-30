@@ -122,16 +122,48 @@ export function useTeam(teamId: string) {
  * Hook para obter times do usuário atual
  */
 export function useUserTeams() {
-  const { user } = useAuth();
-  const { teams, loading, error } = useTeams();
+  const { user, isAuthenticated } = useAuth();
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Filtra times do usuário atual
-  const userTeams = teams.filter(team => team.ownerId === user?.id);
+  useEffect(() => {
+    async function loadUserTeams() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        if (!isAuthenticated) {
+          setTeams([]);
+          return;
+        }
+
+        // Carregar times do usuário da API
+        const response = await fetch('/api/teams');
+
+        if (!response.ok) {
+          throw new Error('Erro ao carregar times');
+        }
+
+        const data = await response.json();
+        const userTeams = (data.teams || []).filter((team: Team) => team.ownerId === user?.id);
+        setTeams(userTeams);
+      } catch (err) {
+        console.error('Erro ao carregar times do usuário:', err);
+        setError(err instanceof Error ? err.message : 'Erro desconhecido');
+        setTeams([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadUserTeams();
+  }, [isAuthenticated, user?.id]);
 
   return {
-    teams: userTeams,
+    teams,
     loading,
     error,
-    hasTeams: userTeams.length > 0,
+    hasTeams: teams.length > 0,
   };
 }

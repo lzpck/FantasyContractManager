@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { Contract } from '@/types';
-import { getDemoContracts } from '@/data/demoData';
+import { useAuth } from './useAuth';
 
 /**
  * Hook para gerenciar contratos
- *
- * Para o usuário demo, retorna dados fictícios.
- * Para outros usuários, carrega dados reais da API.
+ * 
+ * Carrega dados reais da API.
  */
 export function useContracts() {
-  const { isDemoUser } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,64 +19,36 @@ export function useContracts() {
         setLoading(true);
         setError(null);
 
-        if (isDemoUser) {
-          // Usuário demo: retorna dados fictícios
-          const demoContracts = getDemoContracts();
-          setContracts(demoContracts);
-        } else {
-          // Usuários reais: carrega dados da API
-          const response = await fetch('/api/contracts');
-
-          if (!response.ok) {
-            throw new Error('Erro ao carregar contratos');
-          }
-
-          const data = await response.json();
-          setContracts(data.contracts || []);
+        if (!isAuthenticated) {
+          setContracts([]);
+          return;
         }
+
+        // Carregar dados da API
+        const response = await fetch('/api/contracts');
+
+        if (!response.ok) {
+          throw new Error('Erro ao carregar contratos');
+        }
+
+        const data = await response.json();
+        setContracts(data.contracts || []);
       } catch (err) {
         console.error('Erro ao carregar contratos:', err);
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
+        setContracts([]);
       } finally {
         setLoading(false);
       }
     }
 
     loadContracts();
-  }, [isDemoUser]);
-
-  // Funções utilitárias para filtrar contratos
-  const getActiveContracts = () => {
-    return contracts.filter(contract => contract.status === 'ACTIVE');
-  };
-
-  const getExpiringContracts = () => {
-    return contracts.filter(
-      contract => contract.status === 'ACTIVE' && contract.yearsRemaining === 1,
-    );
-  };
-
-  const getContractsByTeam = (teamId: string) => {
-    return contracts.filter(contract => contract.teamId === teamId);
-  };
-
-  const getContractsByLeague = (leagueId: string) => {
-    return contracts.filter(contract => contract.leagueId === leagueId);
-  };
+  }, [isAuthenticated]);
 
   return {
     contracts,
     loading,
     error,
-    // Funções utilitárias
-    getActiveContracts,
-    getExpiringContracts,
-    getContractsByTeam,
-    getContractsByLeague,
-    // Estatísticas
-    totalContracts: contracts.length,
-    activeContracts: getActiveContracts().length,
-    expiringContracts: getExpiringContracts().length,
   };
 }
 

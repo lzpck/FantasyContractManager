@@ -2,72 +2,56 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { isDemoUser } from '@/data/demoData';
 
-/**
- * GET /api/leagues
- *
- * Lista todas as ligas do usuário autenticado.
- * Para o usuário demo, retorna dados fictícios.
- * Para outros usuários, retorna dados reais do banco.
- */
 export async function GET(request: NextRequest) {
   try {
-    // Verificar autenticação
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const userEmail = session.user.email;
-
-    // Usuário demo: não acessa dados reais
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json({
-        leagues: [], // Dados demo são gerenciados no frontend
-        message: 'Dados demo gerenciados no frontend',
-      });
-    }
-
-    // Usuários reais: buscar ligas do banco de dados
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail! },
+    // Buscar ligas do usuário
+    const leagues = await prisma.league.findMany({
+      where: {
+        OR: [
+          { ownerId: session.user.id },
+          {
+            teams: {
+              some: {
+                ownerId: session.user.id,
+              },
+            },
+          },
+        ],
+      },
       include: {
-        leagues: {
-          orderBy: { createdAt: 'desc' },
-        },
         teams: {
           include: {
-            league: true,
+            owner: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            teams: true,
           },
         },
       },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
-    }
-
-    // Combinar ligas onde o usuário é comissário e ligas onde tem times
-    const commissionerLeagues = user.leagues;
-    const teamLeagues = user.teams.map(team => team.league);
-
-    // Remover duplicatas
-    const allLeagues = [...commissionerLeagues];
-    teamLeagues.forEach(league => {
-      if (!allLeagues.find(l => l.id === league.id)) {
-        allLeagues.push(league);
-      }
-    });
-
-    return NextResponse.json({
-      leagues: allLeagues,
-      total: allLeagues.length,
-    });
+    return NextResponse.json({ leagues });
   } catch (error) {
     console.error('Erro ao buscar ligas:', error);
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    );
   }
 }
 
@@ -86,14 +70,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const userEmail = session.user.email;
-
-    // Usuário demo: não pode criar ligas reais
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json(
-        { error: 'Usuário demo não pode criar ligas reais' },
-        { status: 403 },
-      );
+    // Verificar se é usuário demo
+    const userEmail = session.user?.email;
+    if (!userEmail) {
+      return NextResponse.json({ error: 'Email do usuário não encontrado' }, { status: 400 });
     }
 
     // Verificar se o usuário é comissário

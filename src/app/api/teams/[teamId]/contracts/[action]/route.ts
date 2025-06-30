@@ -2,52 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { isDemoUser } from '@/data/demoData';
-import { ContractStatus } from '@/types';
 
-/**
- * POST /api/teams/[teamId]/contracts/[action]
- *
- * Executa ações específicas em contratos:
- * - edit: Editar contrato existente
- * - release: Liberar jogador (cortar)
- * - extend: Estender contrato
- * - tag: Aplicar franchise tag
- */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ teamId: string; action: string }> },
+  { params }: { params: { teamId: string; action: string } }
 ) {
   try {
-    // Verificar autenticação
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const userEmail = session.user.email;
-    const { teamId, action } = await params;
+    const { teamId, action } = params;
+    const body = await request.json();
 
-    // Usuário demo: não permitir modificações
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json({ error: 'Usuário demo não pode modificar dados' }, { status: 403 });
-    }
-
-    // Verificar se o time existe e pertence ao usuário
+    // Verificar se o time pertence ao usuário
     const team = await prisma.team.findFirst({
       where: {
         id: teamId,
-        league: {
-          users: {
-            some: {
-              email: userEmail!,
-            },
-          },
-        },
-      },
-      include: {
-        league: true,
+        ownerId: session.user.id,
       },
     });
 
@@ -55,23 +29,25 @@ export async function POST(
       return NextResponse.json({ error: 'Time não encontrado' }, { status: 404 });
     }
 
-    const body = await request.json();
-
+    // Executar ação baseada no parâmetro
     switch (action) {
-      case 'edit':
-        return await handleEditContract(body, teamId);
-      case 'release':
-        return await handleReleasePlayer(body, teamId, team);
-      case 'extend':
-        return await handleExtendContract(body, teamId);
-      case 'tag':
-        return await handleFranchiseTag(body, teamId, team);
+      case 'create-contract':
+        return await createContract(body, teamId);
+      case 'update-contract':
+        return await updateContract(body);
+      case 'release-player':
+        return await releasePlayer(body);
+      case 'extend-contract':
+        return await extendContract(body);
       default:
-        return NextResponse.json({ error: 'Ação não reconhecida' }, { status: 400 });
+        return NextResponse.json({ error: 'Ação inválida' }, { status: 400 });
     }
   } catch (error) {
-    console.error(`Erro ao executar ação ${params.action}:`, error);
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
+    console.error('Erro ao executar ação:', error);
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    );
   }
 }
 

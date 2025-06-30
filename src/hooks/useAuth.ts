@@ -1,48 +1,26 @@
 import { useSession } from 'next-auth/react';
-import { UserRole } from '@/types/database';
-import { isDemoUser } from '@/data/demoData';
 
-/**
- * Hook personalizado para gerenciar autenticação e permissões
- */
 export function useAuth() {
   const { data: session, status } = useSession();
-
-  const isLoading = status === 'loading';
-  const isAuthenticated = !!session;
   const user = session?.user;
-  const isDemo = isDemoUser(user?.email);
-
-  // Verificações de permissão
-  const isCommissioner = user?.role === UserRole.COMMISSIONER;
-  const isUser = user?.role === UserRole.USER;
-
-  // Funções de verificação de permissão
-  const canManageUsers = isCommissioner;
-  const canManageLeagues = isCommissioner;
-  const canImportLeague = isCommissioner;
-  const canEditSettings = isCommissioner;
-  const canManageTeam = isCommissioner || isUser;
-  const canViewData = isAuthenticated; // Todos os usuários autenticados podem visualizar
 
   return {
-    // Estado da sessão
-    isLoading,
-    isAuthenticated,
-    user,
-    isDemoUser: isDemo,
-
-    // Tipos de usuário
-    isCommissioner,
-    isUser,
-
-    // Permissões específicas
-    canManageUsers,
-    canManageLeagues,
-    canImportLeague,
-    canEditSettings,
-    canManageTeam,
-    canViewData,
+    user: user
+      ? {
+          id: user.id || '',
+          name: user.name || '',
+          email: user.email || '',
+          avatar: user.image,
+          role: user.role || 'USER',
+          isActive: true,
+          isCommissioner: user.role === 'COMMISSIONER',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+      : null,
+    isAuthenticated: !!user,
+    isLoading: status === 'loading',
+  
   };
 }
 
