@@ -145,8 +145,7 @@ export function useContractModal(): UseContractModalReturn {
         // Fechar modal após sucesso
         closeModal();
 
-        // Aqui você pode disparar um evento para recarregar dados
-        // ou atualizar o contexto global
+        // Disparar evento para recarregar dados ou atualizar o contexto global
         window.dispatchEvent(
           new CustomEvent('contractUpdated', {
             detail: { player, team, league, isEdit: !!contract },
