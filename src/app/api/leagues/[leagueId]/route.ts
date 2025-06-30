@@ -91,8 +91,19 @@ export async function GET(
       return NextResponse.json({ error: 'Liga não encontrada' }, { status: 404 });
     }
 
+    // Parse do deadMoneyConfig se for uma string JSON
+    let parsedLeague = { ...league };
+    if (league.deadMoneyConfig && typeof league.deadMoneyConfig === 'string') {
+      try {
+        parsedLeague.deadMoneyConfig = JSON.parse(league.deadMoneyConfig);
+      } catch (error) {
+        console.warn('Erro ao fazer parse do deadMoneyConfig:', error);
+        // Mantém como string se não conseguir fazer parse
+      }
+    }
+
     return NextResponse.json({
-      league,
+      league: parsedLeague,
     });
   } catch (error) {
     console.error('Erro ao buscar liga:', error);

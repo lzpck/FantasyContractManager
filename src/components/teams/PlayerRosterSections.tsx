@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlayerWithContract, PlayerRosterStatus } from '@/types';
+import { PlayerWithContract, PlayerRosterStatus, League, DeadMoneyConfig } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
 import { PencilIcon, PlusIcon, ArrowPathIcon, TagIcon } from '@heroicons/react/24/outline';
 
@@ -8,6 +8,8 @@ interface PlayerRosterSectionsProps {
   players: PlayerWithContract[];
   /** Função chamada ao executar ação em jogador */
   onPlayerAction: (player: PlayerWithContract, action: string) => void;
+  /** Dados da liga (incluindo configuração de dead money) */
+  league: League | null;
 }
 
 /**
@@ -19,7 +21,7 @@ interface PlayerRosterSectionsProps {
  * - Taxi Squad (TS)
  * - Jogadores Cortados
  */
-export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSectionsProps) {
+export function PlayerRosterSections({ players, onPlayerAction, league }: PlayerRosterSectionsProps) {
   // Função para verificar se jogador é elegível para extensão
   const isEligibleForExtension = (contract: any) => {
     return contract && contract.yearsRemaining === 1 && !contract.hasBeenExtended;
@@ -50,11 +52,47 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
     return 'Inativo';
   };
 
-  // Função para calcular dead money
-  const calculateDeadMoney = (contract: any) => {
-    if (!contract) return 0;
-    // Lógica simplificada - pode ser expandida conforme as regras
-    return contract.currentSalary * 0.25;
+  /**
+   * Simula o cálculo de dead money atual e futuro para um jogador
+   * @param contract - Contrato do jogador
+   * @param leagueDeadMoneyConfig - Configuração de dead money da liga
+   * @param currentYear - Ano atual
+   * @returns Objeto com deadMoneyCurrent e deadMoneyNext
+   */
+  const simulateDeadMoney = (
+    contract: any, 
+    leagueDeadMoneyConfig: DeadMoneyConfig | undefined, 
+    currentYear: number
+  ) => {
+    if (!contract) return { deadMoneyCurrent: 0, deadMoneyNext: 0 };
+
+    // Dead money atual: salário atual × percentual da temporada atual
+    const currentSeasonPercent = leagueDeadMoneyConfig?.currentSeason ?? 1;
+    const deadMoneyCurrent = contract.currentSalary * currentSeasonPercent;
+
+    // Dead money próximo ano
+    let deadMoneyNext = 0;
+    const yearsRemaining = contract.yearsRemaining;
+    
+    if (yearsRemaining >= 1) {
+      // Usa o percentual de aumento anual da liga (padrão 15% se não configurado)
+      const annualIncreaseRate = 1 + ((league?.annualIncreasePercentage ?? 15) / 100);
+      
+      // Projeta salário do próximo ano com aumento anual configurado
+      const nextYearSalary = contract.currentSalary * annualIncreaseRate;
+      
+      // Usa o percentual baseado nos anos restantes do contrato
+      // Se o jogador tem 3 anos restantes, usa o percentual para "3" anos
+      const yearsKey = Math.min(yearsRemaining, 4).toString(); // Máximo 4 anos
+      const nextYearPercent = leagueDeadMoneyConfig?.futureSeasons?.[yearsKey] ?? 0;
+      
+      deadMoneyNext = nextYearSalary * nextYearPercent;
+    }
+
+    return {
+      deadMoneyCurrent,
+      deadMoneyNext,
+    };
   };
 
   // Ordem das posições conforme especificado
@@ -148,7 +186,10 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Dead Money
+                  Dead Money (Agora)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Dead Money (Próx. Temp.)
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Ações
@@ -158,7 +199,9 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
             <tbody className="bg-slate-800 divide-y divide-slate-700">
               {sectionPlayers.map(playerWithContract => {
                 const { player, contract } = playerWithContract;
-                const deadMoney = contract ? calculateDeadMoney(contract) : 0;
+                const { deadMoneyCurrent, deadMoneyNext } = contract 
+                  ? simulateDeadMoney(contract, league?.deadMoneyConfig, league?.season || new Date().getFullYear())
+                  : { deadMoneyCurrent: 0, deadMoneyNext: 0 };
                 const statusColor = contract
                   ? getContractStatusColor(contract.status, contract.yearsRemaining)
                   : 'bg-gray-100 text-gray-800';
@@ -228,7 +271,10 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
-                      {contract ? formatCurrency(deadMoney) : '-'}
+                      {contract ? formatCurrency(deadMoneyCurrent) : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
+                      {deadMoneyNext > 0 ? formatCurrency(deadMoneyNext) : '--'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2 relative z-10">
