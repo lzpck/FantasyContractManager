@@ -15,6 +15,7 @@ import ContractActionsModal from './ContractActionsModal';
 import { useAuth } from '@/hooks/useAuth';
 import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/formatUtils';
+import { toast } from 'sonner';
 
 interface PlayerContractsManagerProps {
   /** Lista de jogadores com contratos */
@@ -173,7 +174,7 @@ export function PlayerContractsManager({
       
     } catch (error) {
       console.error('Erro ao processar ação:', error);
-      alert('Erro ao processar ação. Tente novamente.');
+      toast.error('Erro ao processar ação. Tente novamente.');
     }
   };
   

@@ -5,6 +5,8 @@ import { AppProvider } from '@/contexts/AppContext';
 import { AuthNavigation } from '@/components/layout/AuthNavigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { SessionWrapper } from '@/components/providers/SessionWrapper';
+import { Toaster } from 'sonner';
+import { Metadata } from 'next';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -57,6 +59,15 @@ export default function RootLayout({
             </div>
           </AppProvider>
          </SessionWrapper>
+         
+         {/* Toaster para notificações */}
+         <Toaster 
+           position="top-right"
+           richColors
+           closeButton
+           duration={4000}
+           theme="dark"
+         />
       </body>
     </html>
   );

@@ -12,6 +12,7 @@ import PositionDistributionChart from '@/components/teams/PositionDistributionCh
 import ContractActionsModal from '@/components/teams/ContractActionsModal';
 import ContractModal from '@/components/teams/ContractModal';
 import { useContractModal } from '@/hooks/useContractModal';
+import { useAuth } from '@/hooks/useAuth';
 
 
 /**
@@ -40,6 +41,8 @@ export default function TeamDetailsPage() {
   
   // Hook para gerenciar o ContractModal
   const contractModal = useContractModal();
+  const { user } = useAuth();
+  const isCommissioner = user?.role === 'COMMISSIONER';
 
   // Carregar dados do time
   useEffect(() => {
@@ -295,7 +298,7 @@ export default function TeamDetailsPage() {
           setSelectedPlayer(null);
         }}
         onAction={handleContractAction}
-        isCommissioner={true}
+        isCommissioner={isCommissioner}
       />
       
       {/* Modal de Contrato */}
@@ -307,7 +310,7 @@ export default function TeamDetailsPage() {
         league={contractModal.league}
         contract={contractModal.contract}
         onSave={contractModal.saveContract}
-        isCommissioner={true}
+        isCommissioner={isCommissioner}
       />
     </div>
   );

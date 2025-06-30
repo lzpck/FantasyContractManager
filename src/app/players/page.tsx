@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePlayers } from '@/hooks/usePlayers';
 import { useAuth } from '@/hooks/useAuth';
 import { PlayersTable } from '@/components/players/PlayersTable';
-
+import { toast } from 'sonner';
 import { Player } from '@/types';
 
 export interface ImportProgress {
@@ -163,9 +163,9 @@ export default function PlayersPage() {
       }
       refreshPlayers();
       setImportProgress({ step: 'complete', message: 'Importação concluída', progress: 100 });
-      alert(data.success ? `Importados ${data.imported} jogadores` : data.error);
+      toast.success(data.success ? `Importados ${data.imported} jogadores` : data.error);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Erro ao importar jogadores');
+      toast.error(err instanceof Error ? err.message : 'Erro ao importar jogadores');
     } finally {
       setImporting(false);
       setTimeout(() => setImportProgress(null), 500);
