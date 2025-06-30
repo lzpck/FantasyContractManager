@@ -14,10 +14,9 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { SleeperService } from '../src/services/sleeperService';
+import * as sleeperService from '../src/services/sleeperService';
 
 const prisma = new PrismaClient();
-const sleeperService = new SleeperService();
 
 /**
  * Função principal de sincronização
@@ -47,8 +46,12 @@ async function syncSleeperData() {
       console.log(`\n🔄 Sincronizando liga: ${league.name} (${league.sleeperLeagueId})`);
 
       try {
-        // 2. Buscar dados atualizados da liga no Sleeper
-        const sleeperLeague = await sleeperService.getLeague(league.sleeperLeagueId);
+        // Buscar dados atualizados da liga
+        const [sleeperLeague, sleeperRosters, sleeperUsers] = await Promise.all([
+          sleeperService.fetchSleeperLeague(league.sleeperLeagueId!),
+          sleeperService.fetchSleeperRosters(league.sleeperLeagueId!),
+          sleeperService.fetchSleeperUsers(league.sleeperLeagueId!),
+        ]);
 
         if (!sleeperLeague) {
           console.log(`⚠️  Liga ${league.sleeperLeagueId} não encontrada no Sleeper`);
@@ -60,29 +63,21 @@ async function syncSleeperData() {
           where: { id: league.id },
           data: {
             name: sleeperLeague.name,
-            season: sleeperLeague.season,
+            season: parseInt(sleeperLeague.season),
             totalTeams: sleeperLeague.total_rosters,
-            updatedAt: new Date(),
+            updatedAt: new Date().toISOString(),
           },
         });
 
-        // 4. Buscar rosters do Sleeper
-        const rosters = await sleeperService.getRosters(league.sleeperLeagueId);
+        console.log(`📋 Encontrados ${sleeperRosters.length} rosters`);
 
-        if (!rosters || rosters.length === 0) {
-          console.log(`⚠️  Nenhum roster encontrado para liga ${league.sleeperLeagueId}`);
-          continue;
-        }
-
-        console.log(`📋 Encontrados ${rosters.length} rosters`);
-
-        // 5. Sincronizar times e rosters
-        for (const roster of rosters) {
+        // 4. Sincronizar times e rosters
+        for (const roster of sleeperRosters) {
           await syncTeamRoster(league.id, roster);
         }
 
-        // 6. Sincronizar jogadores
-        await syncPlayersFromRosters(rosters);
+        // 5. Sincronizar jogadores
+        await syncPlayersFromRosters(sleeperRosters);
 
         console.log(`✅ Liga ${league.name} sincronizada com sucesso`);
       } catch (error) {
@@ -104,11 +99,11 @@ async function syncSleeperData() {
  */
 async function syncTeamRoster(leagueId: string, roster: any) {
   try {
-    // Buscar time existente pelo sleeperRosterId
+    // Buscar time existente pelo sleeperTeamId
     let team = await prisma.team.findFirst({
       where: {
         leagueId,
-        sleeperRosterId: roster.roster_id.toString(),
+        sleeperTeamId: roster.roster_id.toString(),
       },
     });
 
@@ -120,7 +115,7 @@ async function syncTeamRoster(leagueId: string, roster: any) {
         data: {
           name: roster.metadata?.team_name || `Time ${roster.roster_id}`,
           leagueId,
-          sleeperRosterId: roster.roster_id.toString(),
+          sleeperTeamId: roster.roster_id.toString(),
           sleeperOwnerId: roster.owner_id,
           currentSalaryCap: 0, // Será calculado baseado nos contratos
           currentDeadMoney: 0,
@@ -133,14 +128,117 @@ async function syncTeamRoster(leagueId: string, roster: any) {
         data: {
           name: roster.metadata?.team_name || team.name,
           sleeperOwnerId: roster.owner_id,
-          updatedAt: new Date(),
+          updatedAt: new Date().toISOString(),
         },
       });
     }
 
+    // Sincronizar jogadores do roster
+    await syncTeamRosterPlayers(team.id, roster);
+
     console.log(`🔄 Time ${team.name} atualizado`);
   } catch (error) {
     console.error(`❌ Erro ao sincronizar team roster ${roster.roster_id}:`, error);
+  }
+}
+
+/**
+ * Sincroniza os jogadores do roster de um time
+ */
+async function syncTeamRosterPlayers(teamId: string, roster: any) {
+  try {
+    // Limpar roster atual do time
+    await prisma.teamRoster.deleteMany({
+      where: { teamId },
+    });
+
+    // Processar jogadores ativos
+    if (roster.players && roster.players.length > 0) {
+      for (const playerId of roster.players) {
+        await addPlayerToRoster(teamId, playerId, 'active');
+      }
+    }
+
+    // Processar jogadores na reserva (IR)
+    if (roster.reserve && roster.reserve.length > 0) {
+      for (const playerId of roster.reserve) {
+        await addPlayerToRoster(teamId, playerId, 'ir');
+      }
+    }
+
+    // Processar jogadores no taxi squad
+    if (roster.taxi && roster.taxi.length > 0) {
+      for (const playerId of roster.taxi) {
+        await addPlayerToRoster(teamId, playerId, 'taxi');
+      }
+    }
+
+    console.log(`✅ Roster do time sincronizado: ${roster.players?.length || 0} ativos, ${roster.reserve?.length || 0} IR, ${roster.taxi?.length || 0} taxi`);
+  } catch (error) {
+    console.error(`❌ Erro ao sincronizar jogadores do roster:`, error);
+  }
+}
+
+/**
+ * Adiciona um jogador ao roster do time
+ */
+async function addPlayerToRoster(teamId: string, sleeperPlayerId: string, status: string) {
+  try {
+    // Buscar ou criar o jogador
+    let player = await prisma.player.findUnique({
+      where: { sleeperPlayerId },
+    });
+
+    if (!player) {
+      // Buscar informações do jogador no Sleeper
+       const sleeperPlayers = await sleeperService.fetchSleeperPlayers();
+       const sleeperPlayer = sleeperPlayers?.[sleeperPlayerId];
+
+      if (!sleeperPlayer) {
+        console.warn(`⚠️  Jogador ${sleeperPlayerId} não encontrado no Sleeper`);
+        return;
+      }
+
+      // Criar novo jogador
+      player = await prisma.player.create({
+        data: {
+          name: `${sleeperPlayer.first_name || ''} ${sleeperPlayer.last_name || ''}`.trim(),
+          position: sleeperPlayer.position || 'UNKNOWN',
+          fantasyPositions: sleeperPlayer.fantasy_positions?.join(',') || '',
+          team: sleeperPlayer.team || 'FA',
+          age: sleeperPlayer.age || null,
+          sleeperPlayerId,
+          isActive: sleeperPlayer.active || false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      });
+    }
+
+    // Adicionar ao roster do time (usando upsert para evitar duplicatas)
+    await prisma.teamRoster.upsert({
+      where: {
+        teamId_playerId: {
+          teamId,
+          playerId: player.id,
+        },
+      },
+      update: {
+        sleeperPlayerId,
+        status,
+        updatedAt: new Date().toISOString(),
+      },
+      create: {
+        teamId,
+        playerId: player.id,
+        sleeperPlayerId,
+        status,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error(`❌ Erro ao adicionar jogador ${sleeperPlayerId} ao roster:`, error);
   }
 }
 
@@ -163,7 +261,7 @@ async function syncPlayersFromRosters(rosters: any[]) {
     console.log(`👥 Sincronizando ${allPlayerIds.size} jogadores únicos...`);
 
     // Buscar informações dos jogadores no Sleeper
-    const sleeperPlayers = await sleeperService.getPlayers();
+    const sleeperPlayers = await sleeperService.fetchSleeperPlayers();
 
     if (!sleeperPlayers) {
       console.log('⚠️  Não foi possível buscar dados de jogadores do Sleeper');
@@ -199,7 +297,7 @@ async function syncPlayersFromRosters(rosters: any[]) {
               team: sleeperPlayer.team || 'FA',
               age: sleeperPlayer.age || null,
               isActive: sleeperPlayer.active || false,
-              updatedAt: new Date(),
+              updatedAt: new Date().toISOString(),
             },
           });
           playersUpdated++;
@@ -214,6 +312,8 @@ async function syncPlayersFromRosters(rosters: any[]) {
               age: sleeperPlayer.age || null,
               sleeperPlayerId: playerId,
               isActive: sleeperPlayer.active || false,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
             },
           });
           playersCreated++;

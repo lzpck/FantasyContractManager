@@ -63,8 +63,20 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
   // Função para ordenar jogadores por posição
   const sortPlayersByPosition = (players: PlayerWithContract[]) => {
     return players.sort((a, b) => {
-      const positionA = a.player.fantasyPositions?.[0] || a.player.position;
-      const positionB = b.player.fantasyPositions?.[0] || b.player.position;
+      // Função para obter primeira posição (tratando string ou array)
+            const getFirstPosition = (player: any) => {
+              if (player.fantasyPositions) {
+                if (Array.isArray(player.fantasyPositions)) {
+                  return player.fantasyPositions[0] || player.position;
+                } else if (typeof player.fantasyPositions === 'string' && player.fantasyPositions.trim() !== '') {
+                  return player.fantasyPositions.split(',')[0]?.trim() || player.position;
+                }
+              }
+              return player.position;
+            };
+            
+            const positionA = getFirstPosition(a.player);
+            const positionB = getFirstPosition(b.player);
 
       const indexA = POSITION_ORDER.indexOf(positionA);
       const indexB = POSITION_ORDER.indexOf(positionB);
@@ -155,11 +167,30 @@ export function PlayerRosterSections({ players, onPlayerAction }: PlayerRosterSe
                   ? getContractStatusText(contract.status, contract.yearsRemaining)
                   : 'Sem contrato';
 
-                // Usar fantasyPositions para exibir posições
-                const displayPositions =
-                  player.fantasyPositions && player.fantasyPositions.length > 0
-                    ? player.fantasyPositions.join(', ')
-                    : player.position;
+                // Função para tratar fantasyPositions (pode ser string ou array)
+                const getDisplayPositions = (player: any) => {
+                  let positions: string[] = [];
+                  
+                  if (player.fantasyPositions) {
+                    // Se fantasyPositions é array, usa diretamente
+                    if (Array.isArray(player.fantasyPositions)) {
+                      positions = player.fantasyPositions.filter((pos: string) => pos && pos.trim() !== '');
+                    } 
+                    // Se fantasyPositions é string, converte para array
+                    else if (typeof player.fantasyPositions === 'string' && player.fantasyPositions.trim() !== '') {
+                      positions = player.fantasyPositions.split(',').map((pos: string) => pos.trim()).filter((pos: string) => pos !== '');
+                    }
+                  }
+                  
+                  // Se não há posições fantasy válidas, usa position como fallback
+                  if (positions.length === 0) {
+                    positions = [player.position];
+                  }
+                  
+                  return positions.join(', ');
+                };
+
+                const displayPositions = getDisplayPositions(player);
 
                 return (
                   <tr key={player.id} className="hover:bg-slate-700">

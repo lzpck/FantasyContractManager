@@ -175,6 +175,7 @@ model Team {
   ownerId   String
   owner     User       @relation(fields: [ownerId], references: [id])
   contracts Contract[]
+  roster    TeamRoster[]
 
   // Timestamps (ISO 8601 format)
   createdAt String @default("")
@@ -207,8 +208,33 @@ model Player {
   updatedAt String @default("")
 
   contracts Contract[]
+  teamRosters TeamRoster[]
 
   @@map("players")
+}
+
+/**
+ * Modelo para associar jogadores aos rosters dos times
+ */
+model TeamRoster {
+  id              String @id @default(cuid())
+  teamId          String
+  playerId        String
+  sleeperPlayerId String
+  status          String @default("active") // active, ir, taxi
+  
+  // Timestamps (ISO 8601 format)
+  createdAt String @default("")
+  updatedAt String @default("")
+
+  // Relacionamentos
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, playerId])
+  @@index([teamId])
+  @@index([sleeperPlayerId])
+  @@map("team_rosters")
 }
 
 /**
