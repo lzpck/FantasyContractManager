@@ -41,10 +41,36 @@ export default function PositionDistributionChart({ players }: PositionDistribut
   // Filtrar jogadores que têm contratos válidos
   const playersWithValidContracts = players.filter(p => p.contract && p.contract.currentSalary);
 
-  // Agrupar dados por posição
+  // Função para obter a primeira posição fantasy válida
+  const getFirstFantasyPosition = (player: any) => {
+    let positions: string[] = [];
+    
+    if (player.fantasyPositions) {
+      // Se fantasyPositions é array, usa diretamente
+      if (Array.isArray(player.fantasyPositions)) {
+        positions = player.fantasyPositions.filter(
+          (pos: string) => pos && pos.trim() !== ''
+        );
+      } else if (
+        typeof player.fantasyPositions === 'string' &&
+        player.fantasyPositions.trim() !== ''
+      ) {
+        // Se fantasyPositions é string, converte para array
+        positions = player.fantasyPositions
+          .split(',')
+          .map((pos: string) => pos.trim())
+          .filter((pos: string) => pos !== '');
+      }
+    }
+    
+    // Se não tem fantasyPositions válidas, usa position como fallback
+    return positions.length > 0 ? positions[0] : player.position;
+  };
+
+  // Agrupar dados por posição (usando fantasyPositions)
   const positionData = playersWithValidContracts.reduce(
     (acc, playerWithContract) => {
-      const position = playerWithContract.player.position;
+      const position = getFirstFantasyPosition(playerWithContract.player);
       const salary = playerWithContract.contract.currentSalary;
 
       if (!acc[position]) {
