@@ -286,7 +286,10 @@ export function ContractSystemExample() {
   // Filtrar apenas contratos ativos (não cortados)
   const activeContracts = players.filter(p => p.contract && p.contract.status !== 'CUT');
   const totalContracts = activeContracts.length;
-  const totalSalaries = activeContracts.reduce((sum, p) => sum + (p.contract?.currentSalary || 0), 0);
+  const totalSalaries = activeContracts.reduce(
+    (sum, p) => sum + (p.contract?.currentSalary || 0),
+    0,
+  );
   const expiring = activeContracts.filter(p => p.contract?.yearsRemaining === 0).length;
   const freeAgents = players.filter(p => !p.contract || p.contract.status === 'CUT').length;
 

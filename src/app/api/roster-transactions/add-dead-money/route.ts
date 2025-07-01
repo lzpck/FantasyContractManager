@@ -11,29 +11,31 @@ async function handlePlayerCut(contract: any, league: { deadMoneyConfig: any; se
   // 1. Dead money do ano atual
   const deadMoneyAtual = contract.currentSalary * (config.currentSeason ?? 1);
 
-  const records = [{
-    playerId: contract.playerId,
-    teamId: contract.teamId,
-    contractId: contract.id,
-    year: league.season,
-    amount: deadMoneyAtual,
-    reason: "Jogador cortado via transação de roster",
-  }];
+  const records = [
+    {
+      playerId: contract.playerId,
+      teamId: contract.teamId,
+      contractId: contract.id,
+      year: league.season,
+      amount: deadMoneyAtual,
+      reason: 'Jogador cortado via transação de roster',
+    },
+  ];
 
   // 2. Dead money do próximo ano (baseado nos anos restantes)
   const yearsRemaining = contract.yearsRemaining;
-  
+
   if (yearsRemaining >= 1) {
     // Usa o percentual baseado nos anos restantes do contrato
     const yearsKey = Math.min(yearsRemaining, 4).toString(); // Máximo 4 anos
     const nextYearPercent = config.futureSeasons?.[yearsKey] ?? 0;
-    
+
     if (nextYearPercent > 0) {
       // Projeta salário do próximo ano com aumento anual (15% padrão)
-      const annualIncreaseRate = 1 + ((contract.annualIncrease ?? 0.15));
+      const annualIncreaseRate = 1 + (contract.annualIncrease ?? 0.15);
       const nextYearSalary = contract.currentSalary * annualIncreaseRate;
       const deadMoneyNext = nextYearSalary * nextYearPercent;
-      
+
       records.push({
         playerId: contract.playerId,
         teamId: contract.teamId,
@@ -127,11 +129,14 @@ export async function POST(request: NextRequest) {
         // Calcular endYear baseado no yearsRemaining e season atual
         const contractWithEndYear = {
           ...activeContract,
-          endYear: league.season + activeContract.yearsRemaining
+          endYear: league.season + activeContract.yearsRemaining,
         };
-        
+
         // Calcular e persistir dead money usando nossa função
-        deadMoneyRecords = await handlePlayerCut(contractWithEndYear, { deadMoneyConfig, season: league.season });
+        deadMoneyRecords = await handlePlayerCut(contractWithEndYear, {
+          deadMoneyConfig,
+          season: league.season,
+        });
         calculatedDeadMoney = deadMoneyRecords.reduce((sum, record) => sum + record.amount, 0);
       } else {
         calculatedDeadMoney = activeContract.currentSalary || 0;
