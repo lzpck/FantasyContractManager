@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 
 /**
  * Componente de navegação lateral (sidebar)
@@ -28,12 +29,6 @@ export function Sidebar() {
       description: 'Gerenciar ligas',
     },
     {
-      name: 'Times',
-      href: '/teams',
-      icon: '👥',
-      description: 'Gerenciar times',
-    },
-    {
       name: 'Contratos',
       href: '/contracts',
       icon: '📋',
@@ -52,18 +47,17 @@ export function Sidebar() {
       description: 'Rookie Draft',
     },
     {
-      name: 'Análises',
-      href: '/analytics',
-      icon: '📈',
-      description: 'Relatórios e gráficos',
-    },
-    {
-      name: 'Configurações',
-      href: '/settings',
-      icon: '⚙️',
-      description: 'Configurações do sistema',
+      name: 'Informações',
+      href: '/informacoes',
+      icon: 'ℹ️',
+      description: 'Regras, contato e suporte',
     },
   ];
+
+  // Função para logout
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/auth/signin' });
+  };
 
   // Verificar se o item está ativo
   const isActiveItem = (href: string) => {
@@ -126,6 +120,23 @@ export function Sidebar() {
                   </Link>
                 </li>
               ))}
+              
+              {/* Botão de Logout */}
+              <li className="mt-auto">
+                <button
+                  onClick={handleLogout}
+                  className="group flex gap-x-3 rounded-xl p-2 text-sm leading-6 font-semibold transition-colors text-slate-100 hover:text-red-400 hover:bg-slate-800 w-full"
+                  title={isCollapsed ? 'Logout' : undefined}
+                >
+                  <span className="text-lg flex-shrink-0">🚪</span>
+                  {!isCollapsed && (
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate">Logout</div>
+                      <div className="text-xs text-slate-400 truncate">Sair do sistema</div>
+                    </div>
+                  )}
+                </button>
+              </li>
             </ul>
           </nav>
         </div>

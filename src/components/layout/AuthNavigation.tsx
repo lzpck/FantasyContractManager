@@ -101,16 +101,14 @@ export function AuthNavigation() {
                     </Link>
                   )}
 
-                  {isCommissioner && (
-                    <Link
-                      href="/settings"
-                      className="flex items-center px-4 py-2 text-sm text-slate-100 hover:bg-slate-700 rounded-lg mx-2"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <Cog6ToothIcon className="h-4 w-4 mr-3" />
-                      Configurações
-                    </Link>
-                  )}
+                  <Link
+                    href="/informacoes"
+                    className="flex items-center px-4 py-2 text-sm text-slate-100 hover:bg-slate-700 rounded-lg mx-2"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    <Cog6ToothIcon className="h-4 w-4 mr-3" />
+                    Informações
+                  </Link>
                 </div>
 
                 {/* Logout */}
