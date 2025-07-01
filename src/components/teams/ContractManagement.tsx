@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Player, Team, League, PlayerWithContract } from '@/types';
 import { useContractModal, useCanManageContracts } from '@/hooks/useContractModal';
 import ContractModal from './ContractModal';
-import { PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/formatUtils';
 
 interface ContractManagementProps {
@@ -12,6 +12,13 @@ interface ContractManagementProps {
   league: League;
   players: Player[]; // Jogadores disponíveis para contrato
   playersWithContracts: PlayerWithContract[]; // Jogadores que já têm contrato
+  onDataUpdate?: () => void; // Callback para recarregar dados
+}
+
+interface ToastMessage {
+  id: string;
+  type: 'success' | 'error';
+  message: string;
 }
 
 /**
@@ -28,12 +35,14 @@ export default function ContractManagement({
   league,
   players,
   playersWithContracts,
+  onDataUpdate,
 }: ContractManagementProps) {
   const canManageContracts = useCanManageContracts();
   const contractModal = useContractModal();
 
   const [activeTab, setActiveTab] = useState<'with-contract' | 'without-contract'>('with-contract');
   const [searchTerm, setSearchTerm] = useState('');
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   // Filtrar jogadores sem contrato
   const playersWithoutContract = players.filter(
@@ -55,17 +64,48 @@ export default function ContractManagement({
       player.nflTeam.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  // Recarregar dados quando contrato for atualizado
+  // Função para adicionar toast
+  const addToast = useCallback((type: 'success' | 'error', message: string) => {
+    const id = Date.now().toString();
+    const newToast: ToastMessage = { id, type, message };
+    
+    setToasts(prev => [...prev, newToast]);
+    
+    // Remover toast após 5 segundos
+    setTimeout(() => {
+      setToasts(prev => prev.filter(toast => toast.id !== id));
+    }, 5000);
+  }, []);
+
+  // Função para remover toast manualmente
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
+  // Gerenciar eventos de atualização de contrato e toast
   useEffect(() => {
-    const handleContractUpdate = () => {
-      // Aqui você pode recarregar os dados ou atualizar o estado
-      // Por exemplo, chamar uma função de callback passada como prop
-      console.log('Contrato atualizado, recarregando dados...');
+    const handleContractUpdate = (event: CustomEvent) => {
+      console.log('Contrato atualizado, recarregando dados...', event.detail);
+      
+      // Chamar callback para recarregar dados se fornecido
+      if (onDataUpdate) {
+        onDataUpdate();
+      }
     };
 
-    window.addEventListener('contractUpdated', handleContractUpdate);
-    return () => window.removeEventListener('contractUpdated', handleContractUpdate);
-  }, []);
+    const handleShowToast = (event: CustomEvent) => {
+      const { type, message } = event.detail;
+      addToast(type, message);
+    };
+
+    window.addEventListener('contractUpdated', handleContractUpdate as EventListener);
+    window.addEventListener('showToast', handleShowToast as EventListener);
+    
+    return () => {
+      window.removeEventListener('contractUpdated', handleContractUpdate as EventListener);
+      window.removeEventListener('showToast', handleShowToast as EventListener);
+    };
+  }, [onDataUpdate, addToast]);
 
   const handleAddContract = (player: Player) => {
     contractModal.openModal(player, team, league);
@@ -272,6 +312,38 @@ export default function ContractManagement({
           <p className="text-sm">{contractModal.error}</p>
         </div>
       )}
+
+      {/* Sistema de Toast */}
+      <div className="fixed bottom-4 right-4 space-y-2 z-50">
+        {toasts.map(toast => (
+          <div
+            key={toast.id}
+            className={`flex items-center px-6 py-3 rounded-xl shadow-lg text-white transition-all duration-300 transform ${
+              toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              {toast.type === 'success' ? (
+                <CheckCircleIcon className="h-5 w-5" />
+              ) : (
+                <XCircleIcon className="h-5 w-5" />
+              )}
+              <div>
+                <p className="font-medium">
+                  {toast.type === 'success' ? 'Sucesso' : 'Erro'}
+                </p>
+                <p className="text-sm">{toast.message}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => removeToast(toast.id)}
+              className="ml-4 text-white hover:text-gray-200 transition-colors"
+            >
+              <XCircleIcon className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -99,7 +99,8 @@ export default function ContractActionsModal({
 
       if (result.success) {
         toast.success(result.message);
-        onClose();
+        contractModal.closeModal(); // Fechar apenas o ContractModal
+        // Não fechar o ContractActionsModal para permitir outras ações
       } else {
         toast.error(`Erro: ${result.message}`);
       }
@@ -147,7 +148,7 @@ export default function ContractActionsModal({
   const handleEditContract = () => {
     if (player && isCommissioner) {
       contractModal.openModal(player.player, team, league, player.contract);
-      onClose(); // Fechar o modal de ações
+      // Não fechar o modal de ações - deixar o ContractModal sobrepor
     }
   };
 
@@ -244,7 +245,7 @@ export default function ContractActionsModal({
                 Ações de Contrato - {player.player.name}
               </h3>
               <p className="text-sm text-slate-400">
-                {player.player.position} • {player.player.nflTeam}
+                {player.player.position}
                 {player.contract && (
                   <>
                     {' '}

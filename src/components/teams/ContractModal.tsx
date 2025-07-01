@@ -122,15 +122,15 @@ export default function ContractModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    onSave(formData);
-    onClose();
+    // Não fechar o modal aqui - deixar o hook gerenciar isso após sucesso
+    await onSave(formData);
   };
 
   const handleInputChange = (field: keyof ContractFormData, value: any) => {
@@ -157,7 +157,7 @@ export default function ContractModal({
               {isEditMode ? 'Editar Contrato' : 'Adicionar Contrato'}
             </h3>
             <p className="text-sm text-slate-400 mt-1">
-              {player.name} • {player.position} • {player.nflTeam} • {team.name}
+              {player.name} • {player.fantasyPositions} • {team.name}
             </p>
             {isEditMode && contract && (
               <p className="text-xs text-slate-500 mt-1">

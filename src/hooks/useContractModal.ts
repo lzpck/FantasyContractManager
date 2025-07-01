@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Player, Contract, Team, League } from '@/types';
+import { Player, Contract, Team, League, AcquisitionType } from '@/types';
 import { useAuth } from './useAuth';
 
 interface ContractFormData {
   contractYears: number;
   annualSalary: number;
-  acquisitionType: string;
+  acquisitionType: AcquisitionType;
   hasFourthYearOption: boolean;
   hasBeenTagged: boolean;
   hasBeenExtended: boolean;
@@ -79,6 +79,8 @@ export function useContractModal(): UseContractModalReturn {
    */
   const saveContract = useCallback(
     async (contractData: ContractFormData) => {
+      console.log('🔵 saveContract chamado com:', { contractData, player: player?.name, team: team?.name, league: league?.name });
+      
       if (!player || !team || !league) {
         setError('Dados incompletos para salvar o contrato');
         return;
@@ -86,27 +88,29 @@ export function useContractModal(): UseContractModalReturn {
 
       setIsLoading(true);
       setError(null);
+      
+      console.log('🔵 Iniciando salvamento...');
 
       try {
         if (isDemoUser) {
           // Para usuário demo, simular salvamento
+          console.log('🔵 Modo demo - simulando salvamento...');
           await new Promise(resolve => setTimeout(resolve, 1000));
 
-          console.log('Contrato salvo (modo demo):', {
+          console.log('🔵 Contrato salvo (modo demo):', {
             player: player.name,
             team: team.name,
             league: league.name,
             isEdit: !!contract,
             contractData,
           });
-
-          // Aqui você pode atualizar o estado local/contexto se necessário
-          // Por exemplo, disparar um evento ou callback para atualizar a lista
         } else {
           // Para usuários reais, fazer chamada à API
           const isEdit = !!contract;
           const url = isEdit ? `/api/contracts/${contract.id}` : '/api/contracts';
           const method = isEdit ? 'PUT' : 'POST';
+          
+          console.log('🔵 Modo real - fazendo chamada à API:', { url, method, isEdit });
 
           const payload = {
             playerId: player.id,
@@ -122,7 +126,7 @@ export function useContractModal(): UseContractModalReturn {
             hasBeenExtended: contractData.hasBeenExtended,
             fourthYearOptionActivated: contractData.fourthYearOptionActivated,
             signedSeason: league.season,
-            status: 'active',
+            status: 'ACTIVE',
           };
 
           const response = await fetch(url, {
@@ -135,25 +139,56 @@ export function useContractModal(): UseContractModalReturn {
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Erro ao salvar contrato');
+            throw new Error(errorData.error || errorData.message || 'Erro ao salvar contrato');
           }
 
           const result = await response.json();
-          console.log('Contrato salvo com sucesso:', result);
+          console.log('🔵 Contrato salvo com sucesso:', result);
         }
 
-        // Fechar modal após sucesso
-        closeModal();
-
-        // Disparar evento para recarregar dados ou atualizar o contexto global
+        // Disparar evento para recarregar dados ANTES de fechar o modal
+        console.log('🔵 Disparando evento contractUpdated...');
         window.dispatchEvent(
           new CustomEvent('contractUpdated', {
-            detail: { player, team, league, isEdit: !!contract },
+            detail: { 
+              player, 
+              team, 
+              league, 
+              isEdit: !!contract,
+              contractData,
+              success: true 
+            },
+          }),
+        );
+
+        // Não fechar automaticamente - deixar o componente pai decidir
+        // closeModal();
+
+        // Mostrar feedback de sucesso
+        console.log('🔵 Disparando toast de sucesso...');
+        window.dispatchEvent(
+          new CustomEvent('showToast', {
+            detail: { 
+              type: 'success',
+              message: contract ? 'Contrato atualizado com sucesso!' : 'Contrato criado com sucesso!'
+            },
           }),
         );
       } catch (err) {
-        console.error('Erro ao salvar contrato:', err);
-        setError(err instanceof Error ? err.message : 'Erro desconhecido ao salvar contrato');
+        console.error('🔴 Erro ao salvar contrato:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao salvar contrato';
+        console.log('🔴 Definindo erro:', errorMessage);
+        setError(errorMessage);
+        
+        // Mostrar feedback de erro
+        window.dispatchEvent(
+          new CustomEvent('showToast', {
+            detail: { 
+              type: 'error',
+              message: errorMessage
+            },
+          }),
+        );
       } finally {
         setIsLoading(false);
       }
