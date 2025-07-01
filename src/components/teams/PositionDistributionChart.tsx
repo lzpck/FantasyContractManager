@@ -38,8 +38,12 @@ export default function PositionDistributionChart({ players }: PositionDistribut
     return POSITION_COLORS[position] || '#9CA3AF'; // Cinza como fallback
   };
 
-  // Filtrar jogadores que têm contratos válidos
-  const playersWithValidContracts = players.filter(p => p.contract && p.contract.currentSalary);
+  // Filtrar jogadores que têm contratos válidos e ativos (não cortados)
+  const playersWithValidContracts = players.filter(p => 
+    p.contract && 
+    p.contract.currentSalary && 
+    p.contract.status !== 'CUT'
+  );
 
   // Função para obter a primeira posição fantasy válida
   const getFirstFantasyPosition = (player: any) => {

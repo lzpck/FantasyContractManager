@@ -283,10 +283,12 @@ export function ContractSystemExample() {
   }, []);
 
   // Calcular estatísticas
-  const totalContracts = players.filter(p => p.contract).length;
-  const totalSalaries = players.reduce((sum, p) => sum + (p.contract?.currentSalary || 0), 0);
-  const expiring = players.filter(p => p.contract?.yearsRemaining === 0).length;
-  const freeAgents = players.filter(p => !p.contract).length;
+  // Filtrar apenas contratos ativos (não cortados)
+  const activeContracts = players.filter(p => p.contract && p.contract.status !== 'CUT');
+  const totalContracts = activeContracts.length;
+  const totalSalaries = activeContracts.reduce((sum, p) => sum + (p.contract?.currentSalary || 0), 0);
+  const expiring = activeContracts.filter(p => p.contract?.yearsRemaining === 0).length;
+  const freeAgents = players.filter(p => !p.contract || p.contract.status === 'CUT').length;
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">

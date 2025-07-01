@@ -1,6 +1,6 @@
 'use client';
 
-import { Team, PlayerWithContract } from '@/types';
+import { Team, PlayerWithContract, Contract } from '@/types';
 import {
   BarChart,
   Bar,
@@ -18,12 +18,48 @@ import {
   getCurrencyClasses,
   CURRENCY_CONSTANTS 
 } from '@/utils/formatUtils';
+import { calculateAnnualSalary } from '@/utils/contractUtils';
+
+// Interface para registros de dead money da API
+interface DeadMoneyRecord {
+  id: string;
+  teamId: string;
+  playerId: string;
+  contractId?: string;
+  amount: number;
+  year: number;
+  reason?: string;
+  createdAt: string;
+  updatedAt: string;
+  player?: {
+    id: string;
+    name: string;
+    position: string;
+    sleeperPlayerId: string;
+  };
+  contract?: {
+    id: string;
+    currentSalary: number;
+    originalYears: number;
+    signedSeason: number;
+  };
+  team?: {
+    id: string;
+    name: string;
+  };
+}
 
 interface CapProjectionChartProps {
   /** Time para projeção */
   team: Team;
   /** Lista de jogadores com contratos */
   players: PlayerWithContract[];
+  /** Liga com informações do salary cap */
+  league: { salaryCap: number; season: number };
+  /** Contratos ativos do time (opcional para compatibilidade) */
+  contracts?: Contract[];
+  /** Registros de dead money (opcional para compatibilidade) */
+  deadMoneyRecords?: DeadMoneyRecord[];
 }
 
 /**
@@ -49,9 +85,20 @@ function safeNumber(value: number | null | undefined, fallback: number = 0): num
  * - Cores contextuais para diferentes situações
  * - Alertas inteligentes baseados nas projeções
  */
-export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
-  const currentYear = new Date().getFullYear();
-  const salaryCap = CURRENCY_CONSTANTS.DEFAULT_SALARY_CAP;
+export function CapProjectionChart({ team, players, league, contracts, deadMoneyRecords }: CapProjectionChartProps) {
+  const currentYear = league.season;
+  const salaryCap = league.salaryCap;
+
+  // Validação dos arrays para evitar erros (mesma lógica do TeamHeader)
+  const safeDeadMoneyRecords = deadMoneyRecords || [];
+  const safeContracts = contracts || [];
+
+  // Verificar se há jogadores com contratos válidos e ativos (não cortados)
+  const playersWithValidContracts = players.filter(p => 
+    p.contract && 
+    p.contract.currentSalary > 0 && 
+    p.contract.status !== 'CUT'
+  );
 
   // Calcular projeções para os próximos 4 anos
   const projectionData = [];
@@ -62,25 +109,65 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
     let deadMoney = 0;
     let contractsCount = 0;
 
-    // Calcular salários para cada jogador nesta temporada
-    players.forEach(playerWithContract => {
-      const contract = playerWithContract.contract;
+    // Cálculo dinâmico de dead money baseado nos registros (mesma lógica do TeamHeader)
+    const yearDeadMoney = safeDeadMoneyRecords
+      .filter(dm => dm.teamId === team.id && dm.year === seasonYear)
+      .reduce((sum, dm) => sum + dm.amount, 0);
 
-      // Verificar se o contrato existe e ainda está ativo nesta temporada
-      if (contract && contract.yearsRemaining > year) {
-        // Aplicar aumento de 15% por ano (garantindo valores seguros)
-        const baseSalary = safeNumber(contract.currentSalary, 0);
-        const projectedSalary = baseSalary * Math.pow(1.15, year);
-        totalSalaries += projectedSalary;
-        contractsCount++;
+    // Se há registros de dead money, usar os valores calculados, senão usar fallback do team
+    if (yearDeadMoney > 0) {
+      deadMoney = yearDeadMoney;
+    } else {
+      // Fallback para os valores do team (compatibilidade)
+      if (year === 0) {
+        deadMoney = safeNumber(team.currentDeadMoney, 0);
+      } else if (year === 1) {
+        deadMoney = safeNumber(team.nextSeasonDeadMoney, 0);
       }
-    });
+      // Anos subsequentes (2+): dead money zerado
+    }
 
-    // Dead money (apenas no primeiro ano após corte) - valores seguros
-    if (year === 0) {
-      deadMoney = safeNumber(team.currentDeadMoney, 0);
-    } else if (year === 1) {
-      deadMoney = safeNumber(team.nextSeasonDeadMoney, 0);
+    // Cálculo dinâmico de salários baseado nos contratos (mesma lógica do TeamHeader)
+    if (safeContracts.length > 0) {
+      // Usar contratos da API se disponíveis
+      totalSalaries = safeContracts
+        .filter(c => 
+          c.teamId === team.id && 
+          c.status === 'ACTIVE' && 
+          c.signedSeason <= seasonYear && 
+          (c.signedSeason + c.originalYears - 1) >= seasonYear
+        )
+        .reduce((sum, c) => {
+          // Calcular salário projetado para o ano específico
+          const yearsFromSigning = seasonYear - c.signedSeason;
+          const projectedSalary = calculateAnnualSalary(c, yearsFromSigning);
+          return sum + projectedSalary;
+        }, 0);
+      
+      // Contar contratos ativos
+      contractsCount = safeContracts.filter(c => 
+        c.teamId === team.id && 
+        c.status === 'ACTIVE' && 
+        c.signedSeason <= seasonYear && 
+        (c.signedSeason + c.originalYears - 1) >= seasonYear
+      ).length;
+    } else {
+      // Fallback para players com contratos (compatibilidade)
+      playersWithValidContracts.forEach(playerWithContract => {
+        const contract = playerWithContract.contract;
+
+        // Verificar se o contrato ainda está ativo nesta temporada
+        const yearsFromSigning = seasonYear - contract.signedSeason;
+        const contractYearsRemaining = contract.originalYears - yearsFromSigning;
+        
+        if (contract && contractYearsRemaining > 0) {
+          // Usar a função oficial de cálculo de salário anual
+          const projectedSalary = calculateAnnualSalary(contract, yearsFromSigning);
+          
+          totalSalaries += projectedSalary;
+          contractsCount++;
+        }
+      });
     }
 
     // Garantir que todos os cálculos sejam seguros
@@ -109,8 +196,9 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
       payload: {
         totalSalaries: number;
         deadMoney: number;
-        totalCap: number;
+        totalCommitted: number;
         availableCap: number;
+        contractsCount: number;
       };
     }>;
     label?: string;
@@ -188,9 +276,6 @@ export function CapProjectionChart({ team, players }: CapProjectionChartProps) {
     }
     return null;
   };
-
-  // Verificar se há jogadores com contratos válidos
-  const playersWithValidContracts = players.filter(p => p.contract && p.contract.currentSalary > 0);
 
   // Se não há contratos válidos, mostrar mensagem informativa
   if (playersWithValidContracts.length === 0) {
