@@ -115,6 +115,56 @@ async function handleEditContract(body: any, teamId: string) {
 }
 
 /**
+ * Função de cálculo e persistência de dead money
+ */
+async function handlePlayerCut(contract: any, league: { deadMoneyConfig: any; season: number }) {
+  const config = league.deadMoneyConfig;
+
+  // 1. Dead money do ano atual
+  const deadMoneyAtual = contract.currentSalary * (config.currentSeason ?? 1);
+
+  const records = [{
+    playerId: contract.playerId,
+    teamId: contract.teamId,
+    contractId: contract.id,
+    year: league.season,
+    amount: deadMoneyAtual,
+    reason: "Corte",
+  }];
+
+  // 2. Dead money dos anos futuros
+  const yearsLeft = contract.endYear - league.season;
+
+  if (yearsLeft >= 1) {
+    // Para cada ano restante, calcular o dead money baseado na configuração
+    for (let i = 1; i <= yearsLeft && i <= 4; i++) {
+      const yearKey = i.toString() as keyof typeof config.futureSeasons;
+      const futurePercentage = config.futureSeasons?.[yearKey] ?? 0;
+      
+      if (futurePercentage > 0) {
+        // Calcular salário do ano futuro com aumentos anuais
+        const futureSalary = contract.currentSalary * Math.pow(1 + (contract.annualIncrease ?? 0.15), i);
+        const deadMoneyFuture = futureSalary * futurePercentage;
+        
+        records.push({
+          playerId: contract.playerId,
+          teamId: contract.teamId,
+          contractId: contract.id,
+          year: league.season + i,
+          amount: deadMoneyFuture,
+          reason: `Corte futuro (ano ${i})`,
+        });
+      }
+    }
+  }
+
+  // 3. Persistir no banco
+  await prisma.deadMoney.createMany({ data: records });
+
+  return records;
+}
+
+/**
  * Liberar jogador (cortar)
  */
 async function handleReleasePlayer(body: any, teamId: string, team: any) {
@@ -159,20 +209,20 @@ async function handleReleasePlayer(body: any, teamId: string, team: any) {
     };
   }
 
-  // Calcular dead money usando a configuração da liga
-  const currentYearDeadMoney = contract.currentSalary * deadMoneyConfig.currentSeason;
-  let futureYearsDeadMoney = 0;
+  // Buscar informações da liga para obter o ano atual
+  const leagueInfo = await prisma.league.findUnique({
+    where: { id: contract.leagueId },
+    select: { season: true },
+  });
 
-  if (contract.yearsRemaining > 1) {
-    const yearsRemaining = contract.yearsRemaining - 1;
-    const yearsKey = Math.min(yearsRemaining, 4).toString();
-    const penaltyPercentage = deadMoneyConfig.futureSeasons[yearsKey] || 0;
-
-    // Calcular salário dos anos restantes (simplificado - usando salário atual)
-    futureYearsDeadMoney = contract.currentSalary * penaltyPercentage * yearsRemaining;
+  if (!leagueInfo) {
+    return NextResponse.json({ error: 'Liga não encontrada' }, { status: 404 });
   }
 
-  const totalDeadMoney = currentYearDeadMoney + futureYearsDeadMoney;
+  const cutYear = leagueInfo.season;
+
+  // Calcular e persistir dead money
+  const deadMoneyRecords = await handlePlayerCut(contract, { deadMoneyConfig, season: cutYear });
 
   // Atualizar contrato para CUT
   const updatedContract = await prisma.contract.update({
@@ -185,6 +235,9 @@ async function handleReleasePlayer(body: any, teamId: string, team: any) {
       player: true,
     },
   });
+
+  // Calcular total de dead money para atualizar o time
+  const totalDeadMoney = deadMoneyRecords.reduce((sum, record) => sum + record.amount, 0);
 
   // Atualizar dead money do time
   await prisma.team.update({
@@ -199,6 +252,7 @@ async function handleReleasePlayer(body: any, teamId: string, team: any) {
   return NextResponse.json({
     contract: updatedContract,
     deadMoney: totalDeadMoney,
+    deadMoneyRecords,
     message: 'Jogador liberado com sucesso',
   });
 }

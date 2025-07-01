@@ -109,7 +109,7 @@ export function calculateDeadMoney(
   isPracticeSquad: boolean = false,
   deadMoneyConfig?: DeadMoneyConfig,
 ): DeadMoneyCalculation {
-  // Usar configuração padrão se não fornecida
+  // Usar configuração padrão se não fornecida (conforme documentação)
   const config = deadMoneyConfig || {
     currentSeason: 1.0,
     futureSeasons: {
