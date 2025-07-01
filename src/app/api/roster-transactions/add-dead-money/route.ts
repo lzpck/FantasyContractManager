@@ -3,6 +3,55 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 /**
+ * Função de cálculo e persistência de dead money
+ */
+async function handlePlayerCut(contract: any, league: { deadMoneyConfig: any; season: number }) {
+  const config = league.deadMoneyConfig;
+
+  // 1. Dead money do ano atual
+  const deadMoneyAtual = contract.currentSalary * (config.currentSeason ?? 1);
+
+  const records = [{
+    playerId: contract.playerId,
+    teamId: contract.teamId,
+    contractId: contract.id,
+    year: league.season,
+    amount: deadMoneyAtual,
+    reason: "Jogador cortado via transação de roster",
+  }];
+
+  // 2. Dead money do próximo ano (baseado nos anos restantes)
+  const yearsRemaining = contract.yearsRemaining;
+  
+  if (yearsRemaining >= 1) {
+    // Usa o percentual baseado nos anos restantes do contrato
+    const yearsKey = Math.min(yearsRemaining, 4).toString(); // Máximo 4 anos
+    const nextYearPercent = config.futureSeasons?.[yearsKey] ?? 0;
+    
+    if (nextYearPercent > 0) {
+      // Projeta salário do próximo ano com aumento anual (15% padrão)
+      const annualIncreaseRate = 1 + ((contract.annualIncrease ?? 0.15));
+      const nextYearSalary = contract.currentSalary * annualIncreaseRate;
+      const deadMoneyNext = nextYearSalary * nextYearPercent;
+      
+      records.push({
+        playerId: contract.playerId,
+        teamId: contract.teamId,
+        contractId: contract.id,
+        year: league.season + 1,
+        amount: deadMoneyNext,
+        reason: `Dead money próxima temporada`,
+      });
+    }
+  }
+
+  // 3. Persistir no banco
+  await prisma.deadMoney.createMany({ data: records });
+
+  return records;
+}
+
+/**
  * Schema de validação para adicionar dead money
  */
 const addDeadMoneySchema = z.object({
@@ -51,11 +100,42 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    let deadMoneyRecords: any[] = [];
     let calculatedDeadMoney = deadMoneyAmount || 0;
 
-    // Se há contrato ativo, calcular dead money baseado no salário atual
+    // Se há contrato ativo, usar nossa função de cálculo de dead money
     if (activeContract && deadMoneyAmount === undefined) {
-      calculatedDeadMoney = activeContract.currentSalary || 0;
+      // Buscar configuração de dead money da liga
+      const league = await prisma.league.findUnique({
+        where: { id: team.league.id },
+        select: { deadMoneyConfig: true, season: true },
+      });
+
+      if (league) {
+        // Parse da configuração de dead money
+        let deadMoneyConfig;
+        try {
+          deadMoneyConfig = JSON.parse(league.deadMoneyConfig);
+        } catch (error) {
+          // Usar configuração padrão em caso de erro
+          deadMoneyConfig = {
+            currentSeason: 1.0,
+            futureSeasons: { '1': 0, '2': 0.5, '3': 0.75, '4': 1.0 },
+          };
+        }
+
+        // Calcular endYear baseado no yearsRemaining e season atual
+        const contractWithEndYear = {
+          ...activeContract,
+          endYear: league.season + activeContract.yearsRemaining
+        };
+        
+        // Calcular e persistir dead money usando nossa função
+        deadMoneyRecords = await handlePlayerCut(contractWithEndYear, { deadMoneyConfig, season: league.season });
+        calculatedDeadMoney = deadMoneyRecords.reduce((sum, record) => sum + record.amount, 0);
+      } else {
+        calculatedDeadMoney = activeContract.currentSalary || 0;
+      }
     }
 
     // Usar transação para garantir consistência
@@ -78,9 +158,9 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // 3. Criar registro de dead money se houver valor
+      // 3. Criar registro de dead money apenas se não foi calculado pela função handlePlayerCut
       let deadMoneyRecord = null;
-      if (calculatedDeadMoney > 0) {
+      if (calculatedDeadMoney > 0 && deadMoneyRecords.length === 0) {
         deadMoneyRecord = await tx.deadMoney.create({
           data: {
             teamId,
@@ -100,6 +180,7 @@ export async function POST(request: NextRequest) {
       return {
         contract: activeContract,
         deadMoney: deadMoneyRecord,
+        deadMoneyRecords: deadMoneyRecords,
       };
     });
 
@@ -111,8 +192,10 @@ export async function POST(request: NextRequest) {
         team,
         removedFromRoster: true,
         contractUpdated: !!result.contract,
-        deadMoneyCreated: !!result.deadMoney,
+        deadMoneyCreated: !!result.deadMoney || deadMoneyRecords.length > 0,
         deadMoneyAmount: calculatedDeadMoney,
+        deadMoneyRecords: deadMoneyRecords,
+        totalRecords: deadMoneyRecords.length,
       },
     });
   } catch (error) {
