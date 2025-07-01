@@ -35,12 +35,6 @@ export function Sidebar() {
       description: 'Base de jogadores',
     },
     {
-      name: 'Draft',
-      href: '/draft',
-      icon: '🎯',
-      description: 'Rookie Draft',
-    },
-    {
       name: 'Informações',
       href: '/informacoes',
       icon: 'ℹ️',
