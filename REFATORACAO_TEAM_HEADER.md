@@ -48,6 +48,7 @@ const totalSalaries = safeContracts.length > 0
 Todos os valores são calculados em tempo real usando `useMemo`:
 
 #### Dead Money por Temporada
+
 ```typescript
 const totalDeadMoney = deadMoneyRecords
   .filter(dm => dm.teamId === team.id && dm.year === currentYear)
@@ -59,18 +60,21 @@ const nextSeasonDeadMoney = deadMoneyRecords
 ```
 
 #### Contratos Ativos
+
 ```typescript
 const totalSalaries = contracts
-  .filter(c => 
-    c.teamId === team.id && 
-    c.status === 'ACTIVE' && 
-    c.signedSeason <= currentYear && 
-    (c.signedSeason + c.originalYears - 1) >= currentYear
+  .filter(
+    c =>
+      c.teamId === team.id &&
+      c.status === 'ACTIVE' &&
+      c.signedSeason <= currentYear &&
+      c.signedSeason + c.originalYears - 1 >= currentYear,
   )
   .reduce((sum, c) => sum + c.currentSalary, 0);
 ```
 
 #### Salary Cap Usado e Disponível
+
 ```typescript
 const capUsed = totalSalaries + totalDeadMoney;
 const availableCap = league.salaryCap - capUsed;
@@ -83,17 +87,19 @@ Criado `useTeamFinancials` para buscar dados em tempo real:
 ```typescript
 const { contracts, deadMoneyRecords, isLoading, error, revalidateFinancials } = useTeamFinancials(
   team.id,
-  league.id
+  league.id,
 );
 ```
 
 ### 4. APIs Criadas
 
 #### Contratos do Time
+
 - **GET** `/api/teams/[teamId]/contracts`
 - **POST** `/api/teams/[teamId]/contracts`
 
 #### Dead Money Records
+
 - **GET** `/api/teams/[teamId]/dead-money`
   - Parâmetros opcionais: `year`, `currentYearOnly`, `nextYearOnly`
 - **POST** `/api/teams/[teamId]/dead-money`
@@ -148,7 +154,7 @@ function PlayerActions({ teamId }) {
   const handleCutPlayer = async () => {
     // Lógica para cortar jogador
     await cutPlayerAPI();
-    
+
     // Revalida os dados financeiros
     revalidateAfterCapChange();
   };
@@ -158,24 +164,29 @@ function PlayerActions({ teamId }) {
 ## Benefícios da Refatoração
 
 ### ✅ Dados Sempre Atualizados
+
 - Todos os valores refletem o estado real do banco de dados
 - Nenhum valor fica "desatualizado" após operações
 
 ### ✅ Cálculos por Temporada
+
 - Dead Money é calculado corretamente por ano (`league.season` e `league.season + 1`)
 - Contratos ativos são filtrados pela temporada atual
 
 ### ✅ Performance Otimizada
+
 - `useMemo` evita recálculos desnecessários
 - SWR/React Query para cache inteligente
 
 ### ✅ Flexibilidade
+
 - Fácil mudança de temporada (altera `league.season`)
 - Suporte a filtros nas APIs
 
 ## Estrutura de Dados
 
 ### DeadMoneyRecord
+
 ```typescript
 interface DeadMoneyRecord {
   id: string;

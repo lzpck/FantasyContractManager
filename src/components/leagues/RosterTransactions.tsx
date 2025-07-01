@@ -245,7 +245,7 @@ export default function RosterTransactions({
         team={contractModal.team}
         league={contractModal.league}
         contract={contractModal.contract}
-        onSave={async (contractData) => {
+        onSave={async contractData => {
           try {
             await contractModal.saveContract(contractData);
             // Remover jogador da lista após salvar contrato com sucesso
@@ -253,7 +253,9 @@ export default function RosterTransactions({
               onContractSaved(contractModal.player.sleeperPlayerId);
             }
             // Exibir toast de sucesso
-            toast.success(`Contrato criado com sucesso para ${contractModal.player?.name || 'jogador'}`);
+            toast.success(
+              `Contrato criado com sucesso para ${contractModal.player?.name || 'jogador'}`,
+            );
           } catch (error) {
             // Em caso de erro, o toast de erro já é exibido pelo hook useContractModal
             console.error('Erro ao salvar contrato:', error);

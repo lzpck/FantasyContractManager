@@ -428,7 +428,7 @@ export default function LeagueDetailsPage() {
             playersRemoved={playersRemoved}
             onAddContract={handleAddContract}
             onAddDeadMoney={handleAddDeadMoney}
-            onContractSaved={(sleeperPlayerId) => {
+            onContractSaved={sleeperPlayerId => {
               // Remover jogador da lista de adicionados após contrato ser salvo
               setPlayersAdded(prev => prev.filter(p => p.sleeperPlayerId !== sleeperPlayerId));
             }}

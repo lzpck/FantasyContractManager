@@ -44,7 +44,14 @@ interface TeamHeaderProps {
   onBack?: () => void;
 }
 
-export default function TeamHeader({ team, league, players, contracts, deadMoneyRecords, onBack }: TeamHeaderProps) {
+export default function TeamHeader({
+  team,
+  league,
+  players,
+  contracts,
+  deadMoneyRecords,
+  onBack,
+}: TeamHeaderProps) {
   const router = useRouter();
 
   // Cálculos dinâmicos baseados na temporada atual
@@ -61,29 +68,33 @@ export default function TeamHeader({ team, league, players, contracts, deadMoney
     const currentYearDeadMoney = safeDeadMoneyRecords
       .filter(dm => dm.teamId === team.id && dm.year === currentYear)
       .reduce((sum, dm) => sum + dm.amount, 0);
-    
+
     const nextYearDeadMoney = safeDeadMoneyRecords
       .filter(dm => dm.teamId === team.id && dm.year === nextYear)
       .reduce((sum, dm) => sum + dm.amount, 0);
 
     // Usa os valores calculados ou fallback para os valores do team
-    const totalDeadMoney = currentYearDeadMoney > 0 ? currentYearDeadMoney : (team.currentDeadMoney || 0);
-    const nextSeasonDeadMoney = nextYearDeadMoney > 0 ? nextYearDeadMoney : (team.nextSeasonDeadMoney || 0);
+    const totalDeadMoney =
+      currentYearDeadMoney > 0 ? currentYearDeadMoney : team.currentDeadMoney || 0;
+    const nextSeasonDeadMoney =
+      nextYearDeadMoney > 0 ? nextYearDeadMoney : team.nextSeasonDeadMoney || 0;
 
     // 2. Salary Cap Usado - Contratos ativos para o ano atual
     // Se não há contratos, usa os dados dos players como fallback
-    const totalSalaries = safeContracts.length > 0
-      ? safeContracts
-          .filter(c => 
-            c.teamId === team.id && 
-            c.status === 'ACTIVE' && 
-            c.signedSeason <= currentYear && 
-            (c.signedSeason + c.originalYears - 1) >= currentYear
-          )
-          .reduce((sum, c) => sum + c.currentSalary, 0)
-      : players
-          .filter(p => p.contract)
-          .reduce((sum, player) => sum + (player.contract?.currentSalary || 0), 0);
+    const totalSalaries =
+      safeContracts.length > 0
+        ? safeContracts
+            .filter(
+              c =>
+                c.teamId === team.id &&
+                c.status === 'ACTIVE' &&
+                c.signedSeason <= currentYear &&
+                c.signedSeason + c.originalYears - 1 >= currentYear,
+            )
+            .reduce((sum, c) => sum + c.currentSalary, 0)
+        : players
+            .filter(p => p.contract)
+            .reduce((sum, player) => sum + (player.contract?.currentSalary || 0), 0);
 
     const capUsed = totalSalaries + totalDeadMoney;
 
@@ -91,14 +102,12 @@ export default function TeamHeader({ team, league, players, contracts, deadMoney
     const availableCap = league.salaryCap - capUsed;
 
     // 4. Estatísticas do elenco - apenas contratos ativos (não cortados)
-    const playersWithContracts = players.filter(p => 
-      p.contract && p.contract.status !== 'CUT'
-    );
+    const playersWithContracts = players.filter(p => p.contract && p.contract.status !== 'CUT');
     const contractsExpiring = playersWithContracts.filter(
       p => p.contract?.yearsRemaining === 1,
     ).length;
     const playersTagged = playersWithContracts.filter(
-      p => p.contract?.hasBeenTagged === true
+      p => p.contract?.hasBeenTagged === true,
     ).length;
 
     return {
@@ -109,7 +118,7 @@ export default function TeamHeader({ team, league, players, contracts, deadMoney
       availableCap,
       playersWithContracts,
       contractsExpiring,
-      playersTagged
+      playersTagged,
     };
   }, [team.id, league.season, league.salaryCap, contracts, deadMoneyRecords, players]);
 
@@ -181,7 +190,9 @@ export default function TeamHeader({ team, league, players, contracts, deadMoney
       <div className="mt-6 pt-6 border-t border-slate-700">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-400">{calculations.playersWithContracts.length}</p>
+            <p className="text-2xl font-bold text-blue-400">
+              {calculations.playersWithContracts.length}
+            </p>
             <p className="text-sm text-slate-400">Jogadores Contratados</p>
           </div>
           <div className="text-center">
@@ -194,7 +205,9 @@ export default function TeamHeader({ team, league, players, contracts, deadMoney
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-slate-100">
-              {formatCurrency(calculations.totalSalaries / calculations.playersWithContracts.length || 0)}
+              {formatCurrency(
+                calculations.totalSalaries / calculations.playersWithContracts.length || 0,
+              )}
             </p>
             <p className="text-sm text-slate-400">Salário Médio</p>
           </div>
