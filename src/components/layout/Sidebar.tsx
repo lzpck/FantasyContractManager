@@ -29,12 +29,6 @@ export function Sidebar() {
       description: 'Gerenciar ligas',
     },
     {
-      name: 'Contratos',
-      href: '/contracts',
-      icon: '📋',
-      description: 'Contratos ativos',
-    },
-    {
       name: 'Jogadores',
       href: '/players',
       icon: '🏃‍♂️',
