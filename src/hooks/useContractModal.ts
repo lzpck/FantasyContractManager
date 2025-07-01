@@ -79,8 +79,13 @@ export function useContractModal(): UseContractModalReturn {
    */
   const saveContract = useCallback(
     async (contractData: ContractFormData) => {
-      console.log('🔵 saveContract chamado com:', { contractData, player: player?.name, team: team?.name, league: league?.name });
-      
+      console.log('🔵 saveContract chamado com:', {
+        contractData,
+        player: player?.name,
+        team: team?.name,
+        league: league?.name,
+      });
+
       if (!player || !team || !league) {
         setError('Dados incompletos para salvar o contrato');
         return;
@@ -88,7 +93,7 @@ export function useContractModal(): UseContractModalReturn {
 
       setIsLoading(true);
       setError(null);
-      
+
       console.log('🔵 Iniciando salvamento...');
 
       try {
@@ -109,7 +114,7 @@ export function useContractModal(): UseContractModalReturn {
           const isEdit = !!contract;
           const url = isEdit ? `/api/contracts/${contract.id}` : '/api/contracts';
           const method = isEdit ? 'PUT' : 'POST';
-          
+
           console.log('🔵 Modo real - fazendo chamada à API:', { url, method, isEdit });
 
           const payload = {
@@ -150,13 +155,13 @@ export function useContractModal(): UseContractModalReturn {
         console.log('🔵 Disparando evento contractUpdated...');
         window.dispatchEvent(
           new CustomEvent('contractUpdated', {
-            detail: { 
-              player, 
-              team, 
-              league, 
+            detail: {
+              player,
+              team,
+              league,
               isEdit: !!contract,
               contractData,
-              success: true 
+              success: true,
             },
           }),
         );
@@ -168,24 +173,27 @@ export function useContractModal(): UseContractModalReturn {
         console.log('🔵 Disparando toast de sucesso...');
         window.dispatchEvent(
           new CustomEvent('showToast', {
-            detail: { 
+            detail: {
               type: 'success',
-              message: contract ? 'Contrato atualizado com sucesso!' : 'Contrato criado com sucesso!'
+              message: contract
+                ? 'Contrato atualizado com sucesso!'
+                : 'Contrato criado com sucesso!',
             },
           }),
         );
       } catch (err) {
         console.error('🔴 Erro ao salvar contrato:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao salvar contrato';
+        const errorMessage =
+          err instanceof Error ? err.message : 'Erro desconhecido ao salvar contrato';
         console.log('🔴 Definindo erro:', errorMessage);
         setError(errorMessage);
-        
+
         // Mostrar feedback de erro
         window.dispatchEvent(
           new CustomEvent('showToast', {
-            detail: { 
+            detail: {
               type: 'error',
-              message: errorMessage
+              message: errorMessage,
             },
           }),
         );

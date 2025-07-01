@@ -281,9 +281,9 @@ export default function TeamDetailsPage() {
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <PositionDistributionChart players={playersWithContracts} />
-            <CapProjectionChart 
-              team={team} 
-              players={playersWithContracts} 
+            <CapProjectionChart
+              team={team}
+              players={playersWithContracts}
               league={league}
               contracts={contracts}
               deadMoneyRecords={deadMoneyRecords}

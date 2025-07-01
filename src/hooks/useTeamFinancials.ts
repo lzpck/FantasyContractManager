@@ -32,7 +32,7 @@ interface DeadMoneyRecord {
 }
 
 // Fetcher function para SWR
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 /**
  * Hook personalizado para buscar dados financeiros do time em tempo real
@@ -40,26 +40,26 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
  */
 export function useTeamFinancials(teamId: string, leagueId: string) {
   // Busca contratos do time
-  const { data: contracts, error: contractsError, mutate: mutateContracts } = useSWR<Contract[]>(
-    teamId ? `/api/teams/${teamId}/contracts` : null,
-    fetcher,
-    {
-      refreshInterval: 0, // Não atualiza automaticamente
-      revalidateOnFocus: true, // Revalida quando a janela ganha foco
-      revalidateOnReconnect: true, // Revalida quando reconecta
-    }
-  );
+  const {
+    data: contracts,
+    error: contractsError,
+    mutate: mutateContracts,
+  } = useSWR<Contract[]>(teamId ? `/api/teams/${teamId}/contracts` : null, fetcher, {
+    refreshInterval: 0, // Não atualiza automaticamente
+    revalidateOnFocus: true, // Revalida quando a janela ganha foco
+    revalidateOnReconnect: true, // Revalida quando reconecta
+  });
 
   // Busca registros de dead money do time
-  const { data: deadMoneyRecords, error: deadMoneyError, mutate: mutateDeadMoney } = useSWR<DeadMoneyRecord[]>(
-    teamId ? `/api/teams/${teamId}/dead-money` : null,
-    fetcher,
-    {
-      refreshInterval: 0,
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
-    }
-  );
+  const {
+    data: deadMoneyRecords,
+    error: deadMoneyError,
+    mutate: mutateDeadMoney,
+  } = useSWR<DeadMoneyRecord[]>(teamId ? `/api/teams/${teamId}/dead-money` : null, fetcher, {
+    refreshInterval: 0,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+  });
 
   // Função para revalidar todos os dados após mudanças
   const revalidateFinancials = () => {

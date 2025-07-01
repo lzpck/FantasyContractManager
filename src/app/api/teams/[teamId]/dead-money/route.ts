@@ -10,7 +10,7 @@ import { isDemoUser } from '@/data/demoData';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ teamId: string }> }
+  { params }: { params: Promise<{ teamId: string }> },
 ) {
   try {
     // Verificar autenticação
@@ -23,7 +23,7 @@ export async function GET(
     const userEmail = session.user.email;
     const { teamId } = await params;
     const { searchParams } = new URL(request.url);
-    
+
     // Parâmetros opcionais para filtrar por ano
     const year = searchParams.get('year');
     const currentYearOnly = searchParams.get('currentYearOnly') === 'true';
@@ -113,10 +113,7 @@ export async function GET(
           },
         },
       },
-      orderBy: [
-        { year: 'asc' },
-        { amount: 'desc' },
-      ],
+      orderBy: [{ year: 'asc' }, { amount: 'desc' }],
     });
 
     // Transforma os dados para o formato esperado
@@ -138,10 +135,7 @@ export async function GET(
     return NextResponse.json(formattedRecords);
   } catch (error) {
     console.error('Erro ao buscar registros de dead money:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
 
@@ -151,7 +145,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ teamId: string }> }
+  { params }: { params: Promise<{ teamId: string }> },
 ) {
   try {
     // Verificar autenticação
@@ -243,9 +237,6 @@ export async function POST(
     return NextResponse.json({ deadMoneyRecords: createdRecords }, { status: 201 });
   } catch (error) {
     console.error('Erro ao criar registros de dead money:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

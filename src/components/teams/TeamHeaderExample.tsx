@@ -14,11 +14,16 @@ interface TeamHeaderExampleProps {
  * Exemplo de como usar o TeamHeader refatorado com dados em tempo real
  * Este componente demonstra a integração com o hook useTeamFinancials
  */
-export default function TeamHeaderExample({ team, league, players, onBack }: TeamHeaderExampleProps) {
+export default function TeamHeaderExample({
+  team,
+  league,
+  players,
+  onBack,
+}: TeamHeaderExampleProps) {
   // Busca dados financeiros em tempo real
   const { contracts, deadMoneyRecords, isLoading, error, revalidateFinancials } = useTeamFinancials(
     team.id,
-    league.id
+    league.id,
   );
 
   // Loading state

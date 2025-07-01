@@ -123,14 +123,16 @@ async function handlePlayerCut(contract: any, league: { deadMoneyConfig: any; se
   // 1. Dead money do ano atual
   const deadMoneyAtual = contract.currentSalary * (config.currentSeason ?? 1);
 
-  const records = [{
-    playerId: contract.playerId,
-    teamId: contract.teamId,
-    contractId: contract.id,
-    year: league.season,
-    amount: deadMoneyAtual,
-    reason: "Corte",
-  }];
+  const records = [
+    {
+      playerId: contract.playerId,
+      teamId: contract.teamId,
+      contractId: contract.id,
+      year: league.season,
+      amount: deadMoneyAtual,
+      reason: 'Corte',
+    },
+  ];
 
   // 2. Dead money dos anos futuros
   const yearsLeft = contract.endYear - league.season;
@@ -140,12 +142,13 @@ async function handlePlayerCut(contract: any, league: { deadMoneyConfig: any; se
     for (let i = 1; i <= yearsLeft && i <= 4; i++) {
       const yearKey = i.toString() as keyof typeof config.futureSeasons;
       const futurePercentage = config.futureSeasons?.[yearKey] ?? 0;
-      
+
       if (futurePercentage > 0) {
         // Calcular salário do ano futuro com aumentos anuais
-        const futureSalary = contract.currentSalary * Math.pow(1 + (contract.annualIncrease ?? 0.15), i);
+        const futureSalary =
+          contract.currentSalary * Math.pow(1 + (contract.annualIncrease ?? 0.15), i);
         const deadMoneyFuture = futureSalary * futurePercentage;
-        
+
         records.push({
           playerId: contract.playerId,
           teamId: contract.teamId,
