@@ -7,6 +7,7 @@
 **Problema:** O modal estava fechando antes mesmo da operação ser concluída devido ao `onClose()` sendo chamado imediatamente após `onSave()`.
 
 **Solução:**
+
 - Removido o `onClose()` do `handleSubmit` do `ContractModal`
 - O modal agora só fecha após o sucesso da operação, controlado pelo hook `useContractModal`
 - Adicionado `await` na chamada de `onSave()` para aguardar a conclusão
@@ -16,6 +17,7 @@
 **Problema:** A API não tinha uma rota para atualização de contratos individuais (`PUT /api/contracts/[id]`).
 
 **Solução:**
+
 - Criado arquivo `/src/app/api/contracts/[id]/route.ts`
 - Implementado método `PUT` para atualização de contratos
 - Implementado método `DELETE` para remoção de contratos
@@ -26,6 +28,7 @@
 **Problema:** As alterações não eram persistidas no banco de dados.
 
 **Solução:**
+
 - Corrigido o payload da requisição no hook `useContractModal`
 - Melhorado tratamento de erros da API
 - Adicionado status correto (`ACTIVE` em maiúsculo)
@@ -36,6 +39,7 @@
 **Problema:** Usuário não recebia feedback sobre o sucesso ou falha das operações.
 
 **Solução:**
+
 - Implementado sistema de toast messages
 - Eventos customizados para comunicação entre componentes
 - Feedback visual com ícones e cores apropriadas
@@ -46,6 +50,7 @@
 **Problema:** Após editar um contrato, a página era recarregada completamente.
 
 **Solução:**
+
 - Sistema de eventos customizados (`contractUpdated`)
 - Callback `onDataUpdate` para recarregar apenas os dados necessários
 - Eventos disparados antes do fechamento do modal
@@ -54,21 +59,25 @@
 ## Arquivos Modificados
 
 ### 1. `/src/app/api/contracts/[id]/route.ts` (NOVO)
+
 - Rota para atualização e remoção de contratos
 - Validações de segurança
 - Suporte para usuários demo e reais
 
 ### 2. `/src/hooks/useContractModal.ts`
+
 - Melhorado gerenciamento do estado do modal
 - Eventos customizados para feedback
 - Melhor tratamento de erros
 - Ordem correta de operações (evento → fechar modal)
 
 ### 3. `/src/components/teams/ContractModal.tsx`
+
 - Removido fechamento prematuro do modal
 - Adicionado `await` na submissão do formulário
 
 ### 4. `/src/components/teams/ContractManagement.tsx`
+
 - Sistema de toast messages
 - Gerenciamento de eventos customizados
 - Callback para atualização de dados
@@ -92,7 +101,7 @@ const handleDataUpdate = useCallback(() => {
   players={players}
   playersWithContracts={playersWithContracts}
   onDataUpdate={handleDataUpdate}
-/>
+/>;
 ```
 
 ### Eventos Customizados Disponíveis:

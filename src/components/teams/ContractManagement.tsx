@@ -68,9 +68,9 @@ export default function ContractManagement({
   const addToast = useCallback((type: 'success' | 'error', message: string) => {
     const id = Date.now().toString();
     const newToast: ToastMessage = { id, type, message };
-    
+
     setToasts(prev => [...prev, newToast]);
-    
+
     // Remover toast após 5 segundos
     setTimeout(() => {
       setToasts(prev => prev.filter(toast => toast.id !== id));
@@ -86,7 +86,7 @@ export default function ContractManagement({
   useEffect(() => {
     const handleContractUpdate = (event: CustomEvent) => {
       console.log('Contrato atualizado, recarregando dados...', event.detail);
-      
+
       // Chamar callback para recarregar dados se fornecido
       if (onDataUpdate) {
         onDataUpdate();
@@ -100,7 +100,7 @@ export default function ContractManagement({
 
     window.addEventListener('contractUpdated', handleContractUpdate as EventListener);
     window.addEventListener('showToast', handleShowToast as EventListener);
-    
+
     return () => {
       window.removeEventListener('contractUpdated', handleContractUpdate as EventListener);
       window.removeEventListener('showToast', handleShowToast as EventListener);
@@ -329,9 +329,7 @@ export default function ContractManagement({
                 <XCircleIcon className="h-5 w-5" />
               )}
               <div>
-                <p className="font-medium">
-                  {toast.type === 'success' ? 'Sucesso' : 'Erro'}
-                </p>
+                <p className="font-medium">{toast.type === 'success' ? 'Sucesso' : 'Erro'}</p>
                 <p className="text-sm">{toast.message}</p>
               </div>
             </div>

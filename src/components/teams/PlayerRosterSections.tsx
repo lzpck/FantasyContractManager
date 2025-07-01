@@ -21,7 +21,11 @@ interface PlayerRosterSectionsProps {
  * - Taxi Squad (TS)
  * - Jogadores Cortados
  */
-export function PlayerRosterSections({ players, onPlayerAction, league }: PlayerRosterSectionsProps) {
+export function PlayerRosterSections({
+  players,
+  onPlayerAction,
+  league,
+}: PlayerRosterSectionsProps) {
   // Função para verificar se jogador é elegível para extensão
   const isEligibleForExtension = (contract: any) => {
     return contract && contract.yearsRemaining === 1 && !contract.hasBeenExtended;
@@ -60,9 +64,9 @@ export function PlayerRosterSections({ players, onPlayerAction, league }: Player
    * @returns Objeto com deadMoneyCurrent e deadMoneyNext
    */
   const simulateDeadMoney = (
-    contract: any, 
-    leagueDeadMoneyConfig: DeadMoneyConfig | undefined, 
-    currentYear: number
+    contract: any,
+    leagueDeadMoneyConfig: DeadMoneyConfig | undefined,
+    currentYear: number,
   ) => {
     if (!contract) return { deadMoneyCurrent: 0, deadMoneyNext: 0 };
 
@@ -73,19 +77,19 @@ export function PlayerRosterSections({ players, onPlayerAction, league }: Player
     // Dead money próximo ano
     let deadMoneyNext = 0;
     const yearsRemaining = contract.yearsRemaining;
-    
+
     if (yearsRemaining >= 1) {
       // Usa o percentual de aumento anual da liga (padrão 15% se não configurado)
-      const annualIncreaseRate = 1 + ((league?.annualIncreasePercentage ?? 15) / 100);
-      
+      const annualIncreaseRate = 1 + (league?.annualIncreasePercentage ?? 15) / 100;
+
       // Projeta salário do próximo ano com aumento anual configurado
       const nextYearSalary = contract.currentSalary * annualIncreaseRate;
-      
+
       // Usa o percentual baseado nos anos restantes do contrato
       // Se o jogador tem 3 anos restantes, usa o percentual para "3" anos
       const yearsKey = Math.min(yearsRemaining, 4).toString(); // Máximo 4 anos
       const nextYearPercent = leagueDeadMoneyConfig?.futureSeasons?.[yearsKey] ?? 0;
-      
+
       deadMoneyNext = nextYearSalary * nextYearPercent;
     }
 
@@ -199,8 +203,12 @@ export function PlayerRosterSections({ players, onPlayerAction, league }: Player
             <tbody className="bg-slate-800 divide-y divide-slate-700">
               {sectionPlayers.map(playerWithContract => {
                 const { player, contract } = playerWithContract;
-                const { deadMoneyCurrent, deadMoneyNext } = contract 
-                  ? simulateDeadMoney(contract, league?.deadMoneyConfig, league?.season || new Date().getFullYear())
+                const { deadMoneyCurrent, deadMoneyNext } = contract
+                  ? simulateDeadMoney(
+                      contract,
+                      league?.deadMoneyConfig,
+                      league?.season || new Date().getFullYear(),
+                    )
                   : { deadMoneyCurrent: 0, deadMoneyNext: 0 };
                 const statusColor = contract
                   ? getContractStatusColor(contract.status, contract.yearsRemaining)
