@@ -162,19 +162,46 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
           notes: contractData.notes || '',
         };
 
-        // Simular chamada para API
-        console.log('Criando contrato:', newContract);
+        // Fazer chamada real à API
+        console.log('🔵 Criando contrato via API:', newContract);
 
-        // Em produção, você faria:
-        // const response = await contractsAPI.create(newContract);
+        const payload = {
+          playerId: player.id,
+          teamId: team.id,
+          leagueId: league.id,
+          originalSalary: newContract.currentSalary,
+          currentSalary: newContract.currentSalary,
+          originalYears: newContract.years,
+          yearsRemaining: newContract.yearsRemaining,
+          acquisitionType: contractData.acquisitionType || 'auction',
+          hasFourthYearOption: contractData.hasFourthYearOption || false,
+          hasBeenTagged: contractData.hasBeenTagged || false,
+          hasBeenExtended: contractData.hasBeenExtended || false,
+          fourthYearOptionActivated: contractData.fourthYearOptionActivated || false,
+          signedSeason: league.season,
+          status: 'ACTIVE',
+        };
 
-        // Simular delay da API
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const response = await fetch('/api/contracts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || errorData.message || 'Erro ao criar contrato');
+        }
+
+        const result = await response.json();
+        console.log('🔵 Contrato criado com sucesso:', result);
 
         // Disparar evento de atualização
         window.dispatchEvent(
           new CustomEvent('contractCreated', {
-            detail: { contract: newContract, player },
+            detail: { contract: result, player },
           }),
         );
 
@@ -185,7 +212,7 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
         return {
           success: true,
           message: `Contrato criado com sucesso para ${player.name}`,
-          data: newContract,
+          data: result,
         };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -230,16 +257,46 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
           lastModified: new Date(),
         };
 
-        // Simular chamada para API
-        console.log('Atualizando contrato:', updatedContract);
+        // Fazer chamada real à API
+        console.log('🔵 Atualizando contrato via API:', updatedContract);
 
-        // Simular delay da API
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const payload = {
+          playerId: updatedContract.playerId,
+          teamId: updatedContract.teamId,
+          leagueId: updatedContract.leagueId,
+          originalSalary: updatedContract.originalSalary,
+          currentSalary: updatedContract.currentSalary,
+          originalYears: updatedContract.originalYears,
+          yearsRemaining: updatedContract.yearsRemaining,
+          acquisitionType: updatedContract.acquisitionType,
+          hasFourthYearOption: updatedContract.hasFourthYearOption,
+          hasBeenTagged: updatedContract.hasBeenTagged,
+          hasBeenExtended: updatedContract.hasBeenExtended,
+          fourthYearOptionActivated: updatedContract.fourthYearOptionActivated,
+          signedSeason: updatedContract.signedSeason,
+          status: updatedContract.status,
+        };
+
+        const response = await fetch(`/api/contracts/${contract.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || errorData.message || 'Erro ao atualizar contrato');
+        }
+
+        const result = await response.json();
+        console.log('🔵 Contrato atualizado com sucesso:', result);
 
         // Disparar evento de atualização
         window.dispatchEvent(
           new CustomEvent('contractUpdated', {
-            detail: { contract: updatedContract },
+            detail: { contract: result },
           }),
         );
 
@@ -250,7 +307,7 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
         return {
           success: true,
           message: 'Contrato atualizado com sucesso',
-          data: updatedContract,
+          data: result,
         };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
