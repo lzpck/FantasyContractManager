@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import useSWR from 'swr';
-import { Contract } from '@/types';
+import { Contract, DeadMoney } from '@/types';
 
-// Interface para registros de dead money
+// Interface para registros de dead money da API
 interface DeadMoneyRecord {
   id: string;
   teamId: string;
@@ -13,6 +13,22 @@ interface DeadMoneyRecord {
   reason?: string;
   createdAt: string;
   updatedAt: string;
+  player?: {
+    id: string;
+    name: string;
+    position: string;
+    sleeperPlayerId: string;
+  };
+  contract?: {
+    id: string;
+    currentSalary: number;
+    originalYears: number;
+    signedSeason: number;
+  };
+  team?: {
+    id: string;
+    name: string;
+  };
 }
 
 // Fetcher function para SWR
@@ -52,7 +68,7 @@ export function useTeamFinancials(teamId: string, leagueId: string) {
   };
 
   // Estados de loading e erro
-  const isLoading = !contracts || !deadMoneyRecords;
+  const isLoading = (!contracts && !contractsError) || (!deadMoneyRecords && !deadMoneyError);
   const error = contractsError || deadMoneyError;
 
   return {

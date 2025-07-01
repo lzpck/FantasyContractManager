@@ -12,6 +12,7 @@ import PositionDistributionChart from '@/components/teams/PositionDistributionCh
 import ContractActionsModal from '@/components/teams/ContractActionsModal';
 import ContractModal from '@/components/teams/ContractModal';
 import { useContractModal } from '@/hooks/useContractModal';
+import { useTeamFinancials } from '@/hooks/useTeamFinancials';
 import { useAuth } from '@/hooks/useAuth';
 
 /**
@@ -37,6 +38,9 @@ export default function TeamDetailsPage() {
   // Estados para modais
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
+
+  // Hook para buscar dados financeiros em tempo real
+  const { contracts, deadMoneyRecords, revalidateFinancials } = useTeamFinancials(teamId, leagueId);
 
   // Hook para gerenciar o ContractModal
   const contractModal = useContractModal();
@@ -196,6 +200,8 @@ export default function TeamDetailsPage() {
 
       // Recarregar dados após a ação
       // loadTeamData();
+      // Revalidar dados financeiros em tempo real
+      revalidateFinancials();
 
       setShowActionsModal(false);
       setSelectedPlayer(null);
@@ -267,13 +273,21 @@ export default function TeamDetailsPage() {
             team={team}
             league={league}
             players={playersWithContracts}
+            contracts={contracts}
+            deadMoneyRecords={deadMoneyRecords}
             onBack={handleBack}
           />
 
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <PositionDistributionChart players={playersWithContracts} />
-            <CapProjectionChart team={team} players={playersWithContracts} />
+            <CapProjectionChart 
+              team={team} 
+              players={playersWithContracts} 
+              league={league}
+              contracts={contracts}
+              deadMoneyRecords={deadMoneyRecords}
+            />
           </div>
 
           {/* Seções de Jogadores por Status */}

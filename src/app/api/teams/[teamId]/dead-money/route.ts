@@ -41,13 +41,22 @@ export async function GET(
     const team = await prisma.team.findFirst({
       where: {
         id: teamId,
-        league: {
-          users: {
-            some: {
+        OR: [
+          // Usuário é o proprietário do time
+          {
+            owner: {
               email: userEmail!,
             },
           },
-        },
+          // Usuário é o comissário da liga
+          {
+            league: {
+              commissioner: {
+                email: userEmail!,
+              },
+            },
+          },
+        ],
       },
       include: {
         league: {

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { formatCurrency, formatCapUsage, getCurrencyClasses } from '@/utils/formatUtils';
 import { useMemo } from 'react';
 
-// Interface para registros de dead money por ano
+// Interface para registros de dead money da API
 interface DeadMoneyRecord {
   id: string;
   teamId: string;
@@ -17,6 +17,22 @@ interface DeadMoneyRecord {
   reason?: string;
   createdAt: string;
   updatedAt: string;
+  player?: {
+    id: string;
+    name: string;
+    position: string;
+    sleeperPlayerId: string;
+  };
+  contract?: {
+    id: string;
+    currentSalary: number;
+    originalYears: number;
+    signedSeason: number;
+  };
+  team?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface TeamHeaderProps {
@@ -41,18 +57,18 @@ export default function TeamHeader({ team, league, players, contracts, deadMoney
     const safeContracts = contracts || [];
 
     // 1. Dead Money do time (ano atual e próxima temporada)
-    // Se não há registros de dead money, usa os valores do team como fallback
-    const totalDeadMoney = safeDeadMoneyRecords.length > 0
-      ? safeDeadMoneyRecords
-          .filter(dm => dm.teamId === team.id && dm.year === currentYear)
-          .reduce((sum, dm) => sum + dm.amount, 0)
-      : team.currentDeadMoney || 0;
+    // Calcula dead money dos registros específicos
+    const currentYearDeadMoney = safeDeadMoneyRecords
+      .filter(dm => dm.teamId === team.id && dm.year === currentYear)
+      .reduce((sum, dm) => sum + dm.amount, 0);
+    
+    const nextYearDeadMoney = safeDeadMoneyRecords
+      .filter(dm => dm.teamId === team.id && dm.year === nextYear)
+      .reduce((sum, dm) => sum + dm.amount, 0);
 
-    const nextSeasonDeadMoney = safeDeadMoneyRecords.length > 0
-      ? safeDeadMoneyRecords
-          .filter(dm => dm.teamId === team.id && dm.year === nextYear)
-          .reduce((sum, dm) => sum + dm.amount, 0)
-      : team.nextSeasonDeadMoney || 0;
+    // Usa os valores calculados ou fallback para os valores do team
+    const totalDeadMoney = currentYearDeadMoney > 0 ? currentYearDeadMoney : (team.currentDeadMoney || 0);
+    const nextSeasonDeadMoney = nextYearDeadMoney > 0 ? nextYearDeadMoney : (team.nextSeasonDeadMoney || 0);
 
     // 2. Salary Cap Usado - Contratos ativos para o ano atual
     // Se não há contratos, usa os dados dos players como fallback
@@ -74,8 +90,10 @@ export default function TeamHeader({ team, league, players, contracts, deadMoney
     // 3. Salary Cap Disponível
     const availableCap = league.salaryCap - capUsed;
 
-    // 4. Estatísticas do elenco
-    const playersWithContracts = players.filter(p => p.contract);
+    // 4. Estatísticas do elenco - apenas contratos ativos (não cortados)
+    const playersWithContracts = players.filter(p => 
+      p.contract && p.contract.status !== 'CUT'
+    );
     const contractsExpiring = playersWithContracts.filter(
       p => p.contract?.yearsRemaining === 1,
     ).length;
