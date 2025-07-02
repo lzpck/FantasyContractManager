@@ -406,7 +406,8 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
           data: {
             name: team.name,
             leagueId: leagueId,
-            ownerId: league.commissionerId, // Por padrão, atribuir ao comissário
+            // ownerId deve ficar em branco - será preenchido apenas na associação manual
+            ownerId: null, // Campo vazio até associação manual de usuário local
             sleeperTeamId: team.sleeperTeamId,
             ownerDisplayName: team.ownerDisplayName,
             sleeperOwnerId: team.sleeperOwnerId,
