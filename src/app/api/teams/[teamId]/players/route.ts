@@ -26,18 +26,47 @@ export async function GET(
 
     // Removido verificação de usuário demo
 
-    // Verificar se o time existe e pertence ao usuário
+    // Verificar se o usuário tem acesso ao time
+    // (proprietário do time, comissário da liga ou membro da liga)
     const team = await prisma.team.findFirst({
       where: {
         id: teamId,
-        owner: {
-          email: userEmail!,
-        },
+        OR: [
+          // Proprietário do time
+          {
+            owner: {
+              email: userEmail!,
+            },
+          },
+          // Comissário da liga
+          {
+            league: {
+              commissioner: {
+                email: userEmail!,
+              },
+            },
+          },
+          // Membro da liga
+          {
+            league: {
+              leagueUsers: {
+                some: {
+                  user: {
+                    email: userEmail!,
+                  },
+                },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        league: true,
       },
     });
 
     if (!team) {
-      return NextResponse.json({ error: 'Time não encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Time não encontrado ou acesso negado' }, { status: 404 });
     }
 
     // Buscar jogadores do roster do time
