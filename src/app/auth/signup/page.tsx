@@ -352,4 +352,3 @@ function OriginalSignUpForm() {
     </div>
   );
 }
-}
