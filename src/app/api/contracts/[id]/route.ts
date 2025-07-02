@@ -79,7 +79,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verificar se o usuário é comissário da liga
-    const isCommissioner = user.role === 'COMMISSIONER' || user.isCommissioner;
+    const isCommissioner = user.role === 'COMMISSIONER';
     if (!isCommissioner) {
       return NextResponse.json(
         { error: 'Apenas comissários podem editar contratos' },
@@ -165,7 +165,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Verificar se o usuário é comissário da liga
-    const isCommissioner = user.role === 'COMMISSIONER' || user.isCommissioner;
+    const isCommissioner = user.role === 'COMMISSIONER';
     if (!isCommissioner) {
       return NextResponse.json(
         { error: 'Apenas comissários podem remover contratos' },
