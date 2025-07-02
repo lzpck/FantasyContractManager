@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UserRole } from '@/types/database';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { Team } from '@/types';
 
 /**
  * Componente para criação de usuários por comissários
@@ -15,16 +16,41 @@ interface CreateUserFormProps {
 export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
   const [formData, setFormData] = useState({
     name: '',
+    login: '',
     email: '',
     password: '',
     confirmPassword: '',
     role: UserRole.USER,
+    teamId: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
+
+  // Carregar times disponíveis quando o componente montar
+  useEffect(() => {
+    const fetchAvailableTeams = async () => {
+      try {
+        setLoadingTeams(true);
+        const response = await fetch('/api/teams/available');
+        
+        if (response.ok) {
+          const data = await response.json();
+          setAvailableTeams(data.teams || []);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar times disponíveis:', error);
+      } finally {
+        setLoadingTeams(false);
+      }
+    };
+
+    fetchAvailableTeams();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -50,6 +76,13 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
       return;
     }
 
+    // Validar seleção de time para usuários
+    if (formData.role === UserRole.USER && !formData.teamId) {
+      setError('Seleção de time é obrigatória para usuários');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -58,9 +91,11 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
         },
         body: JSON.stringify({
           name: formData.name,
+          login: formData.login,
           email: formData.email,
           password: formData.password,
           role: formData.role,
+          teamId: formData.teamId || null,
         }),
       });
 
@@ -73,10 +108,12 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
         // Limpar formulário
         setFormData({
           name: '',
+          login: '',
           email: '',
           password: '',
           confirmPassword: '',
           role: UserRole.USER,
+          teamId: '',
         });
         // Chamar callback de sucesso após um breve delay
         setTimeout(() => {
@@ -129,6 +166,22 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
         </div>
 
         <div>
+          <label htmlFor="login" className="block text-sm font-medium text-slate-100">
+            Login
+          </label>
+          <input
+            id="login"
+            name="login"
+            type="text"
+            required
+            className="mt-1 block w-full px-3 py-2 border border-slate-700 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-slate-100 bg-slate-800 placeholder-slate-500"
+            placeholder="Login único do usuário"
+            value={formData.login}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
           <label htmlFor="email" className="block text-sm font-medium text-slate-100">
             Email
           </label>
@@ -162,6 +215,40 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
             Usuário: acesso básico | Comissário: gerencia ligas
           </p>
         </div>
+
+        {/* Seleção de time - obrigatório apenas para usuários */}
+        {formData.role === UserRole.USER && (
+          <div>
+            <label htmlFor="teamId" className="block text-sm font-medium text-slate-100">
+              Selecionar Time *
+            </label>
+            <select
+              id="teamId"
+              name="teamId"
+              required={formData.role === UserRole.USER}
+              className="mt-1 block w-full px-3 py-2 border border-slate-700 bg-slate-800 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-slate-100"
+              value={formData.teamId}
+              onChange={handleChange}
+              disabled={loadingTeams}
+            >
+              <option value="">Selecione um time...</option>
+              {availableTeams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.name} - {team.league?.name} ({team.league?.season})
+                </option>
+              ))}
+            </select>
+            {loadingTeams && (
+              <p className="mt-1 text-xs text-slate-400">Carregando times disponíveis...</p>
+            )}
+            {!loadingTeams && availableTeams.length === 0 && (
+              <p className="mt-1 text-xs text-red-400">Nenhum time disponível no momento.</p>
+            )}
+            <p className="mt-1 text-xs text-slate-400">
+              Escolha o time que o usuário irá gerenciar.
+            </p>
+          </div>
+        )}
 
         <div className="relative">
           <label htmlFor="password" className="block text-sm font-medium text-slate-100">

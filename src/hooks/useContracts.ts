@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { Contract } from '@/types';
-import { getDemoContracts } from '@/data/demoData';
 
 /**
  * Hook para gerenciar contratos
@@ -10,7 +9,7 @@ import { getDemoContracts } from '@/data/demoData';
  * Para outros usuários, carrega dados reais da API.
  */
 export function useContracts() {
-  const { isDemoUser } = useAuth();
+  // Removido sistema demo
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,21 +20,15 @@ export function useContracts() {
         setLoading(true);
         setError(null);
 
-        if (isDemoUser) {
-          // Usuário demo: retorna dados fictícios
-          const demoContracts = getDemoContracts();
-          setContracts(demoContracts);
-        } else {
-          // Usuários reais: carrega dados da API
-          const response = await fetch('/api/contracts');
+        // Carrega dados da API
+        const response = await fetch('/api/contracts');
 
-          if (!response.ok) {
-            throw new Error('Erro ao carregar contratos');
-          }
-
-          const data = await response.json();
-          setContracts(data.contracts || []);
+        if (!response.ok) {
+          throw new Error('Erro ao carregar contratos');
         }
+
+        const data = await response.json();
+        setContracts(data.contracts || []);
       } catch (err) {
         console.error('Erro ao carregar contratos:', err);
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
@@ -45,7 +38,7 @@ export function useContracts() {
     }
 
     loadContracts();
-  }, [isDemoUser]);
+  }, []);
 
   // Funções utilitárias para filtrar contratos
   const getActiveContracts = () => {

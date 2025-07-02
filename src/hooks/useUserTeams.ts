@@ -14,7 +14,7 @@ interface UseUserTeamsReturn {
  * Busca todos os times onde o usuário é proprietário
  */
 export function useUserTeams(): UseUserTeamsReturn {
-  const { user, isDemoUser } = useAuth();
+  const { user } = useAuth();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,41 +30,7 @@ export function useUserTeams(): UseUserTeamsReturn {
       setLoading(true);
       setError(null);
 
-      // Para usuário demo, usar dados fictícios
-      if (isDemoUser) {
-        const mockTeams: Team[] = [
-          {
-            id: 'team-1',
-            name: 'Time Demo 1',
-            leagueId: 'league-1',
-            ownerId: user.id,
-            ownerDisplayName: user.name || 'Demo User',
-            sleeperOwnerId: 'demo-owner-1',
-            sleeperTeamId: 1,
-            currentSalaryCap: 200000000,
-            currentDeadMoney: 5000000,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          {
-            id: 'team-2',
-            name: 'Time Demo 2',
-            leagueId: 'league-2',
-            ownerId: user.id,
-            ownerDisplayName: user.name || 'Demo User',
-            sleeperOwnerId: 'demo-owner-2',
-            sleeperTeamId: 2,
-            currentSalaryCap: 200000000,
-            currentDeadMoney: 2000000,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ];
-
-        setTeams(mockTeams);
-        setLoading(false);
-        return;
-      }
+      // Removido verificação de usuário demo
 
       // Buscar times reais da API
       const response = await fetch('/api/teams');
@@ -85,7 +51,7 @@ export function useUserTeams(): UseUserTeamsReturn {
 
   useEffect(() => {
     fetchTeams();
-  }, [user, isDemoUser]);
+  }, [user]);
 
   return {
     teams,

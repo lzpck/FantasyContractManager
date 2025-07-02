@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { isDemoUser } from '@/data/demoData';
+// Removido sistema demo
 
 /**
  * GET /api/teams/[teamId]/dead-money
@@ -29,13 +29,7 @@ export async function GET(
     const currentYearOnly = searchParams.get('currentYearOnly') === 'true';
     const nextYearOnly = searchParams.get('nextYearOnly') === 'true';
 
-    // Usuário demo: retornar dados fictícios
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json({
-        deadMoneyRecords: [], // Dados demo são gerenciados no frontend
-        message: 'Dados demo gerenciados no frontend',
-      });
-    }
+    // Removido verificação de usuário demo
 
     // Verificar se o time existe e pertence ao usuário
     const team = await prisma.team.findFirst({
@@ -158,10 +152,7 @@ export async function POST(
     const userEmail = session.user.email;
     const { teamId } = await params;
 
-    // Usuário demo: não permitir modificações
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json({ error: 'Usuário demo não pode modificar dados' }, { status: 403 });
-    }
+    // Removido verificação de usuário demo
 
     // Verificar se o time existe e pertence ao usuário
     const team = await prisma.team.findFirst({

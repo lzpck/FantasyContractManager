@@ -14,17 +14,24 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
+        identifier: { label: 'Login ou Email', type: 'text' },
         password: { label: 'Senha', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.identifier || !credentials?.password) {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
+        // Buscar usuário por login ou email
+        const user = await prisma.user.findFirst({
           where: {
-            email: credentials.email,
+            OR: [
+              { login: credentials.identifier },
+              { email: credentials.identifier },
+            ],
+          },
+          include: {
+            team: true, // Incluir dados do time associado
           },
         });
 
@@ -43,10 +50,13 @@ export const authOptions: NextAuthOptions = {
         }
         return {
           id: user.id,
+          login: user.login,
           email: user.email,
           name: user.name,
           image: user.image,
-          role: user.role as UserRole, // Conversão necessária entre enums Prisma e tipos customizados
+          role: user.role as UserRole,
+          teamId: user.teamId,
+          team: user.team,
         };
       },
     }),
@@ -58,6 +68,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.login = user.login;
+        token.teamId = user.teamId;
+        token.team = user.team;
       }
       return token;
     },
@@ -65,6 +78,9 @@ export const authOptions: NextAuthOptions = {
       if (token.sub && token.role) {
         session.user.id = token.sub;
         session.user.role = token.role as UserRole;
+        session.user.login = token.login as string;
+        session.user.teamId = token.teamId as string;
+        session.user.team = token.team;
       }
       return session;
     },
