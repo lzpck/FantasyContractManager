@@ -376,7 +376,12 @@ export default function LeagueDetailsPage() {
   };
 
   // Função para processar trade diretamente
-  const handleProcessTrade = async (contractId: string, fromTeam: string, toTeam: string, playerName: string) => {
+  const handleProcessTrade = async (
+    contractId: string,
+    fromTeam: string,
+    toTeam: string,
+    playerName: string,
+  ) => {
     try {
       const response = await fetch('/api/roster-transactions/process-trade', {
         method: 'POST',
@@ -399,12 +404,15 @@ export default function LeagueDetailsPage() {
 
         // Remover jogador das listas de adicionados e removidos para evitar duplicação
         const playerNameLower = playerName.toLowerCase().trim();
-        setPlayersAdded(prev => prev.filter(player => 
-          (player.name || '').toLowerCase().trim() !== playerNameLower
-        ));
-        setPlayersRemoved(prev => prev.filter(player => 
-          (player.playerName || player.name || '').toLowerCase().trim() !== playerNameLower
-        ));
+        setPlayersAdded(prev =>
+          prev.filter(player => (player.name || '').toLowerCase().trim() !== playerNameLower),
+        );
+        setPlayersRemoved(prev =>
+          prev.filter(
+            player =>
+              (player.playerName || player.name || '').toLowerCase().trim() !== playerNameLower,
+          ),
+        );
 
         // Atualizar dados financeiros
         if (league?.teams) {

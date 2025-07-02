@@ -23,9 +23,7 @@ export default function SignUpPage() {
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-foreground">
-            Redirecionando...
-          </h2>
+          <h2 className="mt-6 text-3xl font-extrabold text-foreground">Redirecionando...</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Apenas comissários podem criar novos usuários.
           </p>
@@ -67,7 +65,7 @@ function OriginalSignUpForm() {
       try {
         setLoadingTeams(true);
         const response = await fetch('/api/teams/available');
-        
+
         if (response.ok) {
           const data = await response.json();
           setAvailableTeams(data.teams || []);
@@ -244,7 +242,7 @@ function OriginalSignUpForm() {
                   disabled={loadingTeams}
                 >
                   <option value="">Selecione um time...</option>
-                  {availableTeams.map((team) => (
+                  {availableTeams.map(team => (
                     <option key={team.id} value={team.id}>
                       {team.name} - {team.league?.name} ({team.league?.season})
                     </option>
@@ -257,7 +255,8 @@ function OriginalSignUpForm() {
                   <p className="mt-1 text-xs text-red-500">Nenhum time disponível no momento.</p>
                 )}
                 <p className="mt-1 text-xs text-gray-500">
-                  Escolha o time que você irá gerenciar. Comissários podem se associar a times posteriormente.
+                  Escolha o time que você irá gerenciar. Comissários podem se associar a times
+                  posteriormente.
                 </p>
               </div>
             )}

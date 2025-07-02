@@ -103,7 +103,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Verificar se o usuário está tentando desativar a si mesmo
     if (session.user.id === userId && isActive === false) {
-      return NextResponse.json({ error: 'Você não pode desativar sua própria conta' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Você não pode desativar sua própria conta' },
+        { status: 400 },
+      );
     }
 
     // Verificar se o email já está em uso por outro usuário
@@ -134,7 +137,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
       // Verificar se o time já tem outro owner (que não seja o usuário atual)
       if (newTeam.ownerId && newTeam.ownerId !== userId) {
-        return NextResponse.json({ error: 'Time já possui outro usuário associado' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'Time já possui outro usuário associado' },
+          { status: 400 },
+        );
       }
     }
 
@@ -174,9 +180,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             },
           });
 
-          console.log(`[AUDIT] Usuário ${userId} (${existingUser.name}) desassociado de todos os times`);
+          console.log(
+            `[AUDIT] Usuário ${userId} (${existingUser.name}) desassociado de todos os times`,
+          );
         }
-        
+
         // Atualizar users.teamId para null
         updateData.teamId = null;
       } else {
@@ -227,7 +235,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         // Atualizar users.teamId com o novo time
         updateData.teamId = teamId;
 
-        console.log(`[AUDIT] Usuário ${userId} (${existingUser.name}) associado ao time ${teamId} (${newTeam!.name}) na liga ${newTeam!.leagueId}`);
+        console.log(
+          `[AUDIT] Usuário ${userId} (${existingUser.name}) associado ao time ${teamId} (${newTeam!.name}) na liga ${newTeam!.leagueId}`,
+        );
       }
     }
 

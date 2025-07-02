@@ -21,10 +21,7 @@ async function main() {
     // Verificar se o usuário admin já existe
     const existingAdminUser = await prisma.user.findFirst({
       where: {
-        OR: [
-          { email: adminUserEmail },
-          { login: adminUserLogin }
-        ]
+        OR: [{ email: adminUserEmail }, { login: adminUserLogin }],
       },
     });
 

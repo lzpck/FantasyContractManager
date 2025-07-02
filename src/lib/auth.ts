@@ -25,10 +25,7 @@ export const authOptions: NextAuthOptions = {
         // Buscar usuário por login ou email
         const user = await prisma.user.findFirst({
           where: {
-            OR: [
-              { login: credentials.identifier },
-              { email: credentials.identifier },
-            ],
+            OR: [{ login: credentials.identifier }, { email: credentials.identifier }],
           },
           include: {
             team: true, // Incluir dados do time associado
