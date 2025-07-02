@@ -177,7 +177,7 @@ export async function DELETE(request: NextRequest) {
     await prisma.contract.update({
       where: { id: contractId },
       data: {
-        status: 'INACTIVE',
+        status: 'CUT',
         updatedAt: new Date().toISOString(),
       },
     });
