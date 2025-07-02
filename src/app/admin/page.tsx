@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types/database';
 import { CreateUserForm } from '@/components/admin/CreateUserForm';
+import { EditUserForm } from '@/components/admin/EditUserForm';
 import {
   PencilIcon,
   TrashIcon,
@@ -18,11 +19,20 @@ import {
 interface User {
   id: string;
   name: string;
+  login: string;
   email: string;
   role: UserRole;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  teams?: Array<{
+    id: string;
+    name: string;
+    league: {
+      id: string;
+      name: string;
+    };
+  }>;
   _count: {
     teams: number;
     leagues: number;
@@ -149,30 +159,10 @@ export default function AdminPage() {
     setCurrentPage(1);
   }, [searchTerm, sortOptions]);
 
-  // Atualizar usuário
-  const handleUpdateUser = async (userId: string, updates: Partial<User>) => {
-    setIsUpdating(true);
-    try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updates),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Erro ao atualizar usuário');
-      }
-
-      await fetchUsers();
-      setEditingUser(null);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Erro ao atualizar usuário');
-    } finally {
-      setIsUpdating(false);
-    }
+  // Callback para sucesso na edição
+  const handleEditSuccess = () => {
+    setEditingUser(null);
+    fetchUsers(); // Recarregar lista de usuários
   };
 
   // Deletar usuário
@@ -572,91 +562,12 @@ export default function AdminPage() {
       {/* Modal de edição */}
       {editingUser && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-gray-900 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border border-gray-300 dark:border-gray-700 w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                Editar Usuário: {editingUser.name}
-              </h3>
-              <form
-                onSubmit={e => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  const updates = {
-                    name: formData.get('name') as string,
-                    email: formData.get('email') as string,
-                    role: formData.get('role') as UserRole,
-                    isActive: formData.get('isActive') === 'true',
-                  };
-                  handleUpdateUser(editingUser.id, updates);
-                }}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Nome
-                  </label>
-                  <input
-                    name="name"
-                    type="text"
-                    defaultValue={editingUser.name}
-                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Email
-                  </label>
-                  <input
-                    name="email"
-                    type="email"
-                    defaultValue={editingUser.email}
-                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Perfil
-                  </label>
-                  <select
-                    name="role"
-                    defaultValue={editingUser.role}
-                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value={UserRole.USER}>Usuário</option>
-                    <option value={UserRole.COMMISSIONER}>Comissário</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Status
-                  </label>
-                  <select
-                    name="isActive"
-                    defaultValue={editingUser.isActive.toString()}
-                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="true">Ativo</option>
-                    <option value="false">Inativo</option>
-                  </select>
-                </div>
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    type="submit"
-                    disabled={isUpdating}
-                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 dark:bg-blue-700 dark:hover:bg-blue-600"
-                  >
-                    {isUpdating ? 'Salvando...' : 'Salvar'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingUser(null)}
-                    className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-            </div>
+          <div className="relative top-10 mx-auto p-5 w-full max-w-2xl">
+            <EditUserForm
+              userId={editingUser.id}
+              onSuccess={handleEditSuccess}
+              onCancel={() => setEditingUser(null)}
+            />
           </div>
         </div>
       )}

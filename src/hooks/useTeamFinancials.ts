@@ -32,7 +32,24 @@ interface DeadMoneyRecord {
 }
 
 // Fetcher function para SWR
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = async (url: string) => {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      // Se for erro 404 ou 403, retorna array vazio ao invés de erro
+      if (res.status === 404 || res.status === 403) {
+        return [];
+      }
+      throw new Error(`Erro ${res.status}: ${res.statusText}`);
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.warn('Erro ao buscar dados:', error);
+    // Retorna array vazio em caso de erro para evitar quebra do componente
+    return [];
+  }
+};
 
 /**
  * Hook personalizado para buscar dados financeiros do time em tempo real
@@ -41,10 +58,10 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 export function useTeamFinancials(teamId: string, leagueId: string) {
   // Busca contratos do time
   const {
-    data: contracts,
+    data: contractsResponse,
     error: contractsError,
     mutate: mutateContracts,
-  } = useSWR<Contract[]>(teamId ? `/api/teams/${teamId}/contracts` : null, fetcher, {
+  } = useSWR<{ contracts: Contract[] }>(teamId ? `/api/teams/${teamId}/contracts` : null, fetcher, {
     refreshInterval: 0, // Não atualiza automaticamente
     revalidateOnFocus: true, // Revalida quando a janela ganha foco
     revalidateOnReconnect: true, // Revalida quando reconecta
@@ -67,13 +84,20 @@ export function useTeamFinancials(teamId: string, leagueId: string) {
     mutateDeadMoney();
   };
 
+  // Extrair contratos da resposta
+  const contracts = contractsResponse?.contracts || contractsResponse || [];
+
   // Estados de loading e erro
-  const isLoading = (!contracts && !contractsError) || (!deadMoneyRecords && !deadMoneyError);
+  const isLoading = (!contractsResponse && !contractsError) || (!deadMoneyRecords && !deadMoneyError);
   const error = contractsError || deadMoneyError;
 
+  // Garantir que sempre retornamos arrays válidos
+  const safeContracts = Array.isArray(contracts) ? contracts : [];
+  const safeDeadMoneyRecords = Array.isArray(deadMoneyRecords) ? deadMoneyRecords : [];
+
   return {
-    contracts: contracts || [],
-    deadMoneyRecords: deadMoneyRecords || [],
+    contracts: safeContracts,
+    deadMoneyRecords: safeDeadMoneyRecords,
     isLoading,
     error,
     revalidateFinancials,
