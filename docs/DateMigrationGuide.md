@@ -231,15 +231,6 @@ export async function GET() {
 
 ## Migração de Dados Existentes
 
-### Script de Migração
-
-Um script completo foi criado em `scripts/migrate-dates-to-iso8601.ts` para converter dados existentes:
-
-```bash
-# Executar migração
-npx ts-node scripts/migrate-dates-to-iso8601.ts
-```
-
 ### Migração SQL Manual
 
 Alternativamente, execute a migração SQL em `prisma/migrations/20250103000000_convert_dates_to_iso8601/migration.sql`:
