@@ -101,7 +101,7 @@ async function handleEditContract(body: any, teamId: string) {
     data: {
       ...(currentSalary && { currentSalary: parseFloat(currentSalary) }),
       ...(yearsRemaining && { yearsRemaining: parseInt(yearsRemaining) }),
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     },
     include: {
       player: true,
@@ -229,7 +229,7 @@ async function handleReleasePlayer(body: any, teamId: string, team: any) {
     where: { id: contract.id },
     data: {
       status: 'CUT' as ContractStatus,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     },
     include: {
       player: true,
@@ -297,7 +297,7 @@ async function handleExtendContract(body: any, teamId: string) {
       currentSalary: parseFloat(newSalary),
       yearsRemaining: parseInt(additionalYears),
       hasBeenExtended: true,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     },
     include: {
       player: true,
@@ -366,7 +366,7 @@ async function handleFranchiseTag(body: any, teamId: string, team: any) {
       currentSalary: parseFloat(tagValue),
       yearsRemaining: 1,
       hasBeenTagged: true,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     },
     include: {
       player: true,

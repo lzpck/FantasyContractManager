@@ -389,7 +389,7 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
         season: syncedData.league.season,
         totalTeams: syncedData.league.totalTeams,
         status: prismaStatus,
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       },
     });
 
@@ -405,7 +405,7 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
             name: team.name,
             ownerDisplayName: team.ownerDisplayName,
             sleeperOwnerId: team.sleeperOwnerId,
-            updatedAt: new Date(),
+            updatedAt: new Date().toISOString(),
           },
         });
       } else {
