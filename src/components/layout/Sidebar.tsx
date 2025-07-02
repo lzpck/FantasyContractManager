@@ -3,24 +3,21 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * Componente de navegação lateral (sidebar)
  *
  * Fornece navegação principal para as diferentes seções do sistema.
+ * Adapta o menu conforme o perfil do usuário (comissário vs usuário comum).
  */
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+  const { isCommissioner } = useAuth();
 
-  // Itens de navegação
-  const navigationItems = [
-    {
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: '📊',
-      description: 'Visão geral',
-    },
+  // Itens de navegação base
+  const baseNavigationItems = [
     {
       name: 'Ligas',
       href: '/leagues',
@@ -40,6 +37,19 @@ export function Sidebar() {
       description: 'Regras, contato e suporte',
     },
   ];
+
+  // Adicionar Dashboard apenas para comissários
+  const navigationItems = isCommissioner
+    ? [
+        {
+          name: 'Dashboard',
+          href: '/dashboard',
+          icon: '📊',
+          description: 'Visão geral',
+        },
+        ...baseNavigationItems,
+      ]
+    : baseNavigationItems;
 
 
 
