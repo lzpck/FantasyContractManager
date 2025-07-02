@@ -154,8 +154,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Hash da nova senha se fornecida
     if (password) {
-      const bcrypt = require('bcryptjs');
-      updateData.password = await bcrypt.hash(password, 12);
+      const bcrypt = await import('bcryptjs');
+      updateData.password = await bcrypt.default.hash(password, 12);
     }
 
     // Gerenciar associação de times
