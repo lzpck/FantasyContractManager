@@ -177,8 +177,9 @@ model Team {
   leagueId String
   league   League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
 
-  ownerId   String
-  owner     User       @relation("TeamOwner", fields: [ownerId], references: [id])
+  // Proprietário local (usuário do sistema) - opcional até associação manual
+  ownerId   String?
+  owner     User?      @relation("TeamOwner", fields: [ownerId], references: [id])
   user      User?      @relation("UserTeam") // Novo relacionamento único com usuário
   contracts Contract[]
   roster    TeamRoster[]
