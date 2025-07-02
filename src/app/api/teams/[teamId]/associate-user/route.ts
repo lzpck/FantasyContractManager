@@ -10,7 +10,7 @@ import { UserRole } from '@/types/database';
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ teamId: string }> }
+  { params }: { params: Promise<{ teamId: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -39,7 +39,7 @@ export async function PATCH(
     // Se userId for null, desassociar usuário atual
     if (!userId) {
       const currentOwnerId = team.ownerId;
-      
+
       await prisma.team.update({
         where: { id: teamId },
         data: {
@@ -100,7 +100,7 @@ export async function PATCH(
     if (userCurrentTeam && userCurrentTeam.id !== teamId) {
       return NextResponse.json(
         { error: 'Usuário já possui um time associado. Desassocie primeiro.' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -108,7 +108,7 @@ export async function PATCH(
     if (team.ownerId && team.ownerId !== userId) {
       return NextResponse.json(
         { error: 'Time já possui um proprietário associado' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -150,7 +150,9 @@ export async function PATCH(
     });
 
     // Log da operação para auditoria
-    console.log(`[AUDIT] Usuário ${userId} (${user.name}) associado ao time ${teamId} (${team.name}) na liga ${team.leagueId} por ${session.user.id}`);
+    console.log(
+      `[AUDIT] Usuário ${userId} (${user.name}) associado ao time ${teamId} (${team.name}) na liga ${team.leagueId} por ${session.user.id}`,
+    );
 
     return NextResponse.json({
       message: 'Usuário associado ao time com sucesso',

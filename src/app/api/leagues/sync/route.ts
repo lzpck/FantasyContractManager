@@ -110,7 +110,11 @@ interface SyncStats {
 /**
  * Sincroniza os rosters dos times, persistindo jogadores em team_rosters
  */
-async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any[]): Promise<SyncStats> {
+async function syncTeamRosters(
+  sleeperRosters: any[],
+  teams: any[],
+  players: any[],
+): Promise<SyncStats> {
   const stats: SyncStats = {
     tradesProcessed: [],
     playersAdded: 0,
@@ -166,13 +170,15 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
 
         // Verificar se jogador já existe no roster atual
         const existingRosterEntry = currentRoster.find(r => r.playerId === player.id);
-        
+
         // Verificar e detectar possível trade
         const tradeResult = await detectPlayerTrade(player.id, team.id, team.leagueId);
-        
+
         if (tradeResult.isTraded) {
           stats.tradesProcessed.push(tradeResult);
-          console.log(`✅ Trade detectada: ${tradeResult.playerName} de ${tradeResult.fromTeam} para ${tradeResult.toTeam}`);
+          console.log(
+            `✅ Trade detectada: ${tradeResult.playerName} de ${tradeResult.fromTeam} para ${tradeResult.toTeam}`,
+          );
         } else if (!existingRosterEntry) {
           // Jogador realmente adicionado (novo no roster, não é trade)
           stats.playersAdded++;
@@ -223,7 +229,9 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
         });
 
         if (playerContract) {
-          console.log(`🔄 Jogador ${rosterEntry.player?.name || 'Desconhecido'} tradado de ${team.name} para ${playerContract.team.name}`);
+          console.log(
+            `🔄 Jogador ${rosterEntry.player?.name || 'Desconhecido'} tradado de ${team.name} para ${playerContract.team.name}`,
+          );
         }
 
         // Remover do roster atual independentemente (trade ou corte)
@@ -235,7 +243,7 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
             },
           },
         });
-        
+
         // Contar jogador removido apenas se não foi tradado
         if (!playerContract) {
           stats.playersRemoved++;
@@ -246,7 +254,7 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
         `✅ Roster do time ${team.name} sincronizado: ${sleeperRoster.players?.length || 0} ativos, ${sleeperRoster.reserve?.length || 0} IR, ${sleeperRoster.taxi?.length || 0} taxi`,
       );
     }
-    
+
     // Log das estatísticas de sincronização
     if (stats.tradesProcessed.length > 0) {
       console.log(`🔄 ${stats.tradesProcessed.length} trade(s) processada(s):`);
@@ -254,12 +262,12 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
         console.log(`   - ${trade.playerName}: ${trade.fromTeam} → ${trade.toTeam}`);
       });
     }
-    
+
     console.log(`📊 Estatísticas da sincronização:`);
     console.log(`   - Trades processadas: ${stats.tradesProcessed.length}`);
     console.log(`   - Jogadores adicionados: ${stats.playersAdded}`);
     console.log(`   - Jogadores removidos: ${stats.playersRemoved}`);
-    
+
     return stats;
   } catch (error) {
     console.error('❌ Erro ao sincronizar rosters dos times:', error);
@@ -419,7 +427,11 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
     const updatedTeams = await Promise.all(teamUpdatePromises);
 
     // Sincronizar rosters dos times (persistir jogadores em team_rosters)
-    const syncStats = await syncTeamRosters(syncedData.sleeperData.rosters, updatedTeams, syncedData.players);
+    const syncStats = await syncTeamRosters(
+      syncedData.sleeperData.rosters,
+      updatedTeams,
+      syncedData.players,
+    );
 
     // Converter o status do Prisma para o formato esperado pelo tipo League
     let frontendStatus;

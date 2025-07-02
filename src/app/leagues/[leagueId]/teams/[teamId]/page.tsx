@@ -112,8 +112,7 @@ export default function TeamDetailsPage() {
         // Adicionar também jogadores com contratos que não estão no roster atual
         // (jogadores que foram cortados mas ainda têm dead money)
         const playersNotInRoster = contractsData.contracts.filter(
-          (c: Contract) =>
-            !rosterPlayers.some(p => p.sleeperPlayerId === c.player.sleeperPlayerId),
+          (c: Contract) => !rosterPlayers.some(p => p.sleeperPlayerId === c.player.sleeperPlayerId),
         );
 
         playersNotInRoster.forEach((contract: Contract) => {

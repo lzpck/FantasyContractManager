@@ -177,7 +177,6 @@ export function createMockUser(overrides: Partial<User> = {}): User {
     avatar: undefined,
     role: UserRole.USER,
     isActive: true,
-    isCommissioner: false,
     createdAt: now,
     updatedAt: now,
     ...overrides,
@@ -192,7 +191,7 @@ export function createMockCommissioner(overrides: Partial<User> = {}): User {
   return createMockUser({
     name: `Comissário ${randomId.toUpperCase()}`,
     email: `commissioner${randomId}@example.com`,
-    isCommissioner: true,
+    role: UserRole.COMMISSIONER,
     ...overrides,
   });
 }

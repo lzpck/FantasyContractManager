@@ -37,7 +37,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
       try {
         setLoadingTeams(true);
         const response = await fetch('/api/teams/available');
-        
+
         if (response.ok) {
           const data = await response.json();
           setAvailableTeams(data.teams || []);
@@ -232,7 +232,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
               disabled={loadingTeams}
             >
               <option value="">Selecione um time...</option>
-              {availableTeams.map((team) => (
+              {availableTeams.map(team => (
                 <option key={team.id} value={team.id}>
                   {team.name} - {team.league?.name} ({team.league?.season})
                 </option>

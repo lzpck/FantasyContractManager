@@ -115,19 +115,19 @@ A edição permite alterar todas as informações do usuário, incluindo senha, 
    - Prevenção de auto-desativação
 
 3. **Gerenciamento de Associação de Times**
-   
+
    **Cenário 1: Remoção de Time**
    - Remove `ownerId` do time atual
    - Remove usuário da liga correspondente
    - Log de auditoria
-   
+
    **Cenário 2: Troca de Time**
    - Remove associação do time anterior
    - Remove usuário da liga anterior
    - Associa ao novo time
    - Adiciona usuário à nova liga
    - Log de auditoria
-   
+
    **Cenário 3: Mudança para Comissário**
    - Remove associação de qualquer time
    - Mantém acesso às ligas que gerencia
@@ -187,6 +187,7 @@ A edição permite alterar todas as informações do usuário, incluindo senha, 
    - Usuário não deve ter outro time (regra de negócio)
 
 2. **Atualização do Time**
+
    ```sql
    UPDATE teams SET ownerId = 'user_id', updatedAt = NOW() WHERE id = 'team_id'
    ```
@@ -201,6 +202,7 @@ A edição permite alterar todas as informações do usuário, incluindo senha, 
 ### Processo de Desassociação
 
 1. **Remoção do Proprietário**
+
    ```sql
    UPDATE teams SET ownerId = NULL, updatedAt = NOW() WHERE ownerId = 'user_id'
    ```
@@ -274,18 +276,23 @@ A edição permite alterar todas as informações do usuário, incluindo senha, 
 
 ```javascript
 // Criação de usuário com time
-console.log(`[AUDIT] Usuário ${user.id} (${user.name}) criado e associado ao time ${teamId} (${team.name}) na liga ${team.leagueId}`);
+console.log(
+  `[AUDIT] Usuário ${user.id} (${user.name}) criado e associado ao time ${teamId} (${team.name}) na liga ${team.leagueId}`,
+);
 
 // Edição - Desassociação
 console.log(`[AUDIT] Usuário ${userId} (${existingUser.name}) desassociado de todos os times`);
 
 // Edição - Nova associação
-console.log(`[AUDIT] Usuário ${userId} (${existingUser.name}) associado ao time ${teamId} (${newTeam.name}) na liga ${newTeam.leagueId}`);
+console.log(
+  `[AUDIT] Usuário ${userId} (${existingUser.name}) associado ao time ${teamId} (${newTeam.name}) na liga ${newTeam.leagueId}`,
+);
 ```
 
 ### Melhorias Futuras
 
 1. **Tabela de Auditoria**
+
    ```sql
    CREATE TABLE audit_logs (
      id VARCHAR PRIMARY KEY,

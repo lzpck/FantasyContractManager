@@ -79,7 +79,7 @@ export async function GET(
     }
 
     // Parse do deadMoneyConfig se for uma string JSON
-    let parsedLeague = { ...league };
+    const parsedLeague = { ...league };
     if (league.deadMoneyConfig && typeof league.deadMoneyConfig === 'string') {
       try {
         parsedLeague.deadMoneyConfig = JSON.parse(league.deadMoneyConfig);

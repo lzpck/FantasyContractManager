@@ -7,6 +7,7 @@
 **Problema:** A lógica atual está contando trades como jogadores adicionados E removidos, quando deveria apenas processar a trade sem afetar essas estatísticas.
 
 **Causa:** No arquivo `src/app/api/leagues/sync/route.ts`, a função `syncTeamRosters` está:
+
 - Contando como "jogador adicionado" quando `tradeResult.isTraded` é `false`
 - Contando como "jogador removido" quando não há contrato ativo em outro time
 
@@ -29,11 +30,14 @@
 **Arquivo:** `src/app/api/leagues/sync/route.ts`
 
 **Problema na linha 169-175:**
+
 ```typescript
 // ❌ PROBLEMA: Conta como adicionado mesmo quando é trade
 if (tradeResult.isTraded) {
   stats.tradesProcessed.push(tradeResult);
-  console.log(`✅ Trade processada: ${tradeResult.playerName} de ${tradeResult.fromTeam} para ${tradeResult.toTeam}`);
+  console.log(
+    `✅ Trade processada: ${tradeResult.playerName} de ${tradeResult.fromTeam} para ${tradeResult.toTeam}`,
+  );
 } else {
   // Jogador adicionado (não é trade)
   stats.playersAdded++;
@@ -41,13 +45,16 @@ if (tradeResult.isTraded) {
 ```
 
 **Correção:**
+
 ```typescript
 // ✅ CORREÇÃO: Verificar se jogador já existe no roster
 const existingRosterEntry = currentRoster.find(r => r.playerId === player.id);
 
 if (tradeResult.isTraded) {
   stats.tradesProcessed.push(tradeResult);
-  console.log(`✅ Trade processada: ${tradeResult.playerName} de ${tradeResult.fromTeam} para ${tradeResult.toTeam}`);
+  console.log(
+    `✅ Trade processada: ${tradeResult.playerName} de ${tradeResult.fromTeam} para ${tradeResult.toTeam}`,
+  );
 } else if (!existingRosterEntry) {
   // Jogador realmente adicionado (novo no roster)
   stats.playersAdded++;
@@ -60,6 +67,7 @@ if (tradeResult.isTraded) {
 **Arquivo:** `src/components/teams/ContractActionsModal.tsx`
 
 **Problema na linha 156-161:**
+
 ```typescript
 // ❌ PROBLEMA: Sempre abre modal em modo criação
 const handleAddContract = () => {
@@ -71,6 +79,7 @@ const handleAddContract = () => {
 ```
 
 **Correção:**
+
 ```typescript
 // ✅ CORREÇÃO: Verificar se já tem contrato
 const handleAddContract = () => {
@@ -92,6 +101,7 @@ const handleAddContract = () => {
 **Arquivo:** `src/components/teams/ContractActionsModal.tsx`
 
 **Adicionar verificação visual:**
+
 ```typescript
 // ✅ MELHORIA: Alterar texto do botão baseado no estado
 const getContractButtonText = () => {
@@ -182,6 +192,7 @@ npm test src/utils/tradeDetection.test.ts
 ## Logs de Validação
 
 ### Antes da Correção:
+
 ```
 ❌ Trade detectada mas contada como:
    - Jogadores adicionados: 1
@@ -192,6 +203,7 @@ npm test src/utils/tradeDetection.test.ts
 ```
 
 ### Depois da Correção:
+
 ```
 ✅ Trade detectada e processada corretamente:
    - Jogadores adicionados: 0

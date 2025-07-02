@@ -39,10 +39,7 @@ export async function GET() {
           },
         },
       },
-      orderBy: [
-        { league: { name: 'asc' } },
-        { name: 'asc' },
-      ],
+      orderBy: [{ league: { name: 'asc' } }, { name: 'asc' }],
     });
 
     return NextResponse.json({
@@ -51,9 +48,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Erro ao buscar times disponíveis:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

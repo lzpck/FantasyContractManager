@@ -156,8 +156,6 @@ export interface User {
   role: UserRole;
   /** Se o usuário está ativo */
   isActive: boolean;
-  /** Se o usuário é comissário da liga atual (deprecated - usar role) */
-  isCommissioner?: boolean;
   /** Data de criação da conta */
   createdAt: string; // ISO 8601 format
   /** Data da última atualização */

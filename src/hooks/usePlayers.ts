@@ -12,7 +12,7 @@ export function usePlayers() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch('/api/players');
       if (!response.ok) {
         throw new Error('Erro ao carregar jogadores');

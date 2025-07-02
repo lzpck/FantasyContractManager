@@ -77,8 +77,6 @@ export async function POST(request: NextRequest) {
 
     const userEmail = session.user.email;
 
-
-
     // Verificar se o usuário é comissário
     const user = await prisma.user.findUnique({
       where: { email: userEmail! },
