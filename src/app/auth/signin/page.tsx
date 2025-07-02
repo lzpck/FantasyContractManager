@@ -21,8 +21,9 @@ export default function SignInPage() {
   // Redirecionar se já estiver autenticado
   useEffect(() => {
     if (status === 'authenticated' && session) {
-      console.log('Usuário já autenticado, redirecionando para dashboard');
-      router.push('/dashboard');
+      console.log('Usuário já autenticado, redirecionando...');
+      // O redirecionamento será feito pelo hook usePostLoginRedirect na página inicial
+      router.push('/');
     }
   }, [session, status, router]);
 
@@ -65,8 +66,8 @@ export default function SignInPage() {
           const session = await getSession();
           if (session) {
             console.log('Sessão confirmada, redirecionando...');
-            // Usar window.location para evitar problemas de DOM
-            window.location.href = '/dashboard';
+            // Redirecionar para página inicial que fará o redirecionamento baseado no perfil
+            window.location.href = '/';
           } else {
             // Se não conseguir obter a sessão, tentar novamente após um delay
             setTimeout(checkSession, 200);
