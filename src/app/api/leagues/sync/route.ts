@@ -7,6 +7,77 @@ import { syncLeagueWithSleeper } from '@/services/sleeperService';
 import { League, LeagueStatus } from '@/types';
 import { LeagueStatus as PrismaLeagueStatus } from '@prisma/client';
 
+/**
+ * Interface para resultado de processamento de trade
+ */
+interface TradeProcessResult {
+  isTraded: boolean;
+  fromTeam?: string;
+  toTeam?: string;
+  playerName?: string;
+  contractId?: string;
+}
+
+/**
+ * Detecta uma possível trade sem processá-la automaticamente
+ * @param playerId - ID do jogador
+ * @param newTeamId - ID do novo time
+ * @param leagueId - ID da liga
+ * @returns Resultado da detecção da trade
+ */
+async function detectPlayerTrade(
+  playerId: string,
+  newTeamId: string,
+  leagueId: string,
+): Promise<TradeProcessResult> {
+  try {
+    // Buscar contrato ativo em outro time
+    const existingContract = await prisma.contract.findFirst({
+      where: {
+        playerId,
+        leagueId,
+        status: 'ACTIVE',
+        teamId: {
+          not: newTeamId,
+        },
+      },
+      include: {
+        team: true,
+        player: true,
+      },
+    });
+
+    if (!existingContract) {
+      return { isTraded: false };
+    }
+
+    // Buscar dados do novo time
+    const newTeam = await prisma.team.findUnique({
+      where: { id: newTeamId },
+    });
+
+    if (!newTeam) {
+      console.error(`❌ Novo time não encontrado: ${newTeamId}`);
+      return { isTraded: false };
+    }
+
+    console.log(
+      `🔄 TRADE DETECTADA: ${existingContract.player.name} de ${existingContract.team.name} para ${newTeam.name}`,
+    );
+
+    return {
+      isTraded: true,
+      fromTeam: existingContract.team.name,
+      toTeam: newTeam.name,
+      playerName: existingContract.player.name,
+      contractId: existingContract.id,
+    };
+  } catch (error) {
+    console.error('❌ Erro ao detectar trade:', error);
+    return { isTraded: false };
+  }
+}
+
 // ============================================================================
 // TIPOS E INTERFACES
 // ============================================================================
@@ -19,6 +90,17 @@ export interface SyncResult {
     teamsUpdated: number;
     playersUpdated: number;
   };
+  tradesProcessed?: TradeProcessResult[];
+  syncStats?: SyncStats;
+}
+
+/**
+ * Interface para estatísticas de sincronização
+ */
+interface SyncStats {
+  tradesProcessed: TradeProcessResult[];
+  playersAdded: number;
+  playersRemoved: number;
 }
 
 // ============================================================================
@@ -28,7 +110,12 @@ export interface SyncResult {
 /**
  * Sincroniza os rosters dos times, persistindo jogadores em team_rosters
  */
-async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any[]) {
+async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any[]): Promise<SyncStats> {
+  const stats: SyncStats = {
+    tradesProcessed: [],
+    playersAdded: 0,
+    playersRemoved: 0,
+  };
   try {
     for (const sleeperRoster of sleeperRosters) {
       // Encontrar o time correspondente
@@ -77,6 +164,21 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
           });
         }
 
+        // Verificar se jogador já existe no roster atual
+        const existingRosterEntry = currentRoster.find(r => r.playerId === player.id);
+        
+        // Verificar e detectar possível trade
+        const tradeResult = await detectPlayerTrade(player.id, team.id, team.leagueId);
+        
+        if (tradeResult.isTraded) {
+          stats.tradesProcessed.push(tradeResult);
+          console.log(`✅ Trade detectada: ${tradeResult.playerName} de ${tradeResult.fromTeam} para ${tradeResult.toTeam}`);
+        } else if (!existingRosterEntry) {
+          // Jogador realmente adicionado (novo no roster, não é trade)
+          stats.playersAdded++;
+        }
+        // Se existingRosterEntry existe mas não é trade, é apenas atualização de status
+
         // Adicionar/atualizar jogador no roster do time
         await prisma.teamRoster.upsert({
           where: {
@@ -105,6 +207,26 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
       );
 
       for (const rosterEntry of playersToRemove) {
+        // Verificar se o jogador foi tradado (tem contrato ativo em outro time)
+        const playerContract = await prisma.contract.findFirst({
+          where: {
+            playerId: rosterEntry.playerId,
+            leagueId: team.leagueId,
+            status: 'ACTIVE',
+            teamId: {
+              not: team.id,
+            },
+          },
+          include: {
+            team: true,
+          },
+        });
+
+        if (playerContract) {
+          console.log(`🔄 Jogador ${rosterEntry.player?.name || 'Desconhecido'} tradado de ${team.name} para ${playerContract.team.name}`);
+        }
+
+        // Remover do roster atual independentemente (trade ou corte)
         await prisma.teamRoster.delete({
           where: {
             teamId_playerId: {
@@ -113,12 +235,32 @@ async function syncTeamRosters(sleeperRosters: any[], teams: any[], players: any
             },
           },
         });
+        
+        // Contar jogador removido apenas se não foi tradado
+        if (!playerContract) {
+          stats.playersRemoved++;
+        }
       }
 
       console.log(
         `✅ Roster do time ${team.name} sincronizado: ${sleeperRoster.players?.length || 0} ativos, ${sleeperRoster.reserve?.length || 0} IR, ${sleeperRoster.taxi?.length || 0} taxi`,
       );
     }
+    
+    // Log das estatísticas de sincronização
+    if (stats.tradesProcessed.length > 0) {
+      console.log(`🔄 ${stats.tradesProcessed.length} trade(s) processada(s):`);
+      stats.tradesProcessed.forEach(trade => {
+        console.log(`   - ${trade.playerName}: ${trade.fromTeam} → ${trade.toTeam}`);
+      });
+    }
+    
+    console.log(`📊 Estatísticas da sincronização:`);
+    console.log(`   - Trades processadas: ${stats.tradesProcessed.length}`);
+    console.log(`   - Jogadores adicionados: ${stats.playersAdded}`);
+    console.log(`   - Jogadores removidos: ${stats.playersRemoved}`);
+    
+    return stats;
   } catch (error) {
     console.error('❌ Erro ao sincronizar rosters dos times:', error);
     throw error;
@@ -276,7 +418,7 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
     const updatedTeams = await Promise.all(teamUpdatePromises);
 
     // Sincronizar rosters dos times (persistir jogadores em team_rosters)
-    await syncTeamRosters(syncedData.sleeperData.rosters, updatedTeams, syncedData.players);
+    const syncStats = await syncTeamRosters(syncedData.sleeperData.rosters, updatedTeams, syncedData.players);
 
     // Converter o status do Prisma para o formato esperado pelo tipo League
     let frontendStatus;
@@ -332,14 +474,22 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
       })),
     };
 
+    // Criar mensagem com estatísticas de trades
+    let message = `Liga "${updatedLeague.name}" sincronizada com sucesso!`;
+    if (syncStats.tradesProcessed.length > 0) {
+      message += ` ${syncStats.tradesProcessed.length} trade(s) processada(s).`;
+    }
+
     return {
       success: true,
       league: leagueWithSettings,
-      message: `Liga "${updatedLeague.name}" sincronizada com sucesso!`,
+      message,
       details: {
         teamsUpdated: updatedTeams.length,
         playersUpdated: syncedData.players.length,
       },
+      tradesProcessed: syncStats.tradesProcessed,
+      syncStats,
     };
   } catch (error) {
     console.error('Erro durante sincronização:', error);
@@ -396,6 +546,8 @@ export async function POST(request: NextRequest) {
         league: result.league,
         message: result.message,
         details: result.details,
+        tradesProcessed: result.tradesProcessed,
+        syncStats: result.syncStats,
       });
     } else {
       return NextResponse.json(
