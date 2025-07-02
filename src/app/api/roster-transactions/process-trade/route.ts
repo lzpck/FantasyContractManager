@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       data: {
         teamId: destinationTeam.id,
         acquisitionType: 'TRADE',
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       },
       include: {
         player: true,

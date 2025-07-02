@@ -101,7 +101,7 @@ export async function PUT(request: NextRequest) {
         hasBeenExtended: hasBeenExtended || false,
         fourthYearOptionActivated: fourthYearOptionActivated || false,
         status: (status || 'ACTIVE').toUpperCase(),
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       },
       include: {
         player: true,
@@ -178,7 +178,7 @@ export async function DELETE(request: NextRequest) {
       where: { id: contractId },
       data: {
         status: 'INACTIVE',
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       },
     });
 
