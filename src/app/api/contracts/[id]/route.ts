@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { isDemoUser } from '@/data/demoData';
+// Removido sistema demo
 
 /**
  * PUT /api/contracts/[id]
@@ -42,26 +42,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Para usuário demo, simular atualização
-    if (isDemoUser(userEmail)) {
-      const mockUpdatedContract = {
-        id: contractId,
-        originalSalary,
-        currentSalary: currentSalary || originalSalary,
-        originalYears,
-        yearsRemaining: yearsRemaining || originalYears,
-        acquisitionType,
-        hasFourthYearOption: hasFourthYearOption || false,
-        hasBeenTagged: hasBeenTagged || false,
-        hasBeenExtended: hasBeenExtended || false,
-        fourthYearOptionActivated: fourthYearOptionActivated || false,
-        status: status || 'ACTIVE',
-        updatedAt: new Date().toISOString(),
-      };
-
-      console.log('Contrato atualizado (modo demo):', mockUpdatedContract);
-      return NextResponse.json({ contract: mockUpdatedContract }, { status: 200 });
-    }
+    // Removido verificação de usuário demo
 
     // Buscar usuário real
     const user = await prisma.user.findUnique({
@@ -155,11 +136,7 @@ export async function DELETE(request: NextRequest) {
     const url = new URL(request.url);
     const contractId = url.pathname.split('/').pop();
 
-    // Para usuário demo, simular remoção
-    if (isDemoUser(userEmail)) {
-      console.log('Contrato removido (modo demo):', contractId);
-      return NextResponse.json({ message: 'Contrato removido com sucesso' }, { status: 200 });
-    }
+    // Removido verificação de usuário demo
 
     // Buscar usuário real
     const user = await prisma.user.findUnique({

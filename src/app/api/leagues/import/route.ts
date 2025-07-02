@@ -101,7 +101,8 @@ async function importLeague(
           data: {
             name: team.name,
             leagueId: createdLeague.id,
-            ownerId: commissionerId, // proprietário local temporário
+            // ownerId deve ficar em branco - será preenchido apenas na associação manual
+            ownerId: null, // Campo vazio até associação manual de usuário local
             sleeperTeamId: team.sleeperTeamId,
             sleeperOwnerId: team.sleeperOwnerId,
             ownerDisplayName: team.ownerDisplayName,

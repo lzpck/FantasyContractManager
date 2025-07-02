@@ -2,14 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { isDemoUser } from '@/data/demoData';
+// Removido sistema demo
 
 /**
  * GET /api/leagues
  *
  * Lista todas as ligas do usuário autenticado.
- * Para o usuário demo, retorna dados fictícios.
- * Para outros usuários, retorna dados reais do banco.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -22,15 +20,7 @@ export async function GET(request: NextRequest) {
 
     const userEmail = session.user.email;
 
-    // Usuário demo: não acessa dados reais
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json({
-        leagues: [], // Dados demo são gerenciados no frontend
-        message: 'Dados demo gerenciados no frontend',
-      });
-    }
-
-    // Usuários reais: buscar ligas do banco de dados
+    // Buscar ligas do banco de dados
     const user = await prisma.user.findUnique({
       where: { email: userEmail! },
       include: {
@@ -75,7 +65,6 @@ export async function GET(request: NextRequest) {
  * POST /api/leagues
  *
  * Cria uma nova liga (apenas para comissários).
- * Usuário demo não pode criar ligas reais.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -88,13 +77,7 @@ export async function POST(request: NextRequest) {
 
     const userEmail = session.user.email;
 
-    // Usuário demo: não pode criar ligas reais
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json(
-        { error: 'Usuário demo não pode criar ligas reais' },
-        { status: 403 },
-      );
-    }
+
 
     // Verificar se o usuário é comissário
     const user = await prisma.user.findUnique({

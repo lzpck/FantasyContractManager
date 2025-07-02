@@ -10,6 +10,8 @@ interface PlayerRosterSectionsProps {
   onPlayerAction: (player: PlayerWithContract, action: string) => void;
   /** Dados da liga (incluindo configuração de dead money) */
   league: League | null;
+  /** Se o usuário é comissário (pode editar contratos) */
+  isCommissioner?: boolean;
 }
 
 /**
@@ -25,6 +27,7 @@ export function PlayerRosterSections({
   players,
   onPlayerAction,
   league,
+  isCommissioner = false,
 }: PlayerRosterSectionsProps) {
   // Função para verificar se jogador é elegível para extensão
   const isEligibleForExtension = (contract: any) => {
@@ -195,9 +198,11 @@ export function PlayerRosterSections({
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Dead Money (Próx. Temp.)
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Ações
-                </th>
+                {isCommissioner && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    Ações
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-slate-800 divide-y divide-slate-700">
@@ -284,59 +289,61 @@ export function PlayerRosterSections({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
                       {deadMoneyNext > 0 ? formatCurrency(deadMoneyNext) : '--'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2 relative z-10">
-                        {/* Adicionar/Editar Contrato */}
-                        <button
-                          onClick={e => {
-                            e.preventDefault();
-                            e.stopPropagation();
+                    {isCommissioner && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2 relative z-10">
+                          {/* Adicionar/Editar Contrato */}
+                          <button
+                            onClick={e => {
+                              e.preventDefault();
+                              e.stopPropagation();
 
-                            onPlayerAction(playerWithContract, contract ? 'edit' : 'add');
-                          }}
-                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-100 cursor-pointer relative z-20"
-                          title={contract ? 'Editar Contrato' : 'Adicionar Contrato'}
-                        >
-                          {contract ? (
-                            <PencilIcon className="h-4 w-4" />
-                          ) : (
-                            <PlusIcon className="h-4 w-4" />
+                              onPlayerAction(playerWithContract, contract ? 'edit' : 'add');
+                            }}
+                            className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-100 cursor-pointer relative z-20"
+                            title={contract ? 'Editar Contrato' : 'Adicionar Contrato'}
+                          >
+                            {contract ? (
+                              <PencilIcon className="h-4 w-4" />
+                            ) : (
+                              <PlusIcon className="h-4 w-4" />
+                            )}
+                          </button>
+
+                          {/* Extensão (se elegível) */}
+                          {isEligibleForExtension(contract) && (
+                            <button
+                              onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                onPlayerAction(playerWithContract, 'extend');
+                              }}
+                              className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-100 cursor-pointer relative z-20"
+                              title="Extensão de Contrato"
+                            >
+                              <ArrowPathIcon className="h-4 w-4" />
+                            </button>
                           )}
-                        </button>
 
-                        {/* Extensão (se elegível) */}
-                        {isEligibleForExtension(contract) && (
-                          <button
-                            onClick={e => {
-                              e.preventDefault();
-                              e.stopPropagation();
+                          {/* Franchise Tag */}
+                          {isEligibleForTag(playerWithContract) && (
+                            <button
+                              onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
 
-                              onPlayerAction(playerWithContract, 'extend');
-                            }}
-                            className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-100 cursor-pointer relative z-20"
-                            title="Extensão de Contrato"
-                          >
-                            <ArrowPathIcon className="h-4 w-4" />
-                          </button>
-                        )}
-
-                        {/* Franchise Tag */}
-                        {isEligibleForTag(playerWithContract) && (
-                          <button
-                            onClick={e => {
-                              e.preventDefault();
-                              e.stopPropagation();
-
-                              onPlayerAction(playerWithContract, 'tag');
-                            }}
-                            className="text-purple-600 hover:text-purple-900 ml-2 p-1 rounded hover:bg-purple-100 cursor-pointer relative z-20"
-                            title="Franchise Tag"
-                          >
-                            <TagIcon className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                                onPlayerAction(playerWithContract, 'tag');
+                              }}
+                              className="text-purple-600 hover:text-purple-900 ml-2 p-1 rounded hover:bg-purple-100 cursor-pointer relative z-20"
+                              title="Franchise Tag"
+                            >
+                              <TagIcon className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 );
               })}

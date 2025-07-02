@@ -298,18 +298,19 @@ export function PlayerContractsManager({
 
       {/* Tabela de Jogadores */}
       <PlayerContractsTable
-        players={filteredAndSortedPlayers}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        filterText={filterText}
-        filterPosition={filterPosition}
-        filterStatus={filterStatus}
-        onSortChange={handleSortChange}
-        onFilterTextChange={setFilterText}
-        onFilterPositionChange={setFilterPosition}
-        onFilterStatusChange={setFilterStatus}
-        onPlayerAction={handlePlayerAction}
-      />
+          players={filteredPlayers}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          filterText={filterText}
+          filterPosition={filterPosition}
+          filterStatus={filterStatus}
+          onSortChange={handleSortChange}
+          onFilterTextChange={setFilterText}
+          onFilterPositionChange={setFilterPosition}
+          onFilterStatusChange={setFilterStatus}
+          onPlayerAction={handlePlayerAction}
+          isCommissioner={isCommissioner}
+        />
 
       {/* Modal de Ações */}
       <ContractActionsModal

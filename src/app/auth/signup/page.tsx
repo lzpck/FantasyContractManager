@@ -1,28 +1,86 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { UserRole } from '@/types/database';
+import { Team } from '@/types';
 
 /**
  * Página de cadastro de usuários
+ * Redirecionamento para login - apenas comissários podem criar usuários
  */
 export default function SignUpPage() {
+  const router = useRouter();
+
+  // Redirecionar para login, pois cadastro público não é permitido
+  useEffect(() => {
+    router.push('/auth/signin');
+  }, [router]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <h2 className="mt-6 text-3xl font-extrabold text-foreground">
+            Redirecionando...
+          </h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Apenas comissários podem criar novos usuários.
+          </p>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Você será redirecionado para a página de login.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Componente original de cadastro (mantido como referência)
+ * Não é mais utilizado, pois cadastro público foi desabilitado
+ */
+function OriginalSignUpForm() {
   const [formData, setFormData] = useState({
     name: '',
+    login: '',
     email: '',
     password: '',
     confirmPassword: '',
     role: UserRole.USER,
+    teamId: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
   const router = useRouter();
+
+  // Carregar times disponíveis quando o componente montar
+  useEffect(() => {
+    const fetchAvailableTeams = async () => {
+      try {
+        setLoadingTeams(true);
+        const response = await fetch('/api/teams/available');
+        
+        if (response.ok) {
+          const data = await response.json();
+          setAvailableTeams(data.teams || []);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar times disponíveis:', error);
+      } finally {
+        setLoadingTeams(false);
+      }
+    };
+
+    fetchAvailableTeams();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -48,6 +106,13 @@ export default function SignUpPage() {
       return;
     }
 
+    // Validar seleção de time para usuários
+    if (formData.role === UserRole.USER && !formData.teamId) {
+      setError('Seleção de time é obrigatória para usuários');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -56,9 +121,11 @@ export default function SignUpPage() {
         },
         body: JSON.stringify({
           name: formData.name,
+          login: formData.login,
           email: formData.email,
           password: formData.password,
           role: formData.role,
+          teamId: formData.teamId || null,
         }),
       });
 
@@ -109,6 +176,23 @@ export default function SignUpPage() {
             </div>
 
             <div>
+              <label htmlFor="login" className="block text-sm font-medium text-gray-700">
+                Login
+              </label>
+              <input
+                id="login"
+                name="login"
+                type="text"
+                autoComplete="username"
+                required
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700"
+                placeholder="Seu login único"
+                value={formData.login}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </label>
@@ -140,9 +224,43 @@ export default function SignUpPage() {
                 <option value={UserRole.COMMISSIONER}>Comissário</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">
-                Visualizador: apenas leitura | Manager: gerencia times | Comissário: acesso total
+                Usuário: gerencia um time | Comissário: acesso total às ligas
               </p>
             </div>
+
+            {/* Seleção de time - obrigatório apenas para usuários */}
+            {formData.role === UserRole.USER && (
+              <div>
+                <label htmlFor="teamId" className="block text-sm font-medium text-gray-700">
+                  Selecionar Time *
+                </label>
+                <select
+                  id="teamId"
+                  name="teamId"
+                  required={formData.role === UserRole.USER}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-900 dark:text-gray-100"
+                  value={formData.teamId}
+                  onChange={handleChange}
+                  disabled={loadingTeams}
+                >
+                  <option value="">Selecione um time...</option>
+                  {availableTeams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name} - {team.league?.name} ({team.league?.season})
+                    </option>
+                  ))}
+                </select>
+                {loadingTeams && (
+                  <p className="mt-1 text-xs text-gray-500">Carregando times disponíveis...</p>
+                )}
+                {!loadingTeams && availableTeams.length === 0 && (
+                  <p className="mt-1 text-xs text-red-500">Nenhum time disponível no momento.</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Escolha o time que você irá gerenciar. Comissários podem se associar a times posteriormente.
+                </p>
+              </div>
+            )}
 
             <div className="relative">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
@@ -233,4 +351,5 @@ export default function SignUpPage() {
       </div>
     </div>
   );
+}
 }

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { fetchSleeperRosters, SleeperRoster } from '@/services/sleeperService';
+import { TradeProcessed } from '@/components/leagues/RosterTransactions';
 
 /**
  * Representa um jogador que foi adicionado ao roster
@@ -40,6 +41,7 @@ export interface PlayerRemoved {
 export interface RosterDiff {
   playersAdded: PlayerAdded[];
   playersRemoved: PlayerRemoved[];
+  tradesProcessed?: TradeProcessed[];
 }
 
 /**
@@ -176,6 +178,7 @@ export function useRosterDiff() {
         return {
           playersAdded,
           playersRemoved,
+          tradesProcessed: [], // Será preenchido pela API de sincronização
         };
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';

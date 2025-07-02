@@ -24,7 +24,7 @@ export interface TeamSalaryCapData {
  * Hook para gerenciar dados de salary cap
  */
 export function useSalaryCap() {
-  const { isDemoUser } = useAuth();
+  // Removido sistema demo
   const { contracts, loading: contractsLoading } = useContracts();
   const { leagues, loading: leaguesLoading } = useLeagues();
   const [teams, setTeams] = useState<Team[]>([]);
@@ -37,38 +37,15 @@ export function useSalaryCap() {
         setLoading(true);
         setError(null);
 
-        if (isDemoUser) {
-          // Para usuário demo, gerar dados fictícios baseados nas ligas
-          const demoTeams: Team[] = [];
-          leagues.forEach(league => {
-            for (let i = 1; i <= league.totalTeams; i++) {
-              demoTeams.push({
-                id: `demo-team-${league.id}-${i}`,
-                name: `Time ${i}`,
-                leagueId: league.id,
-                ownerId: 'demo-user',
-                sleeperOwnerId: `demo-owner-${i}`,
-                ownerDisplayName: `Proprietário ${i}`,
-                sleeperTeamId: `demo-sleeper-${i}`,
-                currentSalaryCap: 0, // Será calculado
-                currentDeadMoney: Math.random() * 5000000, // 0-5M de dead money
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              });
-            }
-          });
-          setTeams(demoTeams);
-        } else {
-          // Usuários reais: buscar times da API
-          const response = await fetch('/api/teams');
+        // Buscar times da API
+        const response = await fetch('/api/teams');
 
-          if (!response.ok) {
-            throw new Error('Erro ao carregar times');
-          }
-
-          const data = await response.json();
-          setTeams(data.teams || []);
+        if (!response.ok) {
+          throw new Error('Erro ao carregar times');
         }
+
+        const data = await response.json();
+        setTeams(data.teams || []);
       } catch (err) {
         console.error('Erro ao carregar times:', err);
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
@@ -80,7 +57,7 @@ export function useSalaryCap() {
     if (!contractsLoading && !leaguesLoading) {
       loadTeams();
     }
-  }, [isDemoUser, contractsLoading, leaguesLoading, leagues]);
+  }, [contractsLoading, leaguesLoading, leagues]);
 
   /**
    * Calcula dados de salary cap para todos os times
