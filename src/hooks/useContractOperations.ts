@@ -14,6 +14,7 @@ import {
   Team,
   League,
   ContractStatus,
+  AcquisitionType,
   DeadMoneyConfig,
   DEFAULT_DEAD_MONEY_CONFIG,
 } from '@/types';
@@ -53,24 +54,12 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
       const errors: string[] = [];
 
       // Validações básicas
-      if (!contractData.totalValue || contractData.totalValue <= 0) {
-        errors.push('Valor total do contrato deve ser maior que zero');
+      if (!contractData.currentSalary || contractData.currentSalary <= 0) {
+        errors.push('Salário atual deve ser maior que zero');
       }
 
-      if (!contractData.years || contractData.years < 1 || contractData.years > 10) {
-        errors.push('Duração do contrato deve ser entre 1 e 10 anos');
-      }
-
-      if (!contractData.guaranteedMoney || contractData.guaranteedMoney < 0) {
-        errors.push('Dinheiro garantido não pode ser negativo');
-      }
-
-      if (
-        contractData.guaranteedMoney &&
-        contractData.totalValue &&
-        contractData.guaranteedMoney > contractData.totalValue
-      ) {
-        errors.push('Dinheiro garantido não pode ser maior que o valor total');
+      if (!contractData.originalYears || contractData.originalYears < 1 || contractData.originalYears > 4) {
+        errors.push('Duração do contrato deve ser entre 1 e 4 anos');
       }
 
       // Validar contra salary cap (apenas se league e salaryCap estiverem definidos)
@@ -90,21 +79,18 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
 
   // Calcular valores do contrato
   const calculateContractValues = useCallback((contractData: Partial<Contract>) => {
-    const totalValue = contractData.totalValue || 0;
-    const years = contractData.years || 1;
-    const guaranteedMoney = contractData.guaranteedMoney || 0;
+    const currentSalary = contractData.currentSalary || 0;
+    const originalYears = contractData.originalYears || 1;
+    const yearsRemaining = contractData.yearsRemaining || originalYears;
 
-    // Salário médio anual
-    const averageAnnualValue = totalValue / years;
+    // Salário médio anual (baseado no salário atual)
+    const averageAnnualValue = currentSalary;
 
-    // Salário atual (primeiro ano)
-    const currentSalary = contractData.currentSalary || averageAnnualValue;
+    // Cap hit (impacto no salary cap - igual ao salário atual)
+    const capHit = currentSalary;
 
-    // Cap hit (impacto no salary cap)
-    const capHit = currentSalary + (contractData.bonuses || 0);
-
-    // Dead money (se cortado)
-    const deadMoney = guaranteedMoney - (contractData.paidGuaranteed || 0);
+    // Dead money (se cortado - 25% do salário restante)
+    const deadMoney = currentSalary * yearsRemaining * 0.25;
 
     return {
       averageAnnualValue,
@@ -141,25 +127,19 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
           playerId: player.id,
           teamId: team.id,
           leagueId: league.id,
-          totalValue: contractData.totalValue!,
-          years: contractData.years!,
-          guaranteedMoney: contractData.guaranteedMoney || 0,
           currentSalary: calculatedValues.currentSalary,
-          averageAnnualValue: calculatedValues.averageAnnualValue,
-          bonuses: contractData.bonuses || 0,
-          incentives: contractData.incentives || 0,
+          originalSalary: calculatedValues.currentSalary,
+          yearsRemaining: contractData.originalYears || 1,
+          originalYears: contractData.originalYears || 1,
           status: ContractStatus.ACTIVE,
-          signedDate: new Date(),
-          startYear: league.season,
-          endYear: league.season + contractData.years! - 1,
-          yearsRemaining: contractData.years!,
-          paidGuaranteed: 0,
-          capHit: calculatedValues.capHit,
-          deadMoney: calculatedValues.deadMoney,
-          isRookieContract: contractData.isRookieContract || false,
-          canExtend: true,
-          canTag: true,
-          notes: contractData.notes || '',
+          acquisitionType: contractData.acquisitionType || AcquisitionType.AUCTION,
+          signedSeason: league.season,
+          hasBeenTagged: false,
+          hasBeenExtended: false,
+          hasFourthYearOption: contractData.hasFourthYearOption || false,
+          fourthYearOptionActivated: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
 
         // Fazer chamada real à API
@@ -171,14 +151,14 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
           leagueId: league.id,
           originalSalary: newContract.currentSalary,
           currentSalary: newContract.currentSalary,
-          originalYears: newContract.years,
+          originalYears: newContract.originalYears,
           yearsRemaining: newContract.yearsRemaining,
-          acquisitionType: contractData.acquisitionType || 'auction',
-          hasFourthYearOption: contractData.hasFourthYearOption || false,
-          hasBeenTagged: contractData.hasBeenTagged || false,
-          hasBeenExtended: contractData.hasBeenExtended || false,
-          fourthYearOptionActivated: contractData.fourthYearOptionActivated || false,
-          signedSeason: league.season,
+          acquisitionType: newContract.acquisitionType,
+          hasFourthYearOption: newContract.hasFourthYearOption,
+          hasBeenTagged: newContract.hasBeenTagged,
+          hasBeenExtended: newContract.hasBeenExtended,
+          fourthYearOptionActivated: newContract.fourthYearOptionActivated,
+          signedSeason: newContract.signedSeason,
           status: 'ACTIVE',
         };
 
@@ -251,10 +231,7 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
         const updatedContract: Contract = {
           ...updatedContractData,
           currentSalary: calculatedValues.currentSalary,
-          averageAnnualValue: calculatedValues.averageAnnualValue,
-          capHit: calculatedValues.capHit,
-          deadMoney: calculatedValues.deadMoney,
-          lastModified: new Date(),
+          updatedAt: new Date().toISOString(),
         };
 
         // Fazer chamada real à API
@@ -350,26 +327,18 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
         }
 
         // Calcular novos valores
-        const newTotalValue = contract.totalValue + extensionValue;
-        const newTotalYears = contract.years + extensionYears;
-        const newGuaranteedMoney = contract.guaranteedMoney + additionalGuaranteed;
-        const newEndYear = contract.endYear + extensionYears;
+        const newCurrentSalary = contract.currentSalary + (extensionValue / extensionYears);
+        const newOriginalYears = contract.originalYears + extensionYears;
+        const newYearsRemaining = contract.yearsRemaining + extensionYears;
 
         const extendedContract: Contract = {
           ...contract,
-          totalValue: newTotalValue,
-          years: newTotalYears,
-          guaranteedMoney: newGuaranteedMoney,
-          averageAnnualValue: newTotalValue / newTotalYears,
-          endYear: newEndYear,
-          lastModified: new Date(),
-          notes: `${contract.notes || ''} | Extensão: +${extensionYears} anos, +${formatCurrency(extensionValue)}`,
+          currentSalary: newCurrentSalary,
+          originalYears: newOriginalYears,
+          yearsRemaining: newYearsRemaining,
+          hasBeenExtended: true,
+          updatedAt: new Date().toISOString(),
         };
-
-        // Recalcular valores
-        const calculatedValues = calculateContractValues(extendedContract);
-        extendedContract.capHit = calculatedValues.capHit;
-        extendedContract.deadMoney = calculatedValues.deadMoney;
 
         console.log('Estendendo contrato:', extendedContract);
 
@@ -430,25 +399,19 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
           playerId: player.id,
           teamId: team.id,
           leagueId: league.id,
-          totalValue: tagValue,
-          years: 1,
-          guaranteedMoney: tagValue, // Franchise tag é totalmente garantida
           currentSalary: tagValue,
-          averageAnnualValue: tagValue,
-          bonuses: 0,
-          incentives: 0,
-          status: ContractStatus.ACTIVE,
-          signedDate: new Date(),
-          startYear: league.season,
-          endYear: league.season,
+          originalSalary: tagValue,
           yearsRemaining: 1,
-          paidGuaranteed: 0,
-          capHit: tagValue,
-          deadMoney: tagValue,
-          isRookieContract: false,
-          canExtend: false, // Franchise tag não pode ser estendida
-          canTag: false, // Não pode aplicar tag novamente
-          notes: 'Franchise Tag',
+          originalYears: 1,
+          status: ContractStatus.TAGGED,
+          acquisitionType: AcquisitionType.FAAB,
+          signedSeason: league.season,
+          hasBeenTagged: true,
+          hasBeenExtended: false,
+          hasFourthYearOption: false,
+          fourthYearOptionActivated: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
 
         console.log('Aplicando franchise tag:', franchiseContract);
@@ -511,16 +474,15 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
         }
 
         // Calcular dead money usando a configuração da liga
-        const deadMoneyResult = calculateDeadMoney(contract, player.rosterStatus, deadMoneyConfig);
-        const deadMoney = deadMoneyResult.currentSeason + deadMoneyResult.nextSeason;
+        const cutYear = contract.originalYears - contract.yearsRemaining;
+        const deadMoneyResult = calculateDeadMoney(contract, cutYear, false, deadMoneyConfig);
+        const deadMoney = deadMoneyResult.currentSeasonAmount + deadMoneyResult.nextSeasonAmount;
 
         // Atualizar contrato como cortado
         const cutContract: Contract = {
           ...contract,
-          status: ContractStatus.TERMINATED,
-          deadMoney: Math.max(0, deadMoney),
-          lastModified: new Date(),
-          notes: `${contract.notes || ''} | Jogador cortado em ${new Date().toLocaleDateString()}`,
+          status: ContractStatus.CUT,
+          updatedAt: new Date().toISOString(),
         };
 
         console.log('Cortando jogador:', { player, contract: cutContract, deadMoney });

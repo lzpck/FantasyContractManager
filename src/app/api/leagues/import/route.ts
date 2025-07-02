@@ -90,7 +90,7 @@ async function importLeague(
           customSettings?.seasonTurnoverDate ?? importedData.league.settings.seasonTurnoverDate,
         deadMoneyConfig: customSettings?.deadMoneyConfig
           ? JSON.stringify(customSettings.deadMoneyConfig)
-          : null,
+          : '{"currentSeason":1.0,"futureSeasons":{"1":0,"2":0.5,"3":0.75,"4":1.0}}',
       },
     });
 

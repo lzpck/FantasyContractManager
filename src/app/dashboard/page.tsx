@@ -8,6 +8,7 @@ import { useLeagues } from '@/hooks/useLeagues';
 import { useUserTeams } from '@/hooks/useUserTeams';
 import { useContracts } from '@/hooks/useContracts';
 import { useSalaryCap } from '@/hooks/useSalaryCap';
+import { ContractStatus } from '@/types';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 import { SummaryCard } from '@/components/dashboard/SummaryCard';
@@ -36,7 +37,7 @@ function DashboardContent() {
   const { leagues, loading: leaguesLoading, error: leaguesError, hasLeagues } = useLeagues();
   const { teams, loading: teamsLoading, error: teamsError } = useUserTeams();
   const { contracts, loading: contractsLoading } = useContracts();
-  const { teamSalaryCapData, loading: salaryCapLoading } = useSalaryCap();
+  const { salaryCapData, loading: salaryCapLoading } = useSalaryCap();
   const [nflState, setNflState] = useState<{ season: string; week: number } | null>(null);
 
   // Verificar se o usuário é comissário
@@ -58,8 +59,8 @@ function DashboardContent() {
         role: authUser.role,
         isActive: true,
         isCommissioner: authUser.role === 'COMMISSIONER',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
     }
   }, [isAuthenticated, authUser, state.user, setUser]);
@@ -69,10 +70,12 @@ function DashboardContent() {
     const fetchNFLState = async () => {
       try {
         const state = await getNFLState();
-        setNflState({
-          season: state.season,
-          week: state.week,
-        });
+        if (state) {
+          setNflState({
+            season: state.season,
+            week: state.week,
+          });
+        }
       } catch (error) {
         console.error('Erro ao buscar estado da NFL:', error);
       }
@@ -138,28 +141,28 @@ function DashboardContent() {
   const totalLeagues = leagues.length;
 
   // Contratos ativos: filtrar apenas contratos com status ACTIVE
-  const activeContracts = contracts.filter(contract => contract.status === 'ACTIVE').length;
+  const activeContracts = contracts.filter(contract => contract.status === ContractStatus.ACTIVE).length;
 
   // Contratos vencendo: filtrar contratos com yearsRemaining = 1
   const expiringContracts = contracts.filter(
-    contract => contract.status === 'ACTIVE' && contract.yearsRemaining === 1,
+    contract => contract.status === ContractStatus.ACTIVE && contract.yearsRemaining === 1,
   ).length;
 
   // Cap médio utilizado: calcular média de utilização do cap dos times do usuário
   const userTeams = teams.filter(team => team.ownerId === authUser?.id);
   const averageCapUsed =
-    userTeams.length > 0 && teamSalaryCapData
-      ? userTeams.reduce((acc, team) => {
-          const teamCapData = teamSalaryCapData.find(data => data.teamId === team.id);
-          return acc + (teamCapData?.usedPercentage || 0);
-        }, 0) / userTeams.length
-      : 0;
+      userTeams.length > 0 && salaryCapData
+        ? userTeams.reduce((acc, team) => {
+            const teamCapData = salaryCapData.find(data => data.teamId === team.id);
+            return acc + (teamCapData?.usedPercentage || 0);
+          }, 0) / userTeams.length
+        : 0;
 
   // Calcular valor médio em milhões
   const averageCapUsedInMillions =
-    userTeams.length > 0 && teamSalaryCapData
+    userTeams.length > 0 && salaryCapData
       ? userTeams.reduce((acc, team) => {
-          const teamCapData = teamSalaryCapData.find(data => data.teamId === team.id);
+          const teamCapData = salaryCapData.find(data => data.teamId === team.id);
           const league = leagues.find(l => l.id === team.leagueId);
           const salaryCap = league?.salaryCap || 279000000; // Default $279M
           const usedAmount = ((teamCapData?.usedPercentage || 0) * salaryCap) / 100;
@@ -170,12 +173,12 @@ function DashboardContent() {
       : 0;
 
   // Verificar alertas
-  const hasCapAlert =
-    teamSalaryCapData &&
-    userTeams.some(team => {
-      const teamCapData = teamSalaryCapData.find(data => data.teamId === team.id);
-      return (teamCapData?.usedPercentage || 0) > 90;
-    });
+    const hasCapAlert =
+      salaryCapData &&
+      userTeams.some(team => {
+        const teamCapData = salaryCapData.find(data => data.teamId === team.id);
+        return (teamCapData?.usedPercentage || 0) > 90;
+      });
 
   const hasExpiringAlert = expiringContracts > 0;
 

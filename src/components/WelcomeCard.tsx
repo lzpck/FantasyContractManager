@@ -37,8 +37,8 @@ export function WelcomeCard() {
           salaryTable: [],
         },
       },
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     addLeague(newLeague);
   };

@@ -79,7 +79,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verificar se o usuário é comissário da liga
-    const isCommissioner = user.role === 'COMMISSIONER' || user.isCommissioner;
+    const isCommissioner = user.role === 'COMMISSIONER';
     if (!isCommissioner) {
       return NextResponse.json(
         { error: 'Apenas comissários podem editar contratos' },
@@ -101,7 +101,7 @@ export async function PUT(request: NextRequest) {
         hasBeenExtended: hasBeenExtended || false,
         fourthYearOptionActivated: fourthYearOptionActivated || false,
         status: (status || 'ACTIVE').toUpperCase(),
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       },
       include: {
         player: true,
@@ -165,7 +165,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Verificar se o usuário é comissário da liga
-    const isCommissioner = user.role === 'COMMISSIONER' || user.isCommissioner;
+    const isCommissioner = user.role === 'COMMISSIONER';
     if (!isCommissioner) {
       return NextResponse.json(
         { error: 'Apenas comissários podem remover contratos' },
@@ -177,8 +177,8 @@ export async function DELETE(request: NextRequest) {
     await prisma.contract.update({
       where: { id: contractId },
       data: {
-        status: 'INACTIVE',
-        updatedAt: new Date(),
+        status: 'CUT',
+        updatedAt: new Date().toISOString(),
       },
     });
 

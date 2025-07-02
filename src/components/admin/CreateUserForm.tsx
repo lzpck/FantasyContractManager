@@ -5,6 +5,15 @@ import { UserRole } from '@/types/database';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { Team } from '@/types';
 
+// Tipo para time com relação da liga incluída
+interface TeamWithLeague extends Team {
+  league?: {
+    id: string;
+    name: string;
+    season: number;
+  };
+}
+
 /**
  * Componente para criação de usuários por comissários
  */
@@ -28,7 +37,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
+  const [availableTeams, setAvailableTeams] = useState<TeamWithLeague[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
 
   // Carregar times disponíveis quando o componente montar
@@ -37,7 +46,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
       try {
         setLoadingTeams(true);
         const response = await fetch('/api/teams/available');
-        
+
         if (response.ok) {
           const data = await response.json();
           setAvailableTeams(data.teams || []);
@@ -232,7 +241,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
               disabled={loadingTeams}
             >
               <option value="">Selecione um time...</option>
-              {availableTeams.map((team) => (
+              {availableTeams.map(team => (
                 <option key={team.id} value={team.id}>
                   {team.name} - {team.league?.name} ({team.league?.season})
                 </option>

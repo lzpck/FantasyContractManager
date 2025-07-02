@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 // Removido sistema demo
-import { ContractStatus } from '@/types';
+import { ContractStatus } from '@/types/database';
 
 /**
  * POST /api/teams/[teamId]/contracts/[action]
@@ -18,6 +18,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string; action: string }> },
 ) {
+  const { teamId, action } = await params;
+  
   try {
     // Verificar autenticação
     const session = await getServerSession(authOptions);
@@ -27,7 +29,6 @@ export async function POST(
     }
 
     const userEmail = session.user.email;
-    const { teamId, action } = await params;
 
     // Removido verificação de usuário demo
 
@@ -36,9 +37,11 @@ export async function POST(
       where: {
         id: teamId,
         league: {
-          users: {
+          leagueUsers: {
             some: {
-              email: userEmail!,
+              user: {
+                email: userEmail!,
+              },
             },
           },
         },
@@ -67,7 +70,7 @@ export async function POST(
         return NextResponse.json({ error: 'Ação não reconhecida' }, { status: 400 });
     }
   } catch (error) {
-    console.error(`Erro ao executar ação ${params.action}:`, error);
+    console.error(`Erro ao executar ação ${action}:`, error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
@@ -101,7 +104,7 @@ async function handleEditContract(body: any, teamId: string) {
     data: {
       ...(currentSalary && { currentSalary: parseFloat(currentSalary) }),
       ...(yearsRemaining && { yearsRemaining: parseInt(yearsRemaining) }),
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     },
     include: {
       player: true,
@@ -228,8 +231,8 @@ async function handleReleasePlayer(body: any, teamId: string, team: any) {
   const updatedContract = await prisma.contract.update({
     where: { id: contract.id },
     data: {
-      status: 'CUT' as ContractStatus,
-      updatedAt: new Date(),
+      status: 'CUT',
+      updatedAt: new Date().toISOString(),
     },
     include: {
       player: true,
@@ -293,11 +296,11 @@ async function handleExtendContract(body: any, teamId: string) {
   const updatedContract = await prisma.contract.update({
     where: { id: contractId },
     data: {
-      status: 'EXTENDED' as ContractStatus,
+      status: 'EXTENDED',
       currentSalary: parseFloat(newSalary),
       yearsRemaining: parseInt(additionalYears),
       hasBeenExtended: true,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     },
     include: {
       player: true,
@@ -362,11 +365,11 @@ async function handleFranchiseTag(body: any, teamId: string, team: any) {
   const updatedContract = await prisma.contract.update({
     where: { id: contractId },
     data: {
-      status: 'TAGGED' as ContractStatus,
+      status: 'TAGGED',
       currentSalary: parseFloat(tagValue),
       yearsRemaining: 1,
       hasBeenTagged: true,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     },
     include: {
       player: true,

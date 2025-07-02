@@ -112,7 +112,7 @@ export default function ContractManagement({
   };
 
   const handleEditContract = (playerWithContract: PlayerWithContract) => {
-    contractModal.openModal(playerWithContract.player, team, league, playerWithContract.contract);
+    contractModal.openModal(playerWithContract.player, team, league, playerWithContract.contract || undefined);
   };
 
   // Se não for comissário, não mostrar controles de gerenciamento
@@ -216,10 +216,10 @@ export default function ContractManagement({
                     <div className="flex items-center space-x-6">
                       <div className="text-right">
                         <div className="text-sm font-medium text-slate-100">
-                          {formatCurrency(playerWithContract.contract.currentSalary)}
+                          {playerWithContract.contract ? formatCurrency(playerWithContract.contract.currentSalary) : 'Sem contrato'}
                         </div>
                         <div className="text-xs text-slate-400">
-                          {playerWithContract.contract.yearsRemaining} ano(s) restante(s)
+                          {playerWithContract.contract ? `${playerWithContract.contract.yearsRemaining} ano(s) restante(s)` : ''}
                         </div>
                       </div>
 

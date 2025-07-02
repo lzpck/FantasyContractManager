@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
-import { Contract } from '@/types';
+import { Contract, Player } from '@/types';
+
+// Tipo para contrato com dados do jogador incluídos
+type ContractWithPlayer = Contract & {
+  player: Player;
+};
 
 /**
  * Hook para gerenciar contratos
@@ -10,7 +15,7 @@ import { Contract } from '@/types';
  */
 export function useContracts() {
   // Removido sistema demo
-  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [contracts, setContracts] = useState<ContractWithPlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

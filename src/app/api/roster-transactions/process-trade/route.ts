@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     if (!contract) {
       return NextResponse.json(
         { success: false, error: 'Contrato não encontrado' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (!destinationTeam) {
       return NextResponse.json(
         { success: false, error: 'Time de destino não encontrado' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       data: {
         teamId: destinationTeam.id,
         acquisitionType: 'TRADE',
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       },
       include: {
         player: true,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
           error: 'Dados inválidos',
           details: error.errors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: 'Erro interno do servidor ao processar trade',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

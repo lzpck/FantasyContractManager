@@ -8,8 +8,8 @@
  * - Sincronizar dados de ligas existentes
  */
 
-import { League, Team, Player, LeagueSettings, PlayerPosition, TeamRoster } from '@/types';
-import { LeagueStatus } from '@/types/database';
+import { League, Team, LeagueSettings, PlayerPosition, TeamRoster } from '@/types';
+import { Player, LeagueStatus } from '@/types/database';
 
 // ============================================================================
 // TIPOS DA SLEEPER API
@@ -461,7 +461,7 @@ export function transformSleeperPlayersToLocal(
         name: p.full_name || `${p.first_name} ${p.last_name}`,
         position: mapSleeperPositionToLocal(p.position),
         fantasyPositions,
-        nflTeam: p.team || 'FA',
+        team: p.team || 'FA',
         age: p.age,
         sleeperPlayerId: p.player_id,
         isActive: p.status !== 'Inactive',

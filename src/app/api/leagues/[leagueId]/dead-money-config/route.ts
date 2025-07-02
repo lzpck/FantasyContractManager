@@ -150,7 +150,7 @@ export async function PUT(
       where: { id: leagueId },
       data: {
         deadMoneyConfig: JSON.stringify(deadMoneyConfig),
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       },
       select: {
         id: true,

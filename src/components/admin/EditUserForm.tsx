@@ -5,6 +5,15 @@ import { UserRole } from '@/types/database';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { Team } from '@/types';
 
+// Tipo para time com relação da liga incluída
+interface TeamWithLeague extends Team {
+  league?: {
+    id: string;
+    name: string;
+    season: number;
+  };
+}
+
 /**
  * Componente para edição de usuários por comissários
  */
@@ -31,7 +40,7 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
+  const [availableTeams, setAvailableTeams] = useState<TeamWithLeague[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
 
   // Carregar dados do usuário
@@ -40,12 +49,12 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
       try {
         setLoadingUser(true);
         const response = await fetch(`/api/users/${userId}`);
-        
+
         if (response.ok) {
           const data = await response.json();
           const userData = data.user;
           setUser(userData);
-          
+
           // Atualizar formData com os dados do usuário
           setFormData({
             name: userData.name || '',
@@ -54,7 +63,11 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
             isActive: userData.isActive,
             password: '',
             confirmPassword: '',
-            teamId: userData.team ? userData.team.id : (userData.teams && userData.teams.length > 0 ? userData.teams[0].id : ''),
+            teamId: userData.team
+              ? userData.team.id
+              : userData.teams && userData.teams.length > 0
+                ? userData.teams[0].id
+                : '',
           });
         } else {
           setError('Erro ao carregar dados do usuário');
@@ -73,16 +86,16 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
   // Carregar times disponíveis quando o usuário for carregado
   useEffect(() => {
     if (!user) return;
-    
+
     const fetchAvailableTeams = async () => {
       try {
         setLoadingTeams(true);
         const response = await fetch('/api/teams/available');
-        
+
         if (response.ok) {
           const data = await response.json();
-          let teams = data.teams || [];
-          
+          const teams = data.teams || [];
+
           // Se o usuário já tem um time, incluí-lo na lista
           if (user.teams && user.teams.length > 0) {
             const userTeam = user.teams[0];
@@ -95,7 +108,7 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
               });
             }
           }
-          
+
           setAvailableTeams(teams);
         }
       } catch (error) {
@@ -110,7 +123,7 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    
+
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
@@ -269,9 +282,7 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
             className="mt-1 block w-full px-3 py-2 border border-slate-700 rounded-xl shadow-sm bg-slate-700 text-slate-400 cursor-not-allowed"
             value={user.login}
           />
-          <p className="mt-1 text-xs text-slate-400">
-            O login não pode ser alterado.
-          </p>
+          <p className="mt-1 text-xs text-slate-400">O login não pode ser alterado.</p>
         </div>
 
         <div>
@@ -321,9 +332,7 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
           <label htmlFor="isActive" className="ml-2 block text-sm text-slate-100">
             Usuário ativo
           </label>
-          <p className="ml-2 text-xs text-slate-400">
-            Desmarque para desativar o usuário
-          </p>
+          <p className="ml-2 text-xs text-slate-400">Desmarque para desativar o usuário</p>
         </div>
 
         {/* Seleção de time - obrigatório apenas para usuários */}
@@ -342,7 +351,7 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
               disabled={loadingTeams}
             >
               <option value="">Nenhum time selecionado</option>
-              {availableTeams.map((team) => (
+              {availableTeams.map(team => (
                 <option key={team.id} value={team.id}>
                   {team.name} - {team.league?.name} ({team.league?.season})
                 </option>

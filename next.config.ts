@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
     if (isServer) {
       config.externals.push('@prisma/client');
     }
+    
+    // Excluir arquivos de scripts do build
+    config.module.rules.push({
+      test: /scripts\/.*/,
+      loader: 'ignore-loader'
+    });
+    
     return config;
   },
   // Configurações para melhor compatibilidade com Vercel

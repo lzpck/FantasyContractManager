@@ -6,7 +6,7 @@ import { useLeagues } from './useLeagues';
 
 /**
  * Hook para gerenciar redirecionamento pós-login baseado no perfil do usuário
- * 
+ *
  * Lógica de redirecionamento:
  * - Comissário: vai para /dashboard
  * - Usuário comum com time: vai para página do seu time

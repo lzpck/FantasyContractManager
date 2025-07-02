@@ -71,6 +71,8 @@ export default function ContractActionsModal({
   });
 
   const handleContractSave = async (formData: any) => {
+    if (!player) return;
+    
     try {
       // Transformar dados do formulário para o formato esperado pelo hook
       const contractData = {
@@ -147,7 +149,7 @@ export default function ContractActionsModal({
   // Função para abrir modal de edição de contrato
   const handleEditContract = () => {
     if (player && isCommissioner) {
-      contractModal.openModal(player.player, team, league, player.contract);
+      contractModal.openModal(player.player, team, league, player.contract || undefined);
       // Não fechar o modal de ações - deixar o ContractModal sobrepor
     }
   };
@@ -157,7 +159,7 @@ export default function ContractActionsModal({
     if (player && isCommissioner) {
       // Se já tem contrato, abrir em modo edição
       if (player.contract) {
-        contractModal.openModal(player.player, team, league, player.contract);
+        contractModal.openModal(player.player, team, league, player.contract || undefined);
       } else {
         // Se não tem contrato, abrir em modo criação
         contractModal.openModal(player.player, team, league);
@@ -194,7 +196,7 @@ export default function ContractActionsModal({
 
     const tagValue = calculateTagValue();
 
-    const result = await applyFranchiseTag(player, tagValue);
+    const result = await applyFranchiseTag(player.player, tagValue);
 
     if (result.success) {
       toast.success(result.message);

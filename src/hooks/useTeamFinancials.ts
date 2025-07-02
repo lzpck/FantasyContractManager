@@ -88,7 +88,8 @@ export function useTeamFinancials(teamId: string, leagueId: string) {
   const contracts = contractsResponse?.contracts || contractsResponse || [];
 
   // Estados de loading e erro
-  const isLoading = (!contractsResponse && !contractsError) || (!deadMoneyRecords && !deadMoneyError);
+  const isLoading =
+    (!contractsResponse && !contractsError) || (!deadMoneyRecords && !deadMoneyError);
   const error = contractsError || deadMoneyError;
 
   // Garantir que sempre retornamos arrays válidos

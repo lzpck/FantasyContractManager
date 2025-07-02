@@ -6,13 +6,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { useContracts } from '@/hooks/useContracts';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
-import { Contract } from '@/types';
+import { Contract, ContractStatus, Player } from '@/types';
+
+// Tipo para contrato com dados do jogador incluídos
+type ContractWithPlayer = Contract & {
+  player: Player;
+};
 
 function ContractsContent() {
   const { user } = useAuth();
   const { contracts, loading, error } = useContracts();
   const searchParams = useSearchParams();
-  const [filteredContracts, setFilteredContracts] = useState<Contract[]>([]);
+  const [filteredContracts, setFilteredContracts] = useState<ContractWithPlayer[]>([]);
 
   // Aplicar filtros baseados nos parâmetros da URL
   useEffect(() => {
@@ -23,7 +28,7 @@ function ContractsContent() {
     // Filtro por status
     const statusFilter = searchParams.get('status');
     if (statusFilter === 'active') {
-      filtered = filtered.filter(contract => contract.status === 'ACTIVE');
+      filtered = filtered.filter(contract => contract.status === ContractStatus.ACTIVE);
     }
 
     // Filtro por anos restantes
@@ -62,21 +67,21 @@ function ContractsContent() {
 
   const getStatusColor = (status: string, yearsRemaining?: number) => {
     // Priorizar anos restantes para contratos ativos
-    if (status === 'ACTIVE' && yearsRemaining !== undefined) {
+    if (status === ContractStatus.ACTIVE && yearsRemaining !== undefined) {
       if (yearsRemaining <= 1) return 'bg-red-100 text-red-800'; // Último ano - vermelho
       if (yearsRemaining <= 2) return 'bg-yellow-100 text-yellow-800'; // Expira em breve - amarelo
     }
 
     switch (status) {
-      case 'ACTIVE':
+      case ContractStatus.ACTIVE:
         return 'bg-green-100 text-green-800';
-      case 'EXPIRED':
+      case ContractStatus.EXPIRED:
         return 'bg-red-100 text-red-800';
-      case 'TAGGED':
+      case ContractStatus.TAGGED:
         return 'bg-purple-100 text-purple-800'; // Alterado para roxo para consistência
-      case 'EXTENDED':
+      case ContractStatus.EXTENDED:
         return 'bg-blue-100 text-blue-800';
-      case 'CUT':
+      case ContractStatus.CUT:
         return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -191,7 +196,7 @@ function ContractsContent() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {contract.player.team || 'N/A'}
+                            {contract.player.nflTeam || 'N/A'}
                           </div>
                         </td>
                       </tr>

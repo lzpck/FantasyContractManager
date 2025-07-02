@@ -1,7 +1,7 @@
 'use client';
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { PlayerWithContract } from '@/types';
+import { PlayerWithContract, ContractStatus } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
 
 interface PositionDistributionChartProps {
@@ -40,7 +40,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
 
   // Filtrar jogadores que têm contratos válidos e ativos (não cortados)
   const playersWithValidContracts = players.filter(
-    p => p.contract && p.contract.currentSalary && p.contract.status !== 'CUT',
+    p => p.contract && p.contract.currentSalary && p.contract.status !== ContractStatus.CUT,
   );
 
   // Função para obter a primeira posição fantasy válida
@@ -71,7 +71,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
   const positionData = playersWithValidContracts.reduce(
     (acc, playerWithContract) => {
       const position = getFirstFantasyPosition(playerWithContract.player);
-      const salary = playerWithContract.contract.currentSalary;
+      const salary = playerWithContract.contract?.currentSalary || 0;
 
       if (!acc[position]) {
         acc[position] = {
@@ -101,7 +101,7 @@ export default function PositionDistributionChart({ players }: PositionDistribut
 
   // Converter para array e ordenar por total de salário
   const totalSalarySum = playersWithValidContracts.reduce(
-    (sum, p) => sum + p.contract.currentSalary,
+    (sum, p) => sum + (p.contract?.currentSalary || 0),
     0,
   );
   const chartData = Object.values(positionData)

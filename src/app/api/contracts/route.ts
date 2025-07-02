@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { AcquisitionType, ContractStatus } from '@prisma/client';
 // Removido sistema demo
 
 /**
@@ -163,13 +164,13 @@ export async function POST(request: Request) {
         currentSalary: currentSalary || originalSalary,
         originalYears,
         yearsRemaining: yearsRemaining || originalYears,
-        acquisitionType: acquisitionType.toUpperCase(),
+        acquisitionType: acquisitionType as AcquisitionType,
         hasFourthYearOption: hasFourthYearOption || false,
         hasBeenTagged: hasBeenTagged || false,
         hasBeenExtended: hasBeenExtended || false,
         fourthYearOptionActivated: fourthYearOptionActivated || false,
         signedSeason: signedSeason || new Date().getFullYear(),
-        status: (status || 'active').toUpperCase(),
+        status: (status as ContractStatus) || ContractStatus.ACTIVE,
       },
       include: {
         player: true,

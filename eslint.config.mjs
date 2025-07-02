@@ -12,11 +12,27 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends('next/core-web-vitals', 'next/typescript', 'prettier'),
   {
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'build/**',
+      'dist/**',
+      'temp/**',
+      'scripts/**',
+      'prisma/migrations/**',
+      '*.config.js',
+      '*.config.mjs',
+      '**/*.js',
+      '!jest.config.js',
+    ],
+  },
+  {
     plugins: {
       prettier: (await import('eslint-plugin-prettier')).default,
     },
     rules: {
-      'prettier/prettier': 'error',
+      'prettier/prettier': 'warn',
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
     },

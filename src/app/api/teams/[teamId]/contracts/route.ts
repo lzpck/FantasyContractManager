@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { AcquisitionType, ContractStatus } from '@prisma/client';
 // Removido sistema demo
 
 /**
@@ -131,10 +132,10 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { playerId, currentSalary, yearsRemaining, acquisitionType } = body;
+    const { playerId, currentSalary, yearsRemaining, acquisitionType, originalSalary, originalYears, signedSeason } = body;
 
     // Validar dados obrigatórios
-    if (!playerId || !currentSalary || !yearsRemaining || !acquisitionType) {
+    if (!playerId || !currentSalary || !yearsRemaining || !acquisitionType || !originalSalary || !originalYears) {
       return NextResponse.json({ error: 'Dados obrigatórios não fornecidos' }, { status: 400 });
     }
 
@@ -143,7 +144,7 @@ export async function POST(
       where: {
         playerId,
         teamId,
-        status: 'ACTIVE',
+        status: ContractStatus.ACTIVE,
       },
     });
 
@@ -161,9 +162,12 @@ export async function POST(
         teamId,
         leagueId: team.leagueId,
         currentSalary: parseFloat(currentSalary),
+        originalSalary: parseFloat(originalSalary || currentSalary),
         yearsRemaining: parseInt(yearsRemaining),
-        acquisitionType,
-        status: 'ACTIVE',
+        originalYears: parseInt(originalYears || yearsRemaining),
+        acquisitionType: acquisitionType as AcquisitionType,
+        signedSeason: signedSeason || new Date().getFullYear(),
+        status: ContractStatus.ACTIVE,
       },
       include: {
         player: true,

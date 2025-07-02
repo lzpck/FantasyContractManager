@@ -78,7 +78,7 @@ export default function InformacoesPage() {
 
   const handleAddRule = () => {
     if (!newRule.leagueName.trim() || !newRule.title.trim() || !newRule.description.trim()) {
-      addToast('Todos os campos são obrigatórios', 'error');
+      addToast({ message: 'Todos os campos são obrigatórios', type: 'error' });
       return;
     }
 
@@ -93,7 +93,7 @@ export default function InformacoesPage() {
     setLeagueRules(prev => [...prev, rule]);
     setNewRule({ leagueName: '', title: '', description: '' });
     setIsAddingRule(false);
-    addToast('Regra adicionada com sucesso!', 'success');
+    addToast({ message: 'Regra adicionada com sucesso!', type: 'success' });
   };
 
   const handleEditRule = (rule: LeagueRule) => {
@@ -110,7 +110,7 @@ export default function InformacoesPage() {
     if (!editingRule) return;
 
     if (!newRule.leagueName.trim() || !newRule.title.trim() || !newRule.description.trim()) {
-      addToast('Todos os campos são obrigatórios', 'error');
+      addToast({ message: 'Todos os campos são obrigatórios', type: 'error' });
       return;
     }
 
@@ -130,13 +130,13 @@ export default function InformacoesPage() {
     setNewRule({ leagueName: '', title: '', description: '' });
     setIsAddingRule(false);
     setEditingRule(null);
-    addToast('Regra atualizada com sucesso!', 'success');
+    addToast({ message: 'Regra atualizada com sucesso!', type: 'success' });
   };
 
   const handleDeleteRule = (ruleId: string) => {
     if (confirm('Tem certeza que deseja excluir esta regra?')) {
       setLeagueRules(prev => prev.filter(rule => rule.id !== ruleId));
-      addToast('Regra excluída com sucesso!', 'success');
+      addToast({ message: 'Regra excluída com sucesso!', type: 'success' });
     }
   };
 
@@ -152,12 +152,12 @@ export default function InformacoesPage() {
 
   const handleSubmitReport = async () => {
     if (!bugReport.title.trim() || !bugReport.description.trim() || !bugReport.email.trim()) {
-      addToast('Todos os campos são obrigatórios', 'error');
+      addToast({ message: 'Todos os campos são obrigatórios', type: 'error' });
       return;
     }
 
     if (!bugReport.email.includes('@')) {
-      addToast('Por favor, insira um email válido', 'error');
+      addToast({ message: 'Por favor, insira um email válido', type: 'error' });
       return;
     }
 
@@ -174,9 +174,9 @@ export default function InformacoesPage() {
         email: '',
       });
 
-      addToast('Report enviado com sucesso! Obrigado pelo feedback.', 'success');
+      addToast({ message: 'Report enviado com sucesso! Obrigado pelo feedback.', type: 'success' });
     } catch (error) {
-      addToast('Erro ao enviar report. Tente novamente.', 'error');
+      addToast({ message: 'Erro ao enviar report. Tente novamente.', type: 'error' });
     } finally {
       setIsSubmittingReport(false);
     }
@@ -256,7 +256,9 @@ export default function InformacoesPage() {
                       <input
                         type="text"
                         value={newRule.leagueName}
-                        onChange={e => setNewRule(prev => ({ ...prev, leagueName: e.target.value }))}
+                        onChange={e =>
+                          setNewRule(prev => ({ ...prev, leagueName: e.target.value }))
+                        }
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Ex: Liga The Bad Place"
                       />
@@ -350,7 +352,9 @@ export default function InformacoesPage() {
               <h2 className="text-xl font-semibold text-slate-100 mb-6">Informações de Contato</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-slate-800 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-slate-100 mb-4">Administrador do Sistema</h3>
+                  <h3 className="text-lg font-medium text-slate-100 mb-4">
+                    Administrador do Sistema
+                  </h3>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <EnvelopeIcon className="w-5 h-5 text-blue-400" />
@@ -377,7 +381,9 @@ export default function InformacoesPage() {
                 </div>
 
                 <div className="bg-slate-800 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-slate-100 mb-4">Horário de Atendimento</h3>
+                  <h3 className="text-lg font-medium text-slate-100 mb-4">
+                    Horário de Atendimento
+                  </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-slate-400">Segunda a Sexta</span>
@@ -394,7 +400,8 @@ export default function InformacoesPage() {
                   </div>
                   <div className="mt-4 p-3 bg-blue-900/30 rounded-lg">
                     <p className="text-sm text-blue-300">
-                      💡 Para questões urgentes durante jogos da NFL, estamos disponíveis 24/7 via Discord.
+                      💡 Para questões urgentes durante jogos da NFL, estamos disponíveis 24/7 via
+                      Discord.
                     </p>
                   </div>
                 </div>
@@ -405,7 +412,9 @@ export default function InformacoesPage() {
           {/* Tab: Report & Sugestões */}
           {activeTab === 'report' && (
             <div>
-              <h2 className="text-xl font-semibold text-slate-100 mb-6">Report de Bugs & Sugestões</h2>
+              <h2 className="text-xl font-semibold text-slate-100 mb-6">
+                Report de Bugs & Sugestões
+              </h2>
               <div className="max-w-2xl">
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-slate-300 mb-2">Tipo</label>
@@ -472,7 +481,9 @@ export default function InformacoesPage() {
                 </button>
 
                 <div className="mt-6 p-4 bg-slate-800 rounded-lg">
-                  <h3 className="text-sm font-medium text-slate-100 mb-2">📋 Dicas para um bom report:</h3>
+                  <h3 className="text-sm font-medium text-slate-100 mb-2">
+                    📋 Dicas para um bom report:
+                  </h3>
                   <ul className="text-sm text-slate-400 space-y-1">
                     <li>• Seja específico sobre o problema ou sugestão</li>
                     <li>• Inclua passos para reproduzir bugs</li>

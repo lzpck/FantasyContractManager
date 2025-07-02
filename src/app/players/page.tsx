@@ -53,14 +53,14 @@ export default function PlayersPage() {
             positions = player.fantasyPositions.filter(pos => pos && pos.trim() !== '');
           }
           // Se fantasyPositions é string, converte para array
-          else if (
-            typeof player.fantasyPositions === 'string' &&
-            player.fantasyPositions.trim() !== ''
-          ) {
-            positions = player.fantasyPositions
-              .split(',')
-              .map(pos => pos.trim())
-              .filter(pos => pos !== '');
+          else if (typeof player.fantasyPositions === 'string') {
+            const fantasyPosStr = player.fantasyPositions as string;
+            if (fantasyPosStr && fantasyPosStr.trim() !== '') {
+              positions = fantasyPosStr
+                .split(',')
+                .map(pos => pos.trim())
+                .filter(pos => pos !== '');
+            }
           }
         }
 
@@ -99,14 +99,14 @@ export default function PlayersPage() {
                 positions = player.fantasyPositions.filter(
                   (pos: string) => pos && pos.trim() !== '',
                 );
-              } else if (
-                typeof player.fantasyPositions === 'string' &&
-                player.fantasyPositions.trim() !== ''
-              ) {
-                positions = player.fantasyPositions
-                  .split(',')
-                  .map((pos: string) => pos.trim())
-                  .filter((pos: string) => pos !== '');
+              } else if (typeof player.fantasyPositions === 'string') {
+                const fantasyPosStr = player.fantasyPositions as string;
+                if (fantasyPosStr && fantasyPosStr.trim() !== '') {
+                  positions = fantasyPosStr
+                    .split(',')
+                    .map((pos: string) => pos.trim())
+                    .filter((pos: string) => pos !== '');
+                }
               }
             }
 
@@ -150,14 +150,14 @@ export default function PlayersPage() {
             positions = player.fantasyPositions.filter(pos => pos && pos.trim() !== '');
           }
           // Se fantasyPositions é string, converte para array
-          else if (
-            typeof player.fantasyPositions === 'string' &&
-            player.fantasyPositions.trim() !== ''
-          ) {
-            positions = player.fantasyPositions
-              .split(',')
-              .map(pos => pos.trim())
-              .filter(pos => pos !== '');
+          else if (typeof player.fantasyPositions === 'string') {
+            const fantasyPosStr = player.fantasyPositions as string;
+            if (fantasyPosStr && fantasyPosStr.trim() !== '') {
+              positions = fantasyPosStr
+                .split(',')
+                .map(pos => pos.trim())
+                .filter(pos => pos !== '');
+            }
           }
         }
 
