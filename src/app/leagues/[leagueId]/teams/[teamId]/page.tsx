@@ -288,6 +288,7 @@ export default function TeamDetailsPage() {
             players={playersWithContracts}
             onPlayerAction={handlePlayerAction}
             league={league}
+            isCommissioner={isCommissioner}
           />
         </div>
       </div>

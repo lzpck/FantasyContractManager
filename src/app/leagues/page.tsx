@@ -341,21 +341,25 @@ export default function LeaguesPage() {
                       <EyeIcon className="h-4 w-4" />
                       Ver
                     </button>
-                    <button
-                      onClick={() => handleEditLeague(league.id)}
-                      className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded-lg transition-colors flex items-center justify-center"
-                      title="Editar liga"
-                    >
-                      <PencilIcon className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleSyncLeague(league.id, league.name)}
-                      disabled={isSyncing}
-                      className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-slate-300 px-3 py-2 rounded-lg transition-colors flex items-center justify-center"
-                      title="Sincronizar com Sleeper"
-                    >
-                      <ArrowPathIcon className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                    </button>
+                    {canImportLeague && (
+                      <>
+                        <button
+                          onClick={() => handleEditLeague(league.id)}
+                          className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded-lg transition-colors flex items-center justify-center"
+                          title="Editar liga"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleSyncLeague(league.id, league.name)}
+                          disabled={isSyncing}
+                          className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-slate-300 px-3 py-2 rounded-lg transition-colors flex items-center justify-center"
+                          title="Sincronizar com Sleeper"
+                        >
+                          <ArrowPathIcon className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               );

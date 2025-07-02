@@ -65,17 +65,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se o time existe e está disponível (se teamId foi fornecido)
+    let team = null;
     if (teamId) {
-      const team = await prisma.team.findUnique({
+      team = await prisma.team.findUnique({
         where: { id: teamId },
-        include: { user: true },
+        include: { 
+          owner: true,
+          league: true,
+        },
       });
 
       if (!team) {
         return NextResponse.json({ error: 'Time não encontrado' }, { status: 400 });
       }
 
-      if (team.user) {
+      if (team.ownerId) {
         return NextResponse.json({ error: 'Time já possui um usuário associado' }, { status: 400 });
       }
     }
@@ -88,7 +92,9 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         role: userRole,
-        teamId: teamId || null, // Associar ao time se fornecido
+        teamId: teamId || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       select: {
         id: true,
@@ -100,6 +106,31 @@ export async function POST(request: NextRequest) {
         createdAt: true,
       },
     });
+
+    // Se um time foi selecionado, associar o usuário ao time
+    if (teamId && team) {
+      await prisma.team.update({
+        where: { id: teamId },
+        data: {
+          ownerId: user.id,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+
+      // Garantir que o usuário seja membro da liga
+      await prisma.leagueUser.create({
+        data: {
+          leagueId: team.leagueId,
+          userId: user.id,
+          role: 'MEMBER',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      });
+
+      // Log da operação para auditoria
+      console.log(`[AUDIT] Usuário ${user.id} (${user.name}) criado e associado ao time ${teamId} (${team.name}) na liga ${team.leagueId}`);
+    }
 
     return NextResponse.json(
       {

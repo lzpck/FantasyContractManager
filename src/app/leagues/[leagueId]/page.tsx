@@ -25,7 +25,7 @@ export default function LeagueDetailsPage() {
   const router = useRouter();
   const leagueId = params.leagueId as string;
   const { league: fetchedLeague, loading: leagueLoading } = useLeague(leagueId);
-  const { user } = useAuth();
+  const { user, canImportLeague } = useAuth();
 
   // Estados locais
   const [league, setLeague] = useState<League | null>(null);
@@ -469,10 +469,12 @@ export default function LeagueDetailsPage() {
             onBack={() => router.push('/dashboard')}
           />
 
-          {/* Botão de sincronização */}
-          <div className="mb-6">
-            <SyncButton onSync={handleSync} />
-          </div>
+          {/* Botão de sincronização - apenas para comissários */}
+          {canImportLeague && (
+            <div className="mb-6">
+              <SyncButton onSync={handleSync} />
+            </div>
+          )}
 
           {/* Seção de transações de roster */}
           {(playersAdded.length > 0 || playersRemoved.length > 0 || tradesProcessed.length > 0) && (
