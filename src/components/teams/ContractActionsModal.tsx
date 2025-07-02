@@ -155,7 +155,13 @@ export default function ContractActionsModal({
   // Função para adicionar novo contrato (para jogadores sem contrato)
   const handleAddContract = () => {
     if (player && isCommissioner) {
-      contractModal.openModal(player.player, team, league);
+      // Se já tem contrato, abrir em modo edição
+      if (player.contract) {
+        contractModal.openModal(player.player, team, league, player.contract);
+      } else {
+        // Se não tem contrato, abrir em modo criação
+        contractModal.openModal(player.player, team, league);
+      }
       onClose(); // Fechar o modal de ações
     }
   };
