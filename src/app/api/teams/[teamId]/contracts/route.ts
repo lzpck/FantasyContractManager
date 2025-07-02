@@ -26,13 +26,38 @@ export async function GET(
 
     // Removido verificação de usuário demo
 
-    // Verificar se o time existe e pertence ao usuário
+    // Verificar se o time existe e se o usuário tem acesso
     const team = await prisma.team.findFirst({
       where: {
         id: teamId,
-        owner: {
-          email: userEmail!,
-        },
+        OR: [
+          // Usuário é o proprietário do time
+          {
+            owner: {
+              email: userEmail!,
+            },
+          },
+          // Usuário é o comissário da liga
+          {
+            league: {
+              commissioner: {
+                email: userEmail!,
+              },
+            },
+          },
+          // Usuário é membro da liga (pode visualizar outros times)
+          {
+            league: {
+              leagueUsers: {
+                some: {
+                  user: {
+                    email: userEmail!,
+                  },
+                },
+              },
+            },
+          },
+        ],
       },
     });
 
@@ -87,9 +112,11 @@ export async function POST(
       where: {
         id: teamId,
         league: {
-          users: {
+          leagueUsers: {
             some: {
-              email: userEmail!,
+              user: {
+                email: userEmail!,
+              },
             },
           },
         },

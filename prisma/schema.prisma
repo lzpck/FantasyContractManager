@@ -45,6 +45,7 @@ model User {
   team    Team?    @relation("UserTeam", fields: [teamId], references: [id])
   teams   Team[]   @relation("TeamOwner") // Manter compatibilidade com relacionamento existente
   leagues League[] @relation("LeagueCommissioner")
+  leagueUsers LeagueUser[] // Associações como membro de ligas
 
   @@map("users")
 }
@@ -136,6 +137,7 @@ model League {
   commissioner   User       @relation("LeagueCommissioner", fields: [commissionerId], references: [id])
   teams          Team[]
   contracts      Contract[]
+  leagueUsers    LeagueUser[] // Membros da liga
 
   // Timestamps (ISO 8601 format)
   createdAt String @default("")
@@ -151,6 +153,27 @@ enum LeagueStatus {
   ACTIVE
   OFFSEASON
   ARCHIVED
+}
+
+/**
+ * Modelo para associar usuários às ligas como membros
+ */
+model LeagueUser {
+  id       String @id @default(cuid())
+  leagueId String
+  userId   String
+  role     String @default("MEMBER") // MEMBER, COMMISSIONER
+  
+  // Timestamps (ISO 8601 format)
+  createdAt String @default("")
+  updatedAt String @default("")
+  
+  // Relacionamentos
+  league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([leagueId, userId])
+  @@map("league_users")
 }
 
 /**

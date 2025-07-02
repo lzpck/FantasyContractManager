@@ -31,7 +31,11 @@ export default withAuth(
 
     // Verificar se é uma rota de manager
     if (managerRoutes.some(route => pathname.startsWith(route))) {
-      if (!token?.role || token.role === UserRole.USER) {
+      if (!token?.role) {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      }
+      // Usuários com role USER podem acessar se tiverem um time associado
+      if (token.role === UserRole.USER && !token.teamId) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }
