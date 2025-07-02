@@ -85,7 +85,7 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
 
         if (response.ok) {
           const data = await response.json();
-          let teams = data.teams || [];
+          const teams = data.teams || [];
 
           // Se o usuário já tem um time, incluí-lo na lista
           if (user.teams && user.teams.length > 0) {
