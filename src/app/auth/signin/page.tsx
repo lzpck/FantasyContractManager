@@ -10,7 +10,7 @@ import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
  * Página de login do sistema
  */
 export default function SignInPage() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +46,7 @@ export default function SignInPage() {
     try {
       console.log('Tentando fazer login...');
       const result = await signIn('credentials', {
-        email,
+        identifier,
         password,
         redirect: false,
       });
@@ -55,7 +55,7 @@ export default function SignInPage() {
 
       if (result?.error) {
         console.error('Erro de autenticação:', result.error);
-        setError('Email ou senha inválidos');
+        setError('Login/email ou senha inválidos');
         setIsLoading(false);
       } else if (result?.ok) {
         console.log('Login bem-sucedido, redirecionando...');
@@ -97,19 +97,19 @@ export default function SignInPage() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="email" className="sr-only">
-                Email
+              <label htmlFor="identifier" className="sr-only">
+                Login ou Email
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="identifier"
+                name="identifier"
+                type="text"
+                autoComplete="username"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
-                placeholder="Email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                placeholder="Login ou Email"
+                value={identifier}
+                onChange={e => setIdentifier(e.target.value)}
               />
             </div>
             <div className="relative">

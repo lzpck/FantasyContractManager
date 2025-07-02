@@ -16,7 +16,7 @@ import { Team, League, Player } from '@/types';
 interface RosterTransactionsProps {
   playersAdded: PlayerAdded[];
   playersRemoved: PlayerRemoved[];
-  team: Team;
+  teams: Team[];
   league: League;
   onAddContract: (sleeperPlayerId: string, teamId: string) => Promise<void>;
   onAddDeadMoney: (sleeperPlayerId: string, teamId: string) => Promise<void>;
@@ -29,7 +29,7 @@ interface RosterTransactionsProps {
 export default function RosterTransactions({
   playersAdded,
   playersRemoved,
-  team,
+  teams,
   league,
   onAddContract,
   onAddDeadMoney,
@@ -46,6 +46,13 @@ export default function RosterTransactions({
 
   const handleAddContract = async (player: PlayerAdded) => {
     try {
+      // Encontrar o time correto do jogador
+      const playerTeam = teams.find(t => t.id === player.teamId);
+      if (!playerTeam) {
+        toast.error(`Time não encontrado para o jogador ${player.name || player.sleeperPlayerId}`);
+        return;
+      }
+
       // Converter PlayerAdded para Player para o modal
       const playerForModal: Player = {
         id: player.playerId || player.sleeperPlayerId,
@@ -62,11 +69,11 @@ export default function RosterTransactions({
         updatedAt: new Date().toISOString(),
       };
 
-      // Abrir modal de contrato
-      contractModal.openModal(playerForModal, team, league);
+      // Abrir modal de contrato com o time correto
+      contractModal.openModal(playerForModal, playerTeam, league);
 
       // Feedback visual de que o modal foi aberto
-      toast.info(`Abrindo modal de contrato para ${player.name || player.sleeperPlayerId}`);
+      toast.info(`Abrindo modal de contrato para ${player.name || player.sleeperPlayerId} - Time: ${playerTeam.name}`);
     } catch (error) {
       console.error('Erro ao abrir modal de contrato:', error);
       toast.error('Erro ao abrir modal de contrato');

@@ -423,18 +423,20 @@ export default function LeagueDetailsPage() {
           </div>
 
           {/* Seção de transações de roster */}
-          <RosterTransactions
-            playersAdded={playersAdded}
-            playersRemoved={playersRemoved}
-            onAddContract={handleAddContract}
-            onAddDeadMoney={handleAddDeadMoney}
-            onContractSaved={sleeperPlayerId => {
-              // Remover jogador da lista de adicionados após contrato ser salvo
-              setPlayersAdded(prev => prev.filter(p => p.sleeperPlayerId !== sleeperPlayerId));
-            }}
-            team={userTeam}
-            league={league}
-          />
+          {(playersAdded.length > 0 || playersRemoved.length > 0) && (
+            <RosterTransactions
+              playersAdded={playersAdded}
+              playersRemoved={playersRemoved}
+              onAddContract={handleAddContract}
+              onAddDeadMoney={handleAddDeadMoney}
+              onContractSaved={sleeperPlayerId => {
+                // Remover jogador da lista de adicionados após contrato ser salvo
+                setPlayersAdded(prev => prev.filter(p => p.sleeperPlayerId !== sleeperPlayerId));
+              }}
+              teams={teams}
+              league={league}
+            />
+          )}
 
           {/* Barra de filtros e ordenação */}
           <div className="mb-6">

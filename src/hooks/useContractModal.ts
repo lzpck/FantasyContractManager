@@ -37,7 +37,7 @@ interface UseContractModalReturn {
  * - Integração com API ou dados demo
  */
 export function useContractModal(): UseContractModalReturn {
-  const { isDemoUser, user } = useAuth();
+  const { user } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
   const [player, setPlayer] = useState<Player | null>(null);
@@ -97,19 +97,7 @@ export function useContractModal(): UseContractModalReturn {
       console.log('🔵 Iniciando salvamento...');
 
       try {
-        if (isDemoUser) {
-          // Para usuário demo, simular salvamento
-          console.log('🔵 Modo demo - simulando salvamento...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
-          console.log('🔵 Contrato salvo (modo demo):', {
-            player: player.name,
-            team: team.name,
-            league: league.name,
-            isEdit: !!contract,
-            contractData,
-          });
-        } else {
+        {
           // Para usuários reais, fazer chamada à API
           const isEdit = !!contract;
           const url = isEdit ? `/api/contracts/${contract.id}` : '/api/contracts';
@@ -201,7 +189,7 @@ export function useContractModal(): UseContractModalReturn {
         setIsLoading(false);
       }
     },
-    [player, team, league, contract, isDemoUser, closeModal],
+    [player, team, league, contract, closeModal],
   );
 
   return {
