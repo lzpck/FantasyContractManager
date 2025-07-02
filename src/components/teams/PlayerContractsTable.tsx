@@ -34,6 +34,8 @@ interface PlayerContractsTableProps {
   onFilterStatusChange: (status: string) => void;
   /** Função chamada ao executar ação em jogador */
   onPlayerAction: (player: PlayerWithContract, action: string) => void;
+  /** Se o usuário é comissário (pode editar contratos) */
+  isCommissioner: boolean;
 }
 
 /**
@@ -54,6 +56,7 @@ export function PlayerContractsTable({
   onFilterPositionChange,
   onFilterStatusChange,
   onPlayerAction,
+  isCommissioner,
 }: PlayerContractsTableProps) {
   // Função para calcular dead money estimado
   const calculateDeadMoney = (contract: Contract) => {
@@ -216,15 +219,17 @@ export function PlayerContractsTable({
               <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Dead Money
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Ações
-              </th>
+              {isCommissioner && (
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Ações
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-slate-800 divide-y divide-slate-700">
             {players.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center">
+                <td colSpan={isCommissioner ? 8 : 7} className="px-6 py-12 text-center">
                   <div className="text-slate-400">
                     <p className="text-lg font-medium mb-2">Nenhum jogador encontrado</p>
                     <p className="text-sm">
@@ -280,49 +285,51 @@ export function PlayerContractsTable({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
                       {contract ? formatCurrency(deadMoney) : '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
-                        {/* Editar Contrato */}
-                        <button
-                          onClick={() => onPlayerAction(playerWithContract, 'edit')}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Editar Contrato"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-
-                        {/* Extensão (se elegível) */}
-                        {isEligibleForExtension(contract) && (
+                    {isCommissioner && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          {/* Editar Contrato */}
                           <button
-                            onClick={() => onPlayerAction(playerWithContract, 'extend')}
-                            className="text-green-600 hover:text-green-900"
-                            title="Extensão de Contrato"
+                            onClick={() => onPlayerAction(playerWithContract, 'edit')}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="Editar Contrato"
                           >
-                            <ArrowPathIcon className="h-4 w-4" />
+                            <PencilIcon className="h-4 w-4" />
                           </button>
-                        )}
 
-                        {/* Franchise Tag (se elegível) */}
-                        {isEligibleForTag(contract) && (
+                          {/* Extensão (se elegível) */}
+                          {isEligibleForExtension(contract) && (
+                            <button
+                              onClick={() => onPlayerAction(playerWithContract, 'extend')}
+                              className="text-green-600 hover:text-green-900"
+                              title="Extensão de Contrato"
+                            >
+                              <ArrowPathIcon className="h-4 w-4" />
+                            </button>
+                          )}
+
+                          {/* Franchise Tag (se elegível) */}
+                          {isEligibleForTag(contract) && (
+                            <button
+                              onClick={() => onPlayerAction(playerWithContract, 'tag')}
+                              className="text-purple-600 hover:text-purple-900"
+                              title="Franchise Tag"
+                            >
+                              <TagIcon className="h-4 w-4" />
+                            </button>
+                          )}
+
+                          {/* Cortar Jogador */}
                           <button
-                            onClick={() => onPlayerAction(playerWithContract, 'tag')}
-                            className="text-purple-600 hover:text-purple-900"
-                            title="Franchise Tag"
+                            onClick={() => onPlayerAction(playerWithContract, 'cut')}
+                            className="text-red-600 hover:text-red-900"
+                            title="Cortar Jogador"
                           >
-                            <TagIcon className="h-4 w-4" />
+                            <TrashIcon className="h-4 w-4" />
                           </button>
-                        )}
-
-                        {/* Cortar Jogador */}
-                        <button
-                          onClick={() => onPlayerAction(playerWithContract, 'cut')}
-                          className="text-red-600 hover:text-red-900"
-                          title="Cortar Jogador"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 );
               })

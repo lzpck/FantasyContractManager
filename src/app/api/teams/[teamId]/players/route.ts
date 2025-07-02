@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { isDemoUser } from '@/data/demoData';
+// Removido sistema demo
 
 /**
  * GET /api/teams/[teamId]/players
@@ -24,26 +24,49 @@ export async function GET(
     const userEmail = session.user.email;
     const { teamId } = await params;
 
-    // Usuário demo: retornar dados fictícios
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json({
-        players: [], // Dados demo são gerenciados no frontend
-        message: 'Dados demo gerenciados no frontend',
-      });
-    }
+    // Removido verificação de usuário demo
 
-    // Verificar se o time existe e pertence ao usuário
+    // Verificar se o usuário tem acesso ao time
+    // (proprietário do time, comissário da liga ou membro da liga)
     const team = await prisma.team.findFirst({
       where: {
         id: teamId,
-        owner: {
-          email: userEmail!,
-        },
+        OR: [
+          // Proprietário do time
+          {
+            owner: {
+              email: userEmail!,
+            },
+          },
+          // Comissário da liga
+          {
+            league: {
+              commissioner: {
+                email: userEmail!,
+              },
+            },
+          },
+          // Membro da liga
+          {
+            league: {
+              leagueUsers: {
+                some: {
+                  user: {
+                    email: userEmail!,
+                  },
+                },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        league: true,
       },
     });
 
     if (!team) {
-      return NextResponse.json({ error: 'Time não encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Time não encontrado ou acesso negado' }, { status: 404 });
     }
 
     // Buscar jogadores do roster do time

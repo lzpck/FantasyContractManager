@@ -25,7 +25,7 @@ export default function LeagueDetailsPage() {
   const router = useRouter();
   const leagueId = params.leagueId as string;
   const { league: fetchedLeague, loading: leagueLoading } = useLeague(leagueId);
-  const { user } = useAuth();
+  const { user, canImportLeague } = useAuth();
 
   // Estados locais
   const [league, setLeague] = useState<League | null>(null);
@@ -39,6 +39,7 @@ export default function LeagueDetailsPage() {
   // Estados para transações de roster
   const [playersAdded, setPlayersAdded] = useState<PlayerAdded[]>([]);
   const [playersRemoved, setPlayersRemoved] = useState<PlayerRemoved[]>([]);
+  const [tradesProcessed, setTradesProcessed] = useState<any[]>([]);
   const [showTransactions, setShowTransactions] = useState(false);
 
   const { teams, loading: teamsLoading } = useTeams(leagueId);
@@ -264,6 +265,11 @@ export default function LeagueDetailsPage() {
         // Atualizar dados locais
         setLeague(data.league);
 
+        // Atualizar trades processadas se disponíveis
+        if (data.syncStats && data.syncStats.tradesProcessed) {
+          setTradesProcessed(data.syncStats.tradesProcessed);
+        }
+
         // Atualizar resumos financeiros com os novos times
         if (data.league.teams) {
           const summariesPromises = data.league.teams.map((team: Team) =>
@@ -369,6 +375,52 @@ export default function LeagueDetailsPage() {
     }
   };
 
+  // Função para processar trade diretamente
+  const handleProcessTrade = async (contractId: string, fromTeam: string, toTeam: string, playerName: string) => {
+    try {
+      const response = await fetch('/api/roster-transactions/process-trade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contractId,
+          fromTeam,
+          toTeam,
+          playerName,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Remover trade da lista de trades processadas
+        setTradesProcessed(prev => prev.filter(trade => trade.contractId !== contractId));
+
+        // Remover jogador das listas de adicionados e removidos para evitar duplicação
+        const playerNameLower = playerName.toLowerCase().trim();
+        setPlayersAdded(prev => prev.filter(player => 
+          (player.name || '').toLowerCase().trim() !== playerNameLower
+        ));
+        setPlayersRemoved(prev => prev.filter(player => 
+          (player.playerName || player.name || '').toLowerCase().trim() !== playerNameLower
+        ));
+
+        // Atualizar dados financeiros
+        if (league?.teams) {
+          const summariesPromises = league.teams.map((team: Team) => calculateTeamFinancials(team));
+          const updatedFinancialSummaries = await Promise.all(summariesPromises);
+          setTeamsFinancialSummary(updatedFinancialSummaries);
+        }
+      } else {
+        throw new Error(data.error || 'Erro ao processar trade');
+      }
+    } catch (error) {
+      console.error('Erro ao processar trade:', error);
+      throw error;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f172a]">
@@ -417,24 +469,30 @@ export default function LeagueDetailsPage() {
             onBack={() => router.push('/dashboard')}
           />
 
-          {/* Botão de sincronização */}
-          <div className="mb-6">
-            <SyncButton onSync={handleSync} />
-          </div>
+          {/* Botão de sincronização - apenas para comissários */}
+          {canImportLeague && (
+            <div className="mb-6">
+              <SyncButton onSync={handleSync} />
+            </div>
+          )}
 
           {/* Seção de transações de roster */}
-          <RosterTransactions
-            playersAdded={playersAdded}
-            playersRemoved={playersRemoved}
-            onAddContract={handleAddContract}
-            onAddDeadMoney={handleAddDeadMoney}
-            onContractSaved={sleeperPlayerId => {
-              // Remover jogador da lista de adicionados após contrato ser salvo
-              setPlayersAdded(prev => prev.filter(p => p.sleeperPlayerId !== sleeperPlayerId));
-            }}
-            team={userTeam}
-            league={league}
-          />
+          {(playersAdded.length > 0 || playersRemoved.length > 0 || tradesProcessed.length > 0) && (
+            <RosterTransactions
+              playersAdded={playersAdded}
+              playersRemoved={playersRemoved}
+              tradesProcessed={tradesProcessed}
+              onAddContract={handleAddContract}
+              onAddDeadMoney={handleAddDeadMoney}
+              onProcessTrade={handleProcessTrade}
+              onContractSaved={sleeperPlayerId => {
+                // Remover jogador da lista de adicionados após contrato ser salvo
+                setPlayersAdded(prev => prev.filter(p => p.sleeperPlayerId !== sleeperPlayerId));
+              }}
+              teams={teams}
+              league={league}
+            />
+          )}
 
           {/* Barra de filtros e ordenação */}
           <div className="mb-6">

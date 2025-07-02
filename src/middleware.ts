@@ -13,6 +13,7 @@ export default withAuth(
     // Rotas que requerem autenticação de comissário
     const commissionerRoutes = [
       '/admin',
+      '/dashboard',
       '/settings',
       '/leagues/import',
       '/api/leagues/import',
@@ -20,7 +21,7 @@ export default withAuth(
     ];
 
     // Rotas que requerem pelo menos manager ou comissário
-    const managerRoutes = ['/dashboard', '/leagues', '/teams'];
+    const managerRoutes = ['/leagues', '/teams'];
 
     // Verificar se é uma rota de comissário
     if (commissionerRoutes.some(route => pathname.startsWith(route))) {
@@ -31,7 +32,11 @@ export default withAuth(
 
     // Verificar se é uma rota de manager
     if (managerRoutes.some(route => pathname.startsWith(route))) {
-      if (!token?.role || token.role === UserRole.USER) {
+      if (!token?.role) {
+        return NextResponse.redirect(new URL('/unauthorized', req.url));
+      }
+      // Usuários com role USER podem acessar se tiverem um time associado
+      if (token.role === UserRole.USER && !token.teamId) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }

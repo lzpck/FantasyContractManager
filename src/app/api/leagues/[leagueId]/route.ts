@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { isDemoUser, getDemoLeagues } from '@/data/demoData';
+// Removido sistema demo
 
 /**
  * GET /api/leagues/[leagueId]
@@ -26,20 +26,7 @@ export async function GET(
     const userEmail = session.user.email;
     const { leagueId } = await params;
 
-    // Usuário demo: retornar dados fictícios
-    if (isDemoUser(userEmail)) {
-      const demoLeagues = getDemoLeagues();
-      const league = demoLeagues.find(l => l.id === leagueId);
-
-      if (!league) {
-        return NextResponse.json({ error: 'Liga não encontrada' }, { status: 404 });
-      }
-
-      return NextResponse.json({
-        league,
-        message: 'Dados demo',
-      });
-    }
+    // Removido verificação de usuário demo
 
     // Usuários reais: buscar liga do banco de dados
     const user = await prisma.user.findUnique({
@@ -132,10 +119,7 @@ export async function PUT(
     const userEmail = session.user.email;
     const { leagueId } = await params;
 
-    // Usuário demo: não pode atualizar dados
-    if (isDemoUser(userEmail)) {
-      return NextResponse.json({ error: 'Usuário demo não pode atualizar dados' }, { status: 403 });
-    }
+    // Removido verificação de usuário demo
 
     const user = await prisma.user.findUnique({
       where: { email: userEmail! },

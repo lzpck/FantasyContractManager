@@ -5,7 +5,7 @@ import { PlayerAdded, PlayerRemoved } from '@/hooks/useRosterDiff';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, ArrowRightLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useContractModal } from '@/hooks/useContractModal';
 import ContractModal from '@/components/teams/ContractModal';
@@ -13,13 +13,26 @@ import { ActionButton } from '@/components/ui/action-button';
 import { useAuth } from '@/hooks/useAuth';
 import { Team, League, Player } from '@/types';
 
+/**
+ * Interface para trades processadas
+ */
+export interface TradeProcessed {
+  isTraded: boolean;
+  fromTeam?: string;
+  toTeam?: string;
+  playerName?: string;
+  contractId?: string;
+}
+
 interface RosterTransactionsProps {
   playersAdded: PlayerAdded[];
   playersRemoved: PlayerRemoved[];
-  team: Team;
+  tradesProcessed?: TradeProcessed[];
+  teams: Team[];
   league: League;
   onAddContract: (sleeperPlayerId: string, teamId: string) => Promise<void>;
   onAddDeadMoney: (sleeperPlayerId: string, teamId: string) => Promise<void>;
+  onProcessTrade?: (contractId: string, fromTeam: string, toTeam: string, playerName: string) => Promise<void>;
   onContractSaved?: (sleeperPlayerId: string) => void;
 }
 
@@ -29,10 +42,12 @@ interface RosterTransactionsProps {
 export default function RosterTransactions({
   playersAdded,
   playersRemoved,
-  team,
+  tradesProcessed = [],
+  teams,
   league,
   onAddContract,
   onAddDeadMoney,
+  onProcessTrade,
   onContractSaved,
 }: RosterTransactionsProps) {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
@@ -40,12 +55,69 @@ export default function RosterTransactions({
   const { user } = useAuth();
   const isCommissioner = user?.role === 'COMMISSIONER';
 
-  if (playersAdded.length === 0 && playersRemoved.length === 0) {
+  // Filtrar jogadores que fazem parte de trades para evitar duplicação
+  const validTrades = tradesProcessed.filter(trade => 
+    trade.isTraded && trade.contractId && trade.fromTeam && trade.toTeam && trade.playerName
+  );
+  
+  // Criar lista de nomes de jogadores que estão em trades
+  const playersInTradesNames = new Set<string>();
+  validTrades.forEach(trade => {
+    if (trade.playerName) {
+      playersInTradesNames.add(trade.playerName.toLowerCase().trim());
+    }
+  });
+  
+  // Filtrar jogadores adicionados que não são resultado de trades
+  const filteredPlayersAdded = playersAdded.filter(player => {
+    // Se não há trades, mostrar todos os jogadores adicionados
+    if (validTrades.length === 0) return true;
+    
+    // Se há trades, verificar se este jogador não está na lista de trades
+    const playerName = (player.name || '').toLowerCase().trim();
+    return !playersInTradesNames.has(playerName);
+  });
+  
+  // Filtrar jogadores removidos que não são resultado de trades
+  const filteredPlayersRemoved = playersRemoved.filter(player => {
+    // Se não há trades, mostrar todos os jogadores removidos
+    if (validTrades.length === 0) return true;
+    
+    // Se há trades, verificar se este jogador não está na lista de trades
+    const playerName = (player.playerName || player.name || '').toLowerCase().trim();
+    return !playersInTradesNames.has(playerName);
+  });
+
+  if (filteredPlayersAdded.length === 0 && filteredPlayersRemoved.length === 0 && validTrades.length === 0) {
     return null;
   }
 
+  const handleProcessTrade = async (trade: TradeProcessed) => {
+    if (!onProcessTrade || !trade.contractId || !trade.fromTeam || !trade.toTeam || !trade.playerName) return;
+    
+    const actionKey = `trade-${trade.contractId}`;
+    setLoadingStates(prev => ({ ...prev, [actionKey]: true }));
+
+    try {
+      await onProcessTrade(trade.contractId, trade.fromTeam, trade.toTeam, trade.playerName);
+      toast.success(`Trade processada: ${trade.playerName} de ${trade.fromTeam} para ${trade.toTeam}`);
+    } catch (error) {
+      console.error('Erro ao processar trade:', error);
+      toast.error('Erro ao processar trade');
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [actionKey]: false }));
+    }
+  };
+
   const handleAddContract = async (player: PlayerAdded) => {
     try {
+      // Encontrar o time correto do jogador
+      const playerTeam = teams.find(t => t.id === player.teamId);
+      if (!playerTeam) {
+        toast.error(`Time não encontrado para o jogador ${player.name || player.sleeperPlayerId}`);
+        return;
+      }
+
       // Converter PlayerAdded para Player para o modal
       const playerForModal: Player = {
         id: player.playerId || player.sleeperPlayerId,
@@ -62,11 +134,11 @@ export default function RosterTransactions({
         updatedAt: new Date().toISOString(),
       };
 
-      // Abrir modal de contrato
-      contractModal.openModal(playerForModal, team, league);
+      // Abrir modal de contrato com o time correto
+      contractModal.openModal(playerForModal, playerTeam, league);
 
       // Feedback visual de que o modal foi aberto
-      toast.info(`Abrindo modal de contrato para ${player.name || player.sleeperPlayerId}`);
+      toast.info(`Abrindo modal de contrato para ${player.name || player.sleeperPlayerId} - Time: ${playerTeam.name}`);
     } catch (error) {
       console.error('Erro ao abrir modal de contrato:', error);
       toast.error('Erro ao abrir modal de contrato');
@@ -125,14 +197,14 @@ export default function RosterTransactions({
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Jogadores Adicionados */}
-          {playersAdded.length > 0 && (
+          {filteredPlayersAdded.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold text-green-700 dark:text-green-400 mb-3 flex items-center gap-2">
                 <Plus className="h-4 w-4" />
-                Jogadores Adicionados ({playersAdded.length})
+                Jogadores Adicionados ({filteredPlayersAdded.length})
               </h3>
               <div className="space-y-3">
-                {playersAdded.map(player => {
+                {filteredPlayersAdded.map(player => {
                   const actionKey = `add-${player.sleeperPlayerId}`;
                   const isLoading = loadingStates[actionKey];
 
@@ -178,17 +250,17 @@ export default function RosterTransactions({
           )}
 
           {/* Separador */}
-          {playersAdded.length > 0 && playersRemoved.length > 0 && <Separator />}
+          {filteredPlayersAdded.length > 0 && filteredPlayersRemoved.length > 0 && <Separator />}
 
           {/* Jogadores Removidos */}
-          {playersRemoved.length > 0 && (
+          {filteredPlayersRemoved.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold text-red-700 dark:text-red-400 mb-3 flex items-center gap-2">
                 <Trash2 className="h-4 w-4" />
-                Jogadores Removidos ({playersRemoved.length})
+                Jogadores Removidos ({filteredPlayersRemoved.length})
               </h3>
               <div className="space-y-3">
-                {playersRemoved.map(player => {
+                {filteredPlayersRemoved.map(player => {
                   const actionKey = `deadmoney-${player.sleeperPlayerId}`;
                   const isLoading = loadingStates[actionKey];
 
@@ -233,6 +305,60 @@ export default function RosterTransactions({
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Separador */}
+          {(filteredPlayersAdded.length > 0 || filteredPlayersRemoved.length > 0) && validTrades.length > 0 && <Separator />}
+
+          {/* Trades Processadas */}
+          {validTrades.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2">
+                <ArrowRightLeft className="h-4 w-4" />
+                Trades Detectadas ({validTrades.length})
+              </h3>
+              <div className="space-y-3">
+                {validTrades.map((trade, index) => {
+                    const actionKey = `trade-${trade.contractId}`;
+                    const isLoading = loadingStates[actionKey];
+                    
+                    return (
+                      <div
+                        key={`${trade.contractId}-${index}`}
+                        className="flex items-center justify-between p-3 border rounded-lg bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <p className="font-medium">
+                              {trade.playerName}
+                            </p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Badge variant="outline" className="text-xs">
+                                {trade.fromTeam}
+                              </Badge>
+                              <ArrowRightLeft className="h-3 w-3" />
+                              <Badge variant="outline" className="text-xs">
+                                {trade.toTeam}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        {isCommissioner && (
+                          <ActionButton
+                            variant="default"
+                            icon={ArrowRightLeft}
+                            onClick={() => handleProcessTrade(trade)}
+                            loading={isLoading}
+                            loadingText="Processando..."
+                          >
+                            Processar Trade
+                          </ActionButton>
+                        )}
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           )}

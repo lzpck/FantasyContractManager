@@ -32,12 +32,20 @@ import {
 function DashboardContent() {
   const router = useRouter();
   const { state, setUser } = useAppContext();
-  const { user: authUser, isAuthenticated, isDemoUser } = useAuth();
+  const { user: authUser, isAuthenticated, isCommissioner } = useAuth();
   const { leagues, loading: leaguesLoading, error: leaguesError, hasLeagues } = useLeagues();
   const { teams, loading: teamsLoading, error: teamsError } = useUserTeams();
   const { contracts, loading: contractsLoading } = useContracts();
   const { teamSalaryCapData, loading: salaryCapLoading } = useSalaryCap();
   const [nflState, setNflState] = useState<{ season: string; week: number } | null>(null);
+
+  // Verificar se o usuário é comissário
+  useEffect(() => {
+    if (isAuthenticated && !isCommissioner) {
+      router.replace('/unauthorized?reason=not-commissioner');
+      return;
+    }
+  }, [isAuthenticated, isCommissioner, router]);
 
   // Inicializar dados do usuário autenticado
   useEffect(() => {
@@ -89,8 +97,8 @@ function DashboardContent() {
     );
   }
 
-  // Mensagem para usuários sem dados (exceto demo)
-  if (!isDemoUser && !hasLeagues) {
+  // Mensagem para usuários sem dados
+  if (!hasLeagues) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center max-w-md">
@@ -180,30 +188,14 @@ function DashboardContent() {
     router.push('/contracts?yearsRemaining=1');
   };
 
-  // Indicador visual para usuário demo
-  const demoIndicator = isDemoUser ? (
-    <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-      <div className="flex items-center">
-        <div className="flex-shrink-0">
-          <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />
-        </div>
-        <div className="ml-3">
-          <p className="text-sm text-yellow-800">
-            <strong>Modo Demonstração:</strong> Você está visualizando dados fictícios para fins de
-            demonstração.
-          </p>
-        </div>
-      </div>
-    </div>
-  ) : null;
+  // Removido indicador de modo demo
 
   return (
     <div className="min-h-screen bg-background">
       {/* Conteúdo principal */}
       <div>
         <div className="px-4 sm:px-6 lg:px-8 py-8">
-          {/* Indicador de modo demo */}
-          {demoIndicator}
+          {/* Removido indicador de modo demo */}
 
           {/* Header */}
           <div className="mb-8">
