@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
 
 /**
  * Componente de navegação lateral (sidebar)
@@ -42,10 +41,7 @@ export function Sidebar() {
     },
   ];
 
-  // Função para logout
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: '/auth/signin' });
-  };
+
 
   // Verificar se o item está ativo
   const isActiveItem = (href: string) => {
@@ -109,22 +105,7 @@ export function Sidebar() {
                 </li>
               ))}
               
-              {/* Botão de Logout */}
-              <li className="mt-auto">
-                <button
-                  onClick={handleLogout}
-                  className="group flex gap-x-3 rounded-xl p-2 text-sm leading-6 font-semibold transition-colors text-slate-100 hover:text-red-400 hover:bg-slate-800 w-full"
-                  title={isCollapsed ? 'Logout' : undefined}
-                >
-                  <span className="text-lg flex-shrink-0">🚪</span>
-                  {!isCollapsed && (
-                    <div className="flex-1 min-w-0">
-                      <div className="truncate">Logout</div>
-                      <div className="text-xs text-slate-400 truncate">Sair do sistema</div>
-                    </div>
-                  )}
-                </button>
-              </li>
+
             </ul>
           </nav>
         </div>
