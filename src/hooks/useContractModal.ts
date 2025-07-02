@@ -211,5 +211,5 @@ export function useContractModal(): UseContractModalReturn {
  */
 export function useCanManageContracts(): boolean {
   const { user } = useAuth();
-  return user?.isCommissioner === true || user?.role === 'COMMISSIONER';
+  return user?.role === 'COMMISSIONER';
 }

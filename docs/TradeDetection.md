@@ -15,6 +15,7 @@ O Fantasy Contract Manager agora possui um sistema robusto para detectar e proce
 ### 1. Detecção de Trade
 
 Durante a sincronização de rosters, o sistema verifica se um jogador:
+
 - Já possui um contrato ativo (`status: 'ACTIVE'`)
 - Em outro time da mesma liga
 - Diferente do time atual no Sleeper
@@ -30,8 +31,8 @@ Quando uma trade é detectada:
 await prisma.contract.update({
   where: { id: existingContract.id },
   data: {
-    teamId: newTeamId,           // Novo time
-    acquisitionType: 'TRADE',    // Marcar como trade
+    teamId: newTeamId, // Novo time
+    acquisitionType: 'TRADE', // Marcar como trade
     updatedAt: new Date().toISOString(),
   },
 });
@@ -40,6 +41,7 @@ await prisma.contract.update({
 ### 3. Preservação do Histórico
 
 Os seguintes campos do contrato são **preservados**:
+
 - `originalSalary` - Salário original
 - `originalYears` - Duração original
 - `signedSeason` - Temporada de assinatura
@@ -56,15 +58,17 @@ async function processPlayerTrade(
   playerId: string,
   newTeamId: string,
   leagueId: string,
-): Promise<TradeProcessResult>
+): Promise<TradeProcessResult>;
 ```
 
 **Parâmetros:**
+
 - `playerId` - ID do jogador
 - `newTeamId` - ID do novo time
 - `leagueId` - ID da liga
 
 **Retorno:**
+
 ```typescript
 interface TradeProcessResult {
   isTraded: boolean;
@@ -85,7 +89,9 @@ const tradeResult = await processPlayerTrade(player.id, team.id, team.leagueId);
 
 if (tradeResult.isTraded) {
   stats.tradesProcessed.push(tradeResult);
-  console.log(`✅ Trade processada: ${tradeResult.playerName} de ${tradeResult.fromTeam} para ${tradeResult.toTeam}`);
+  console.log(
+    `✅ Trade processada: ${tradeResult.playerName} de ${tradeResult.fromTeam} para ${tradeResult.toTeam}`,
+  );
 }
 ```
 
@@ -106,11 +112,13 @@ interface SyncStats {
 ### Logs de Auditoria
 
 **Durante o processamento:**
+
 ```
 🔄 TRADE PROCESSADA: Player Name transferido de Team A para Team B
 ```
 
 **Resumo final:**
+
 ```
 🔄 2 trade(s) processada(s):
    - Player 1: Team A → Team B
@@ -151,10 +159,12 @@ A API de sincronização agora retorna informações sobre trades:
 **Cenário:** Jogador A é tradado do Time 1 para o Time 2
 
 **Antes:**
+
 - Jogador A tem contrato ativo no Time 1
 - `acquisitionType: 'AUCTION'`
 
 **Depois:**
+
 - Mesmo contrato, mas `teamId` atualizado para Time 2
 - `acquisitionType: 'TRADE'`
 - Histórico preservado
@@ -164,6 +174,7 @@ A API de sincronização agora retorna informações sobre trades:
 **Cenário:** 3 jogadores envolvidos em trade entre 2 times
 
 **Resultado esperado:**
+
 - Todos os 3 contratos atualizados
 - Nenhum contrato duplicado
 - Todos marcados como `acquisitionType: 'TRADE'`
@@ -173,6 +184,7 @@ A API de sincronização agora retorna informações sobre trades:
 **Cenário:** Múltiplas trades detectadas durante uma sincronização
 
 **Resultado esperado:**
+
 - Todas as trades processadas corretamente
 - Logs detalhados gerados
 - Estatísticas precisas coletadas
@@ -240,7 +252,7 @@ npm test src/utils/tradeDetection.test.ts
 
 ```sql
 -- Verificar contratos com acquisitionType = 'TRADE'
-SELECT 
+SELECT
   c.id,
   p.name as player_name,
   t.name as team_name,

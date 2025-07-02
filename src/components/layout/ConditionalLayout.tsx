@@ -6,31 +6,27 @@ import { AuthNavigation } from './AuthNavigation';
 
 /**
  * Componente que renderiza condicionalmente o layout baseado na rota atual
- * 
+ *
  * Oculta o sidebar e a navegação superior nas páginas de autenticação
  */
 export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  
+
   // Rotas onde o sidebar não deve aparecer
   const authRoutes = ['/auth/signin', '/auth/signup', '/unauthorized'];
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
-  
+
   // Se for uma rota de autenticação, renderizar apenas o conteúdo
   if (isAuthRoute) {
-    return (
-      <main className="bg-[#0f172a] min-h-screen">
-        {children}
-      </main>
-    );
+    return <main className="bg-[#0f172a] min-h-screen">{children}</main>;
   }
-  
+
   // Layout normal com sidebar para outras rotas
   return (
     <>
       {/* Sidebar de navegação */}
       <Sidebar />
-      
+
       {/* Layout principal com sidebar */}
       <div className="lg:pl-64">
         {/* Barra de navegação superior */}
@@ -46,11 +42,9 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </nav>
-        
+
         {/* Conteúdo principal */}
-        <main className="bg-[#0f172a] min-h-screen">
-          {children}
-        </main>
+        <main className="bg-[#0f172a] min-h-screen">{children}</main>
       </div>
     </>
   );

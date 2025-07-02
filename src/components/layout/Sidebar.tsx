@@ -51,8 +51,6 @@ export function Sidebar() {
       ]
     : baseNavigationItems;
 
-
-
   // Verificar se o item está ativo
   const isActiveItem = (href: string) => {
     return pathname === href || pathname.startsWith(href + '/');
@@ -114,8 +112,6 @@ export function Sidebar() {
                   </Link>
                 </li>
               ))}
-              
-
             </ul>
           </nav>
         </div>

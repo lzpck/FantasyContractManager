@@ -16,7 +16,7 @@ export default function UnauthorizedPage() {
 
   // Determinar o tipo de mensagem baseado no motivo
   const isNoTeamOrLeague = reason === 'no-team-or-league';
-  
+
   // Configurar conteúdo baseado no contexto
   const getContent = () => {
     if (isNoTeamOrLeague && isAuthenticated && !isCommissioner) {
@@ -31,7 +31,7 @@ export default function UnauthorizedPage() {
         isWelcomeMessage: true,
       };
     }
-    
+
     return {
       icon: ExclamationTriangleIcon,
       iconColor: 'text-red-500',
@@ -55,9 +55,7 @@ export default function UnauthorizedPage() {
         <div>
           <IconComponent className={`mx-auto h-16 w-16 ${content.iconColor}`} />
           <h2 className="mt-6 text-3xl font-extrabold text-foreground">{content.title}</h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {content.description}
-          </p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{content.description}</p>
         </div>
 
         {isAuthenticated && user && (
@@ -70,7 +68,8 @@ export default function UnauthorizedPage() {
                     Olá, <strong>{user.name}</strong>! Sua conta foi criada com sucesso.
                   </p>
                   <p>
-                    Aguarde o convite do seu comissário ou entre em contato para mais informações sobre sua associação a um time.
+                    Aguarde o convite do seu comissário ou entre em contato para mais informações
+                    sobre sua associação a um time.
                   </p>
                 </>
               ) : (
@@ -98,16 +97,17 @@ export default function UnauthorizedPage() {
                     Explorar Ligas
                   </Link>
                   <p className="text-xs text-gray-500">
-                    Você pode explorar as ligas disponíveis enquanto aguarda sua associação a um time.
+                    Você pode explorar as ligas disponíveis enquanto aguarda sua associação a um
+                    time.
                   </p>
                 </>
               ) : (
                 <>
                   <Link
-                    href={isCommissioner ? "/dashboard" : "/leagues"}
+                    href={isCommissioner ? '/dashboard' : '/leagues'}
                     className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    {isCommissioner ? "Voltar ao Dashboard" : "Ver Ligas"}
+                    {isCommissioner ? 'Voltar ao Dashboard' : 'Ver Ligas'}
                   </Link>
                   <p className="text-xs text-gray-500">
                     Se você acredita que deveria ter acesso a esta página, entre em contato com o

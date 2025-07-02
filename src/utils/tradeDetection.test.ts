@@ -248,7 +248,7 @@ describe('Trade Detection and Processing', () => {
 
       // Todos os jogadores devem ter acquisitionType = 'TRADE' após a trade
       const allPlayers = [...tradeScenario.team1ToTeam2, ...tradeScenario.team2ToTeam1];
-      
+
       allPlayers.forEach(player => {
         expect(player).toBeDefined();
       });
@@ -279,7 +279,7 @@ describe('Trade Detection and Processing', () => {
       expect(tradedContract.originalSalary).toBe(originalContract.originalSalary);
       expect(tradedContract.originalYears).toBe(originalContract.originalYears);
       expect(tradedContract.signedSeason).toBe(originalContract.signedSeason);
-      
+
       // Apenas acquisitionType deve mudar
       expect(tradedContract.acquisitionType).toBe('TRADE');
       expect(originalContract.acquisitionType).toBe('AUCTION');
@@ -320,26 +320,26 @@ describe('Trade Detection and Processing', () => {
  */
 export function runTradeTests() {
   console.log('🧪 Executando testes manuais de detecção de trades...');
-  
+
   // Teste 1: Trade simples
   console.log('\n📋 Teste 1: Trade Simples');
   console.log('Cenário: Player A tradado de Team 1 para Team 2');
   console.log('✅ Contrato deve ser atualizado (não criado novo)');
   console.log('✅ acquisitionType deve mudar para TRADE');
   console.log('✅ Histórico do contrato deve ser preservado');
-  
+
   // Teste 2: Trade múltipla
   console.log('\n📋 Teste 2: Trade Múltipla');
   console.log('Cenário: 3 jogadores envolvidos em trade entre 2 times');
   console.log('✅ Todos os contratos devem ser atualizados');
   console.log('✅ Nenhum contrato duplicado deve ser criado');
-  
+
   // Teste 3: Sincronização massiva
   console.log('\n📋 Teste 3: Sincronização Massiva');
   console.log('Cenário: Múltiplas trades detectadas durante sincronização');
   console.log('✅ Todas as trades devem ser processadas corretamente');
   console.log('✅ Logs de auditoria devem ser gerados');
   console.log('✅ Estatísticas devem ser coletadas');
-  
+
   console.log('\n🎯 Todos os testes conceituais passaram!');
 }

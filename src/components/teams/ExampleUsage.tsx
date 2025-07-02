@@ -386,8 +386,8 @@ export function ContractSystemExample() {
             <div>
               <h4 className="font-semibold text-blue-400 mb-2">Para Comissários:</h4>
               <ul className="space-y-1 text-slate-300">
-                <li>• Clique em "Ações" para gerenciar contratos</li>
-                <li>• Use "Editar Contrato" para modificar termos</li>
+                <li>• Clique em &quot;Ações&quot; para gerenciar contratos</li>
+                <li>• Use &quot;Editar Contrato&quot; para modificar termos</li>
                 <li>• Aplique extensões para jogadores elegíveis</li>
                 <li>• Use franchise tag para reter jogadores</li>
                 <li>• Corte jogadores quando necessário</li>

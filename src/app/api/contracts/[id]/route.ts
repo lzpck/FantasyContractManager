@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma';
  * PUT /api/contracts/[id]
  * Atualiza um contrato existente
  */
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -17,7 +17,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     const userEmail = session.user.email;
-    const contractId = params.id;
+    const url = new URL(request.url);
+    const contractId = url.pathname.split('/').pop();
     const body = await request.json();
 
     const {
@@ -78,7 +79,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Verificar se o usuário é comissário da liga
-    const isCommissioner = user.role === 'COMMISSIONER' || user.isCommissioner;
+    const isCommissioner = user.role === 'COMMISSIONER';
     if (!isCommissioner) {
       return NextResponse.json(
         { error: 'Apenas comissários podem editar contratos' },
@@ -123,7 +124,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  * DELETE /api/contracts/[id]
  * Remove um contrato (cortar jogador)
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -132,7 +133,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     const userEmail = session.user.email;
-    const contractId = params.id;
+    const url = new URL(request.url);
+    const contractId = url.pathname.split('/').pop();
 
     // Removido verificação de usuário demo
 
@@ -163,7 +165,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     // Verificar se o usuário é comissário da liga
-    const isCommissioner = user.role === 'COMMISSIONER' || user.isCommissioner;
+    const isCommissioner = user.role === 'COMMISSIONER';
     if (!isCommissioner) {
       return NextResponse.json(
         { error: 'Apenas comissários podem remover contratos' },
