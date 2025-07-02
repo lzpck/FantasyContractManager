@@ -32,12 +32,20 @@ import {
 function DashboardContent() {
   const router = useRouter();
   const { state, setUser } = useAppContext();
-  const { user: authUser, isAuthenticated } = useAuth();
+  const { user: authUser, isAuthenticated, isCommissioner } = useAuth();
   const { leagues, loading: leaguesLoading, error: leaguesError, hasLeagues } = useLeagues();
   const { teams, loading: teamsLoading, error: teamsError } = useUserTeams();
   const { contracts, loading: contractsLoading } = useContracts();
   const { teamSalaryCapData, loading: salaryCapLoading } = useSalaryCap();
   const [nflState, setNflState] = useState<{ season: string; week: number } | null>(null);
+
+  // Verificar se o usuário é comissário
+  useEffect(() => {
+    if (isAuthenticated && !isCommissioner) {
+      router.replace('/unauthorized?reason=not-commissioner');
+      return;
+    }
+  }, [isAuthenticated, isCommissioner, router]);
 
   // Inicializar dados do usuário autenticado
   useEffect(() => {
