@@ -87,15 +87,15 @@ export function useLeagues() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch('/api/leagues');
       if (!response.ok) {
         throw new Error('Erro ao recarregar ligas');
       }
-      
+
       const data = await response.json();
       const apiLeagues = data.leagues || [];
-      
+
       setLeagues(apiLeagues);
       setGlobalLeagues(apiLeagues);
     } catch (err) {

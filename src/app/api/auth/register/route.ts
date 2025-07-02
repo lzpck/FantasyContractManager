@@ -29,12 +29,18 @@ export async function POST(request: NextRequest) {
 
     // Validação básica
     if (!name || !login || !email || !password) {
-      return NextResponse.json({ error: 'Nome, login, email e senha são obrigatórios' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Nome, login, email e senha são obrigatórios' },
+        { status: 400 },
+      );
     }
 
     // Para usuários (não comissários), teamId é obrigatório
     if (role === UserRole.USER && !teamId) {
-      return NextResponse.json({ error: 'Seleção de time é obrigatória para usuários' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Seleção de time é obrigatória para usuários' },
+        { status: 400 },
+      );
     }
 
     // Verificar se o email já existe
@@ -69,7 +75,7 @@ export async function POST(request: NextRequest) {
     if (teamId) {
       team = await prisma.team.findUnique({
         where: { id: teamId },
-        include: { 
+        include: {
           owner: true,
           league: true,
         },
@@ -129,7 +135,9 @@ export async function POST(request: NextRequest) {
       });
 
       // Log da operação para auditoria
-      console.log(`[AUDIT] Usuário ${user.id} (${user.name}) criado e associado ao time ${teamId} (${team.name}) na liga ${team.leagueId}`);
+      console.log(
+        `[AUDIT] Usuário ${user.id} (${user.name}) criado e associado ao time ${teamId} (${team.name}) na liga ${team.leagueId}`,
+      );
     }
 
     return NextResponse.json(

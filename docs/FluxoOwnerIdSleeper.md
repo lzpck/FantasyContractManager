@@ -7,15 +7,17 @@ Este documento descreve o fluxo correto de preenchimento dos campos `sleeperOwne
 ## Campos da Tabela Team
 
 ### `sleeperOwnerId`
+
 - **Origem**: API do Sleeper
 - **Preenchimento**: Automático durante importação/sincronização
 - **Valor**: ID do usuário proprietário do time no Sleeper
-- **Quando é preenchido**: 
+- **Quando é preenchido**:
   - Durante a importação inicial da liga
   - Durante sincronizações periódicas com o Sleeper
 - **Nunca deve**: Ser alterado manualmente ou ficar em branco se o time existe no Sleeper
 
 ### `ownerId`
+
 - **Origem**: Sistema local (usuários cadastrados)
 - **Preenchimento**: Manual através de associação de usuário
 - **Valor**: ID do usuário local associado ao time (opcional)
@@ -113,6 +115,7 @@ prisma.leagueUser.create({
 ### ❌ O que NUNCA fazer:
 
 1. **Preencher `ownerId` automaticamente durante importação**
+
    ```typescript
    // ❌ ERRADO
    ownerId: commissionerId, // Não associar comissário automaticamente
@@ -120,6 +123,7 @@ prisma.leagueUser.create({
    ```
 
 2. **Alterar `ownerId` durante sincronização**
+
    ```typescript
    // ❌ ERRADO - não sobrescrever associação manual
    data: {
@@ -177,15 +181,15 @@ prisma.leagueUser.create({
 ```prisma
 model Team {
   // ... outros campos
-  
+
   // Proprietário no Sleeper (sempre reflete o Sleeper)
   sleeperOwnerId   String?
   ownerDisplayName String?
-  
+
   // Proprietário local (usuário do sistema) - opcional até associação manual
   ownerId   String?
   owner     User?  @relation("TeamOwner", fields: [ownerId], references: [id])
-  
+
   // ... outros campos
 }
 ```
