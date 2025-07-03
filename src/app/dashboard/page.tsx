@@ -140,7 +140,9 @@ function DashboardContent() {
   const totalLeagues = leagues.length;
 
   // Contratos ativos: filtrar apenas contratos com status ACTIVE
-  const activeContracts = contracts.filter(contract => contract.status === ContractStatus.ACTIVE).length;
+  const activeContracts = contracts.filter(
+    contract => contract.status === ContractStatus.ACTIVE,
+  ).length;
 
   // Contratos vencendo: filtrar contratos com yearsRemaining = 1
   const expiringContracts = contracts.filter(
