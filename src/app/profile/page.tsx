@@ -118,11 +118,6 @@ export default function ProfilePage() {
       }
 
       setMessage({ type: 'success', text: 'Perfil atualizado com sucesso!' });
-      
-      // Recarregar a página para atualizar os dados da sessão
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
     } catch (error) {
       setMessage({
         type: 'error',
