@@ -53,13 +53,10 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
     }
 
-    // Verificar se o contrato existe e pertence ao usuário
+    // Verificar se o contrato existe
     const existingContract = await prisma.contract.findFirst({
       where: {
         id: contractId,
-        team: {
-          ownerId: user.id,
-        },
       },
       include: {
         player: true,
@@ -72,17 +69,20 @@ export async function PUT(request: NextRequest) {
     });
 
     if (!existingContract) {
-      return NextResponse.json(
-        { error: 'Contrato não encontrado ou não pertence ao usuário' },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: 'Contrato não encontrado' }, { status: 404 });
     }
 
-    // Verificar se o usuário é comissário da liga
-    const isCommissioner = user.role === 'COMMISSIONER';
-    if (!isCommissioner) {
+    // Verificar se o usuário tem permissão para editar este contrato
+    // Permitir se: 1) É dono do time OU 2) É comissário da liga
+    const isTeamOwner = existingContract.team.ownerId === user.id;
+    const isLeagueCommissioner = existingContract.team.league.commissionerId === user.id;
+
+    if (!isTeamOwner && !isLeagueCommissioner) {
       return NextResponse.json(
-        { error: 'Apenas comissários podem editar contratos' },
+        {
+          error:
+            'Você não tem permissão para editar este contrato. Apenas o dono do time ou o comissário da liga podem fazer isso.',
+        },
         { status: 403 },
       );
     }
@@ -147,28 +147,35 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
     }
 
-    // Verificar se o contrato existe e pertence ao usuário
+    // Verificar se o contrato existe
     const existingContract = await prisma.contract.findFirst({
       where: {
         id: contractId,
+      },
+      include: {
         team: {
-          ownerId: user.id,
+          include: {
+            league: true,
+          },
         },
       },
     });
 
     if (!existingContract) {
-      return NextResponse.json(
-        { error: 'Contrato não encontrado ou não pertence ao usuário' },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: 'Contrato não encontrado' }, { status: 404 });
     }
 
-    // Verificar se o usuário é comissário da liga
-    const isCommissioner = user.role === 'COMMISSIONER';
-    if (!isCommissioner) {
+    // Verificar se o usuário tem permissão para remover este contrato
+    // Permitir se: 1) É dono do time OU 2) É comissário da liga
+    const isTeamOwner = existingContract.team.ownerId === user.id;
+    const isLeagueCommissioner = existingContract.team.league.commissionerId === user.id;
+
+    if (!isTeamOwner && !isLeagueCommissioner) {
       return NextResponse.json(
-        { error: 'Apenas comissários podem remover contratos' },
+        {
+          error:
+            'Você não tem permissão para remover este contrato. Apenas o dono do time ou o comissário da liga podem fazer isso.',
+        },
         { status: 403 },
       );
     }
