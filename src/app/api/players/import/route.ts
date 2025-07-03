@@ -33,7 +33,6 @@ export async function POST() {
             position: p.position,
             fantasyPositions: p.fantasyPositions.join(','),
             team: p.nflTeam,
-            age: p.age,
             isActive: p.isActive,
           },
           create: {
@@ -41,7 +40,6 @@ export async function POST() {
             position: p.position,
             fantasyPositions: p.fantasyPositions.join(','),
             team: p.nflTeam,
-            age: p.age,
             sleeperPlayerId: p.sleeperPlayerId,
             isActive: p.isActive,
           },

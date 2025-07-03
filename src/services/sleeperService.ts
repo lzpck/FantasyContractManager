@@ -462,7 +462,6 @@ export function transformSleeperPlayersToLocal(
         position: mapSleeperPositionToLocal(p.position),
         fantasyPositions,
         nflTeam: p.team || 'FA',
-        age: p.age,
         sleeperPlayerId: p.player_id,
         isActive: p.status !== 'Inactive',
       };

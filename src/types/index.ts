@@ -307,6 +307,36 @@ export interface Team {
 }
 
 /**
+ * Team com informações da liga incluídas (para casos onde a relação é carregada)
+ */
+export interface TeamWithLeague extends Team {
+  /** Informações da liga */
+  league?: {
+    id: string;
+    name: string;
+    season: number;
+  };
+}
+
+/**
+ * Contract com informações do jogador incluídas (para casos onde a relação é carregada)
+ */
+export interface ContractWithPlayer extends Contract {
+  /** Informações do jogador */
+  player: Player;
+  /** Informações do time (opcional) */
+  team?: {
+    id: string;
+    name: string;
+    league?: {
+      id: string;
+      name: string;
+      season: number;
+    };
+  };
+}
+
+/**
  * Informações de um jogador
  */
 export interface Player {

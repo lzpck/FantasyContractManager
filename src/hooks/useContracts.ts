@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
-import { Contract } from '@/types';
+import { ContractWithPlayer } from '@/types';
 
 /**
  * Hook para gerenciar contratos
@@ -10,7 +10,7 @@ import { Contract } from '@/types';
  */
 export function useContracts() {
   // Removido sistema demo
-  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [contracts, setContracts] = useState<ContractWithPlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +28,7 @@ export function useContracts() {
         }
 
         const data = await response.json();
-        setContracts(data.contracts || []);
+        setContracts(data || []);
       } catch (err) {
         console.error('Erro ao carregar contratos:', err);
         setError(err instanceof Error ? err.message : 'Erro desconhecido');

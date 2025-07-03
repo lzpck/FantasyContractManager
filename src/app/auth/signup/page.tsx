@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { UserRole } from '@/types/database';
-import { Team } from '@/types';
+import { TeamWithLeague } from '@/types';
 
 /**
  * Página de cadastro de usuários
@@ -55,7 +55,7 @@ function OriginalSignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
+  const [availableTeams, setAvailableTeams] = useState<TeamWithLeague[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
   const router = useRouter();
 
