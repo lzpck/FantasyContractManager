@@ -107,19 +107,19 @@ export async function POST(
 
     // Removido verificação de usuário demo
 
-    // Verificar se o time existe e pertence ao usuário
+    // Buscar usuário
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail! },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
+    }
+
+    // Verificar se o time existe
     const team = await prisma.team.findFirst({
       where: {
         id: teamId,
-        league: {
-          leagueUsers: {
-            some: {
-              user: {
-                email: userEmail!,
-              },
-            },
-          },
-        },
       },
       include: {
         league: true,
@@ -128,6 +128,21 @@ export async function POST(
 
     if (!team) {
       return NextResponse.json({ error: 'Time não encontrado' }, { status: 404 });
+    }
+
+    // Verificar se o usuário tem permissão para criar contratos neste time
+    // Permitir se: 1) É dono do time OU 2) É comissário da liga
+    const isTeamOwner = team.ownerId === user.id;
+    const isLeagueCommissioner = team.league.commissionerId === user.id;
+
+    if (!isTeamOwner && !isLeagueCommissioner) {
+      return NextResponse.json(
+        {
+          error:
+            'Você não tem permissão para criar contratos neste time. Apenas o dono do time ou o comissário da liga podem fazer isso.',
+        },
+        { status: 403 },
+      );
     }
 
     const body = await request.json();

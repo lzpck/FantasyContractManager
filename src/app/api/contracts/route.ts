@@ -27,13 +27,26 @@ export async function GET() {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
     }
 
-    // Buscar contratos das ligas onde o usuário tem times
+    // Buscar contratos baseado no papel do usuário
+    // Se for comissário: ver todos os contratos das ligas que comissiona
+    // Se for usuário comum: ver apenas contratos dos seus times
+    const whereClause =
+      user.role === 'COMMISSIONER'
+        ? {
+            team: {
+              league: {
+                commissionerId: user.id,
+              },
+            },
+          }
+        : {
+            team: {
+              ownerId: user.id,
+            },
+          };
+
     const contracts = await prisma.contract.findMany({
-      where: {
-        team: {
-          ownerId: user.id,
-        },
-      },
+      where: whereClause,
       include: {
         player: true,
         team: {
@@ -121,18 +134,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Liga não encontrada' }, { status: 404 });
     }
 
-    // Verificar se o time pertence ao usuário e está na liga correta
+    // Verificar se o time existe e está na liga correta
     const team = await prisma.team.findFirst({
       where: {
         id: teamId,
-        ownerId: user.id,
         leagueId: leagueId,
       },
     });
 
     if (!team) {
       return NextResponse.json(
-        { error: 'Time não encontrado, não pertence ao usuário ou não está na liga especificada' },
+        { error: 'Time não encontrado ou não está na liga especificada' },
+        { status: 404 },
+      );
+    }
+
+    // Verificar se o usuário tem permissão para adicionar contratos neste time
+    // Permitir se: 1) É dono do time OU 2) É comissário da liga
+    const isTeamOwner = team.ownerId === user.id;
+    const isLeagueCommissioner = league.commissionerId === user.id;
+
+    if (!isTeamOwner && !isLeagueCommissioner) {
+      return NextResponse.json(
+        {
+          error:
+            'Você não tem permissão para adicionar contratos neste time. Apenas o dono do time ou o comissário da liga podem fazer isso.',
+        },
         { status: 403 },
       );
     }
