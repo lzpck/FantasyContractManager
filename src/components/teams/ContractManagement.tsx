@@ -95,7 +95,7 @@ export default function ContractManagement({
 
     const handleShowToast = (event: CustomEvent) => {
       const { type, message } = event.detail;
-      addToast(type, message);
+      addToast({ message, type });
     };
 
     window.addEventListener('contractUpdated', handleContractUpdate as EventListener);

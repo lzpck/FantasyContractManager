@@ -78,7 +78,7 @@ export default function InformacoesPage() {
 
   const handleAddRule = () => {
     if (!newRule.leagueName.trim() || !newRule.title.trim() || !newRule.description.trim()) {
-      addToast('Todos os campos são obrigatórios', 'error');
+      addToast({ message: 'Todos os campos são obrigatórios', type: 'error' });
       return;
     }
 
@@ -93,7 +93,7 @@ export default function InformacoesPage() {
     setLeagueRules(prev => [...prev, rule]);
     setNewRule({ leagueName: '', title: '', description: '' });
     setIsAddingRule(false);
-    addToast('Regra adicionada com sucesso!', 'success');
+    addToast({ message: 'Regra adicionada com sucesso!', type: 'success' });
   };
 
   const handleEditRule = (rule: LeagueRule) => {
@@ -110,7 +110,7 @@ export default function InformacoesPage() {
     if (!editingRule) return;
 
     if (!newRule.leagueName.trim() || !newRule.title.trim() || !newRule.description.trim()) {
-      addToast('Todos os campos são obrigatórios', 'error');
+      addToast({ message: 'Todos os campos são obrigatórios', type: 'error' });
       return;
     }
 
@@ -130,13 +130,13 @@ export default function InformacoesPage() {
     setNewRule({ leagueName: '', title: '', description: '' });
     setIsAddingRule(false);
     setEditingRule(null);
-    addToast('Regra atualizada com sucesso!', 'success');
+    addToast({ message: 'Regra atualizada com sucesso!', type: 'success' });
   };
 
   const handleDeleteRule = (ruleId: string) => {
     if (confirm('Tem certeza que deseja excluir esta regra?')) {
       setLeagueRules(prev => prev.filter(rule => rule.id !== ruleId));
-      addToast('Regra excluída com sucesso!', 'success');
+      addToast({ message: 'Regra excluída com sucesso!', type: 'success' });
     }
   };
 
@@ -152,12 +152,12 @@ export default function InformacoesPage() {
 
   const handleSubmitReport = async () => {
     if (!bugReport.title.trim() || !bugReport.description.trim() || !bugReport.email.trim()) {
-      addToast('Todos os campos são obrigatórios', 'error');
+      addToast({ message: 'Todos os campos são obrigatórios', type: 'error' });
       return;
     }
 
     if (!bugReport.email.includes('@')) {
-      addToast('Por favor, insira um email válido', 'error');
+      addToast({ message: 'Por favor, insira um email válido', type: 'error' });
       return;
     }
 
@@ -174,9 +174,9 @@ export default function InformacoesPage() {
         email: '',
       });
 
-      addToast('Report enviado com sucesso! Obrigado pelo feedback.', 'success');
+      addToast({ message: 'Report enviado com sucesso! Obrigado pelo feedback.', type: 'success' });
     } catch (error) {
-      addToast('Erro ao enviar report. Tente novamente.', 'error');
+      addToast({ message: 'Erro ao enviar report. Tente novamente.', type: 'error' });
     } finally {
       setIsSubmittingReport(false);
     }
