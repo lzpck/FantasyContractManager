@@ -95,7 +95,7 @@ export default function ContractManagement({
 
     const handleShowToast = (event: CustomEvent) => {
       const { type, message } = event.detail;
-      addToast({ message, type });
+      addToast(type, message);
     };
 
     window.addEventListener('contractUpdated', handleContractUpdate as EventListener);
@@ -112,7 +112,12 @@ export default function ContractManagement({
   };
 
   const handleEditContract = (playerWithContract: PlayerWithContract) => {
-    contractModal.openModal(playerWithContract.player, team, league, playerWithContract.contract);
+    contractModal.openModal(
+      playerWithContract.player,
+      team,
+      league,
+      playerWithContract.contract || undefined,
+    );
   };
 
   // Se não for comissário, não mostrar controles de gerenciamento
@@ -216,10 +221,10 @@ export default function ContractManagement({
                     <div className="flex items-center space-x-6">
                       <div className="text-right">
                         <div className="text-sm font-medium text-slate-100">
-                          {formatCurrency(playerWithContract.contract.currentSalary)}
+                          {formatCurrency(playerWithContract.contract?.currentSalary ?? 0)}
                         </div>
                         <div className="text-xs text-slate-400">
-                          {playerWithContract.contract.yearsRemaining} ano(s) restante(s)
+                          {playerWithContract.contract?.yearsRemaining} ano(s) restante(s)
                         </div>
                       </div>
 

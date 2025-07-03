@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Team } from '@/types';
+import { useAuth } from './useAuth';
 
 /**
  * Hook para gerenciar times

@@ -406,8 +406,8 @@ export function transformSleeperRostersToTeams(
     return {
       name: teamName,
       leagueId,
-      // ownerId deve ficar em branco - será preenchido apenas na associação manual
-      ownerId: null, // Campo vazio até associação manual de usuário local
+      // ownerId como string vazia - será preenchido apenas na associação manual
+      ownerId: '', // Campo vazio até associação manual de usuário local
       sleeperOwnerId: user?.user_id, // ID do proprietário no Sleeper
       ownerDisplayName: user?.display_name,
       sleeperTeamId: roster.roster_id.toString(),

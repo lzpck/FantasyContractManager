@@ -28,8 +28,8 @@ const EXAMPLE_LEAGUE: League = {
   minimumSalary: 1000000,
   seasonTurnoverDate: '2024-04-01',
   settings: {} as any,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
 const EXAMPLE_TEAM: Team = {
@@ -42,8 +42,8 @@ const EXAMPLE_TEAM: Team = {
   currentDeadMoney: 0,
   nextSeasonDeadMoney: 0,
   franchiseTagsUsed: 0,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
 const EXAMPLE_PLAYERS: Player[] = [
@@ -56,8 +56,8 @@ const EXAMPLE_PLAYERS: Player[] = [
     nflTeam: 'BUF',
     jerseyNumber: 17,
     isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'player-2',
@@ -68,8 +68,8 @@ const EXAMPLE_PLAYERS: Player[] = [
     nflTeam: 'SF',
     jerseyNumber: 23,
     isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'player-3',
@@ -80,8 +80,8 @@ const EXAMPLE_PLAYERS: Player[] = [
     nflTeam: 'LAR',
     jerseyNumber: 10,
     isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 
@@ -186,7 +186,12 @@ function ContractsTable({
   const canManage = useCanManageContracts();
 
   const handleEditContract = (playerWithContract: PlayerWithContract) => {
-    contractModal.openModal(playerWithContract.player, team, league, playerWithContract.contract);
+    contractModal.openModal(
+      playerWithContract.player,
+      team,
+      league,
+      playerWithContract.contract || undefined,
+    );
   };
 
   return (
@@ -239,13 +244,17 @@ function ContractsTable({
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-100">
-                  {formatCurrency(playerWithContract.contract.currentSalary)}
+                  {playerWithContract.contract
+                    ? formatCurrency(playerWithContract.contract.currentSalary)
+                    : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
-                  {playerWithContract.contract.yearsRemaining} ano(s)
+                  {playerWithContract.contract
+                    ? `${playerWithContract.contract.yearsRemaining} ano(s)`
+                    : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
-                  {playerWithContract.contract.acquisitionType}
+                  {playerWithContract.contract ? playerWithContract.contract.acquisitionType : '-'}
                 </td>
                 {canManage && (
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
