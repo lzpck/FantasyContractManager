@@ -155,12 +155,25 @@ async function syncTeamRosters(
           }
 
           // Criar novo jogador
-          player = await prisma.player.create({
-            data: {
+          player = await prisma.player.upsert({
+            where: { sleeperPlayerId },
+            update: {
               name: playerData.name,
               position: playerData.position,
-              fantasyPositions: playerData.fantasyPositions,
-              team: playerData.team,
+              fantasyPositions: Array.isArray(playerData.fantasyPositions)
+                ? playerData.fantasyPositions.join(',')
+                : playerData.fantasyPositions,
+              team: playerData.team || 'FA',
+              age: playerData.age,
+              isActive: playerData.isActive,
+            },
+            create: {
+              name: playerData.name,
+              position: playerData.position,
+              fantasyPositions: Array.isArray(playerData.fantasyPositions)
+                ? playerData.fantasyPositions.join(',')
+                : playerData.fantasyPositions,
+              team: playerData.team || 'FA',
               age: playerData.age,
               sleeperPlayerId,
               isActive: playerData.isActive,
