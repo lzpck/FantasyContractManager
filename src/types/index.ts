@@ -14,15 +14,15 @@
  */
 export enum ContractStatus {
   /** Contrato ativo e válido */
-  ACTIVE = 'active',
+  ACTIVE = 'ACTIVE',
   /** Contrato expirado (último ano concluído) */
-  EXPIRED = 'expired',
+  EXPIRED = 'EXPIRED',
   /** Jogador com Franchise Tag aplicada */
-  TAGGED = 'tagged',
+  TAGGED = 'TAGGED',
   /** Contrato estendido (extensão negociada) */
-  EXTENDED = 'extended',
+  EXTENDED = 'EXTENDED',
   /** Jogador cortado (contrato rescindido) */
-  CUT = 'cut',
+  CUT = 'CUT',
 }
 
 /**
