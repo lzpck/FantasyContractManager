@@ -6,13 +6,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useContracts } from '@/hooks/useContracts';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
-import { Contract } from '@/types';
+import { ContractWithPlayer, ContractStatus } from '@/types';
 
 function ContractsContent() {
   const { user } = useAuth();
   const { contracts, loading, error } = useContracts();
   const searchParams = useSearchParams();
-  const [filteredContracts, setFilteredContracts] = useState<Contract[]>([]);
+  const [filteredContracts, setFilteredContracts] = useState<ContractWithPlayer[]>([]);
 
   // Aplicar filtros baseados nos parâmetros da URL
   useEffect(() => {
@@ -23,7 +23,7 @@ function ContractsContent() {
     // Filtro por status
     const statusFilter = searchParams.get('status');
     if (statusFilter === 'active') {
-      filtered = filtered.filter(contract => contract.status === 'ACTIVE');
+      filtered = filtered.filter(contract => contract.status === ContractStatus.ACTIVE);
     }
 
     // Filtro por anos restantes
@@ -191,7 +191,7 @@ function ContractsContent() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {contract.player.team || 'N/A'}
+                            {contract.player.nflTeam || 'N/A'}
                           </div>
                         </td>
                       </tr>

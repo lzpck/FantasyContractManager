@@ -169,7 +169,7 @@ export async function POST(request: Request) {
         hasBeenExtended: hasBeenExtended || false,
         fourthYearOptionActivated: fourthYearOptionActivated || false,
         signedSeason: signedSeason || new Date().getFullYear(),
-        status: (status || 'active').toUpperCase(),
+        status: (status || 'ACTIVE').toUpperCase(),
       },
       include: {
         player: true,

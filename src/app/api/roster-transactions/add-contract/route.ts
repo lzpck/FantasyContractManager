@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       where: {
         playerId: player.id,
         teamId,
-        status: 'active',
+        status: 'ACTIVE',
       },
     });
 
@@ -84,13 +84,16 @@ export async function POST(request: NextRequest) {
       data: {
         playerId: player.id,
         teamId,
-        value: contractValue,
-        years: contractYears,
-        guaranteedMoney,
-        notes,
-        status: 'active',
-        startYear: new Date().getFullYear(),
-        endYear: new Date().getFullYear() + contractYears - 1,
+        leagueId: team.leagueId,
+        currentSalary: contractValue,
+        originalSalary: contractValue,
+        yearsRemaining: contractYears,
+        originalYears: contractYears,
+        status: 'ACTIVE',
+        acquisitionType: 'FAAB',
+        signedSeason: new Date().getFullYear(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       include: {
         player: true,
