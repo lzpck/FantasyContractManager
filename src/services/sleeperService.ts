@@ -461,7 +461,8 @@ export function transformSleeperPlayersToLocal(
         name: p.full_name || `${p.first_name} ${p.last_name}`,
         position: mapSleeperPositionToLocal(p.position),
         fantasyPositions,
-        nflTeam: p.team || 'FA',
+        team: p.team || 'FA', // Corrigido: usar 'team' em vez de 'nflTeam' para compatibilidade com o schema Prisma
+        age: p.age,
         sleeperPlayerId: p.player_id,
         isActive: p.status !== 'Inactive',
       };
