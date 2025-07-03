@@ -90,6 +90,15 @@ export function AuthNavigation() {
                     Dashboard
                   </Link>
 
+                  <Link
+                    href="/profile"
+                    className="flex items-center px-4 py-2 text-sm text-slate-100 hover:bg-slate-700 rounded-lg mx-2"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    <Cog6ToothIcon className="h-4 w-4 mr-3" />
+                    Meu Perfil
+                  </Link>
+
                   {canManageUsers && (
                     <Link
                       href="/admin"
