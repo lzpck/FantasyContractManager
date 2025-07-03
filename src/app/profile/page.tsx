@@ -315,7 +315,7 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-slate-300 mb-2">Time</label>
                     <input
                       type="text"
-                      value={`${user.team.name} - ${user.team.league.name}`}
+                      value={user.team.league ? `${user.team.name} - ${user.team.league.name}` : user.team.name}
                       className="w-full px-4 py-3 bg-slate-600/30 border border-slate-600 rounded-xl text-slate-400 cursor-not-allowed"
                       disabled
                     />

@@ -28,7 +28,11 @@ export const authOptions: NextAuthOptions = {
             OR: [{ login: credentials.identifier }, { email: credentials.identifier }],
           },
           include: {
-            team: true, // Incluir dados do time associado
+            team: {
+              include: {
+                league: true, // Incluir dados da liga associada ao time
+              },
+            },
           },
         });
 
