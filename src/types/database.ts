@@ -73,11 +73,11 @@ export interface Player {
 }
 
 export enum ContractStatus {
-  ACTIVE = 'active',
-  EXPIRED = 'expired',
-  TAGGED = 'tagged',
-  EXTENDED = 'extended',
-  CUT = 'cut',
+  ACTIVE = 'ACTIVE',
+  EXPIRED = 'EXPIRED',
+  TAGGED = 'TAGGED',
+  EXTENDED = 'EXTENDED',
+  CUT = 'CUT',
 }
 
 export enum AcquisitionType {

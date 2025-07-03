@@ -41,7 +41,7 @@ export function PlayerRosterSections({
 
   // Função para obter cor do status do contrato
   const getContractStatusColor = (status: string, yearsRemaining: number) => {
-    if (status === 'ACTIVE' || status === 'active') {
+    if (status === 'ACTIVE') {
       if (yearsRemaining <= 1) return 'bg-red-100 text-red-800'; // Último ano - vermelho
       if (yearsRemaining <= 2) return 'bg-yellow-100 text-yellow-800'; // Expira em breve - amarelo
       return 'bg-green-100 text-green-800';
@@ -51,7 +51,7 @@ export function PlayerRosterSections({
 
   // Função para obter texto do status do contrato
   const getContractStatusText = (status: string, yearsRemaining: number) => {
-    if (status === 'ACTIVE' || status === 'active') {
+    if (status === 'ACTIVE') {
       if (yearsRemaining <= 1) return 'Último ano';
       if (yearsRemaining <= 2) return 'Expira em breve';
       return 'Ativo';
