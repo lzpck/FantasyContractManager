@@ -30,7 +30,10 @@ export default function LeagueSettingsPage() {
   // Lidar com atualização da configuração de dead money
   const handleDeadMoneyConfigChange = async (newConfig: DeadMoneyConfig) => {
     if (!canEdit) {
-      addToast({ message: 'Apenas o comissário pode alterar as configurações da liga', type: 'error' });
+      addToast({
+        message: 'Apenas o comissário pode alterar as configurações da liga',
+        type: 'error',
+      });
       return;
     }
 
@@ -38,13 +41,22 @@ export default function LeagueSettingsPage() {
     try {
       const success = await updateConfig(newConfig);
       if (success) {
-        addToast({ message: 'Configuração de dead money atualizada com sucesso!', type: 'success' });
+        addToast({
+          message: 'Configuração de dead money atualizada com sucesso!',
+          type: 'success',
+        });
       } else {
-        addToast({ message: 'Erro ao atualizar configuração de dead money', type: 'error' });
+        addToast({
+          message: 'Erro ao atualizar configuração de dead money',
+          type: 'error',
+        });
       }
     } catch (error) {
       console.error('Erro ao salvar configuração:', error);
-      addToast({ message: 'Erro inesperado ao salvar configuração', type: 'error' });
+      addToast({
+        message: 'Erro inesperado ao salvar configuração',
+        type: 'error',
+      });
     } finally {
       setIsSaving(false);
     }

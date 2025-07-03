@@ -97,9 +97,9 @@ export default function TeamDetailsPage() {
         let playersWithContractsData: PlayerWithContract[] = [];
 
         // Mostrar todos os jogadores do roster, mesmo sem contrato
-        playersWithContractsData = rosterPlayers.map(rosterPlayer => {
+        playersWithContractsData = rosterPlayers.map((rosterPlayer: any) => {
           const existingContract = contractsData.contracts.find(
-            (c: Contract) => c.player.sleeperPlayerId === rosterPlayer.sleeperPlayerId,
+            (c: any) => c.player.sleeperPlayerId === rosterPlayer.sleeperPlayerId,
           );
 
           return {
@@ -112,10 +112,10 @@ export default function TeamDetailsPage() {
         // Adicionar também jogadores com contratos que não estão no roster atual
         // (jogadores que foram cortados mas ainda têm dead money)
         const playersNotInRoster = contractsData.contracts.filter(
-          (c: Contract) => !rosterPlayers.some(p => p.sleeperPlayerId === c.player.sleeperPlayerId),
+          (c: any) => !rosterPlayers.some((p: any) => p.sleeperPlayerId === c.player.sleeperPlayerId),
         );
 
-        playersNotInRoster.forEach((contract: Contract) => {
+        playersNotInRoster.forEach((contract: any) => {
           playersWithContractsData.push({
             player: {
               id: contract.player.id,
