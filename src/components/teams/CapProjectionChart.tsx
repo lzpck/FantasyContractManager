@@ -1,6 +1,6 @@
 'use client';
 
-import { Team, PlayerWithContract, Contract } from '@/types';
+import { Team, PlayerWithContract, Contract, ContractStatus } from '@/types';
 import {
   BarChart,
   Bar,
@@ -101,7 +101,7 @@ export function CapProjectionChart({
 
   // Verificar se há jogadores com contratos válidos e ativos (não cortados)
   const playersWithValidContracts = players.filter(
-    p => p.contract && p.contract.currentSalary > 0 && p.contract.status !== 'CUT',
+    p => p.contract && p.contract.currentSalary > 0 && p.contract.status !== ContractStatus.CUT,
   );
 
   // Calcular projeções para os próximos 4 anos
@@ -138,7 +138,7 @@ export function CapProjectionChart({
         .filter(
           c =>
             c.teamId === team.id &&
-            c.status === 'ACTIVE' &&
+            c.status === ContractStatus.ACTIVE &&
             c.signedSeason <= seasonYear &&
             c.signedSeason + c.originalYears - 1 >= seasonYear,
         )
@@ -153,7 +153,7 @@ export function CapProjectionChart({
       contractsCount = safeContracts.filter(
         c =>
           c.teamId === team.id &&
-          c.status === 'ACTIVE' &&
+          c.status === ContractStatus.ACTIVE &&
           c.signedSeason <= seasonYear &&
           c.signedSeason + c.originalYears - 1 >= seasonYear,
       ).length;
@@ -162,16 +162,18 @@ export function CapProjectionChart({
       playersWithValidContracts.forEach(playerWithContract => {
         const contract = playerWithContract.contract;
 
-        // Verificar se o contrato ainda está ativo nesta temporada
-        const yearsFromSigning = seasonYear - contract.signedSeason;
-        const contractYearsRemaining = contract.originalYears - yearsFromSigning;
+        if (contract) {
+          // Verificar se o contrato ainda está ativo nesta temporada
+          const yearsFromSigning = seasonYear - contract.signedSeason;
+          const contractYearsRemaining = contract.originalYears - yearsFromSigning;
 
-        if (contract && contractYearsRemaining > 0) {
-          // Usar a função oficial de cálculo de salário anual
-          const projectedSalary = calculateAnnualSalary(contract, yearsFromSigning);
+          if (contractYearsRemaining > 0) {
+            // Usar a função oficial de cálculo de salário anual
+            const projectedSalary = calculateAnnualSalary(contract, yearsFromSigning);
 
-          totalSalaries += projectedSalary;
-          contractsCount++;
+            totalSalaries += projectedSalary;
+            contractsCount++;
+          }
         }
       });
     }
@@ -347,7 +349,7 @@ export function CapProjectionChart({
               strokeWidth={2}
               label={{
                 value: `Salary Cap (${formatCurrency(salaryCap)})`,
-                position: 'topRight',
+                position: 'top',
                 style: { fill: '#ef4444', fontSize: '12px', fontWeight: 'bold' },
               }}
             />

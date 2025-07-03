@@ -414,11 +414,13 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
           data: {
             name: team.name,
             leagueId: leagueId,
-            // ownerId deve ficar em branco - será preenchido apenas na associação manual
-            ownerId: null, // Campo vazio até associação manual de usuário local
+            // ownerId é opcional - omitido da criação, será preenchido apenas na associação manual
             sleeperTeamId: team.sleeperTeamId,
             ownerDisplayName: team.ownerDisplayName,
             sleeperOwnerId: team.sleeperOwnerId,
+            // Adicionar timestamps obrigatórios
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           },
         });
       }

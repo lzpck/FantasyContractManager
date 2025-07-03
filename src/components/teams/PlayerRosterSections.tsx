@@ -90,7 +90,7 @@ export function PlayerRosterSections({
 
       // Usa o percentual baseado nos anos restantes do contrato
       // Se o jogador tem 3 anos restantes, usa o percentual para "3" anos
-      const yearsKey = Math.min(yearsRemaining, 4).toString(); // Máximo 4 anos
+      const yearsKey = Math.min(yearsRemaining, 4).toString() as '1' | '2' | '3' | '4'; // Máximo 4 anos
       const nextYearPercent = leagueDeadMoneyConfig?.futureSeasons?.[yearsKey] ?? 0;
 
       deadMoneyNext = nextYearSalary * nextYearPercent;
@@ -211,7 +211,7 @@ export function PlayerRosterSections({
                 const { deadMoneyCurrent, deadMoneyNext } = contract
                   ? simulateDeadMoney(
                       contract,
-                      league?.deadMoneyConfig,
+                      league?.deadMoneyConfig as DeadMoneyConfig | undefined,
                       league?.season || new Date().getFullYear(),
                     )
                   : { deadMoneyCurrent: 0, deadMoneyNext: 0 };

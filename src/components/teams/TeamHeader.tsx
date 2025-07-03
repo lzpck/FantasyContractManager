@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { Team, League, PlayerWithContract, Contract } from '@/types';
+import { Team, League, PlayerWithContract, Contract, ContractStatus } from '@/types';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatCapUsage, getCurrencyClasses } from '@/utils/formatUtils';
 import { useMemo } from 'react';
@@ -87,7 +87,7 @@ export default function TeamHeader({
             .filter(
               c =>
                 c.teamId === team.id &&
-                c.status === 'ACTIVE' &&
+                c.status === ContractStatus.ACTIVE &&
                 c.signedSeason <= currentYear &&
                 c.signedSeason + c.originalYears - 1 >= currentYear,
             )
@@ -102,7 +102,9 @@ export default function TeamHeader({
     const availableCap = league.salaryCap - capUsed;
 
     // 4. Estatísticas do elenco - apenas contratos ativos (não cortados)
-    const playersWithContracts = players.filter(p => p.contract && p.contract.status !== 'CUT');
+    const playersWithContracts = players.filter(
+      p => p.contract && p.contract.status !== ContractStatus.CUT,
+    );
     const contractsExpiring = playersWithContracts.filter(
       p => p.contract?.yearsRemaining === 1,
     ).length;

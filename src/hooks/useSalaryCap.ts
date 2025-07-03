@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useContracts } from './useContracts';
 import { useLeagues } from './useLeagues';
-import { Team, League } from '@/types';
+import { Team, League, ContractStatus } from '@/types';
 
 /**
  * Interface para dados de salary cap de um time
@@ -65,7 +65,9 @@ export function useSalaryCap() {
   const calculateSalaryCapData = (): TeamSalaryCapData[] => {
     return teams.map(team => {
       const league = leagues.find(l => l.id === team.leagueId);
-      const teamContracts = contracts.filter(c => c.teamId === team.id && c.status === 'ACTIVE');
+      const teamContracts = contracts.filter(
+        c => c.teamId === team.id && c.status === ContractStatus.ACTIVE,
+      );
 
       const totalCap = league?.salaryCap || 279000000; // Default $279M
       const usedCap = teamContracts.reduce((sum, contract) => sum + contract.currentSalary, 0);

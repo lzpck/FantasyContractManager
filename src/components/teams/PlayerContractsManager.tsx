@@ -298,7 +298,7 @@ export function PlayerContractsManager({
 
       {/* Tabela de Jogadores */}
       <PlayerContractsTable
-        players={filteredPlayers}
+        players={filteredAndSortedPlayers}
         sortBy={sortBy}
         sortOrder={sortOrder}
         filterText={filterText}

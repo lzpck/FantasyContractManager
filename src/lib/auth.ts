@@ -32,7 +32,7 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        if (!user) {
+        if (!user || !user.password) {
           return null;
         }
 
@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
         }
         return {
           id: user.id,
-          login: user.login,
+          login: user.login || user.email, // Garantir que login seja sempre string
           email: user.email,
           name: user.name,
           image: user.image,
@@ -76,7 +76,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub;
         session.user.role = token.role as UserRole;
         session.user.login = token.login as string;
-        session.user.teamId = token.teamId as string;
+        session.user.teamId = token.teamId as string | null;
         session.user.team = token.team;
       }
       return session;

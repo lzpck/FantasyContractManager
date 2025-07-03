@@ -13,7 +13,7 @@ interface LeaguesListProps {
 
 interface LeagueWithStatus extends League {
   /** Status atualizado da API do Sleeper */
-  apiStatus?: string;
+  apiStatus?: string | null;
   /** Se está carregando o status */
   loadingStatus?: boolean;
 }

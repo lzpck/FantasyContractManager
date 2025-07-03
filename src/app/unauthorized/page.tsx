@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ExclamationTriangleIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { Suspense } from 'react';
 
 /**
- * Página de acesso negado
- * Exibe mensagens personalizadas baseadas no motivo do redirecionamento
+ * Componente interno que usa useSearchParams
  */
-export default function UnauthorizedPage() {
+function UnauthorizedContent() {
   const { user, isAuthenticated, isCommissioner } = useAuth();
   const searchParams = useSearchParams();
   const reason = searchParams.get('reason');
@@ -132,5 +132,29 @@ export default function UnauthorizedPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Página de acesso negado
+ * Exibe mensagens personalizadas baseadas no motivo do redirecionamento
+ */
+export default function UnauthorizedPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8 text-center">
+            <div className="animate-pulse">
+              <div className="mx-auto h-16 w-16 bg-gray-300 rounded-full"></div>
+              <div className="mt-6 h-8 bg-gray-300 rounded mx-auto w-3/4"></div>
+              <div className="mt-2 h-4 bg-gray-300 rounded mx-auto w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <UnauthorizedContent />
+    </Suspense>
   );
 }

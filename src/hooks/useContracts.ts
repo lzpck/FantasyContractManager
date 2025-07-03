@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
-import { ContractWithPlayer } from '@/types';
+import { ContractWithPlayer, ContractStatus } from '@/types';
 
 /**
  * Hook para gerenciar contratos
@@ -42,12 +42,12 @@ export function useContracts() {
 
   // Funções utilitárias para filtrar contratos
   const getActiveContracts = () => {
-    return contracts.filter(contract => contract.status === 'ACTIVE');
+    return contracts.filter(contract => contract.status === ContractStatus.ACTIVE);
   };
 
   const getExpiringContracts = () => {
     return contracts.filter(
-      contract => contract.status === 'ACTIVE' && contract.yearsRemaining === 1,
+      contract => contract.status === ContractStatus.ACTIVE && contract.yearsRemaining === 1,
     );
   };
 
@@ -88,8 +88,9 @@ export function useLeagueContracts(leagueId: string) {
     loading,
     error,
     totalContracts: leagueContracts.length,
-    activeContracts: leagueContracts.filter(c => c.status === 'ACTIVE').length,
-    expiringContracts: leagueContracts.filter(c => c.status === 'ACTIVE' && c.yearsRemaining === 1)
-      .length,
+    activeContracts: leagueContracts.filter(c => c.status === ContractStatus.ACTIVE).length,
+    expiringContracts: leagueContracts.filter(
+      c => c.status === ContractStatus.ACTIVE && c.yearsRemaining === 1,
+    ).length,
   };
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { UserRole } from '@/types/database';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import { Team } from '@/types';
+import { Team, TeamWithLeague } from '@/types';
 
 /**
  * Componente para criação de usuários por comissários
@@ -28,7 +28,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
+  const [availableTeams, setAvailableTeams] = useState<TeamWithLeague[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
 
   // Carregar times disponíveis quando o componente montar

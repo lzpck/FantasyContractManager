@@ -42,9 +42,9 @@ export function PlayersTable({ players }: PlayersTableProps) {
       // Se fantasyPositions é string, converte para array
       else if (
         typeof player.fantasyPositions === 'string' &&
-        player.fantasyPositions.trim() !== ''
+        (player.fantasyPositions as string).trim() !== ''
       ) {
-        positions = player.fantasyPositions
+        positions = (player.fantasyPositions as string)
           .split(',')
           .map(pos => pos.trim())
           .filter(pos => pos !== '');

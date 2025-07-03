@@ -146,7 +146,6 @@ export default function RosterTransactions({
           ? (player.fantasyPositions.split(', ') as any[])
           : [],
         nflTeam: player.nflTeam || 'FA',
-        age: player.age || null,
         sleeperPlayerId: player.sleeperPlayerId,
         isActive: true,
         createdAt: new Date().toISOString(),
@@ -367,7 +366,7 @@ export default function RosterTransactions({
                       </div>
                       {isCommissioner && (
                         <ActionButton
-                          variant="default"
+                          variant="info"
                           icon={ArrowRightLeft}
                           onClick={() => handleProcessTrade(trade)}
                           loading={isLoading}
