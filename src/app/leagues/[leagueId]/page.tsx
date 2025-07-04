@@ -79,8 +79,43 @@ export default function LeagueDetailsPage() {
         ).length;
       }
 
+      // Buscar registros de dead money detalhados da API
+      let currentDeadMoney = 0;
+      let nextSeasonDeadMoney = 0;
+      
+      try {
+        const deadMoneyResponse = await fetch(`/api/teams/${team.id}/dead-money`);
+        if (deadMoneyResponse.ok) {
+          const deadMoneyRecords = await deadMoneyResponse.json();
+          const currentYear = league!.season;
+          const nextYear = league!.season + 1;
+          
+          // Calcular dead money do ano atual
+          currentDeadMoney = deadMoneyRecords
+            .filter((dm: any) => dm.teamId === team.id && dm.year === currentYear)
+            .reduce((sum: number, dm: any) => sum + dm.amount, 0);
+            
+          // Calcular dead money da próxima temporada
+          nextSeasonDeadMoney = deadMoneyRecords
+            .filter((dm: any) => dm.teamId === team.id && dm.year === nextYear)
+            .reduce((sum: number, dm: any) => sum + dm.amount, 0);
+        }
+      } catch (error) {
+        console.warn('Erro ao buscar dead money detalhado, usando valores do team:', error);
+        // Fallback para valores agregados do team
+        currentDeadMoney = team.currentDeadMoney || 0;
+        nextSeasonDeadMoney = team.nextSeasonDeadMoney || 0;
+      }
+      
+      // Se não há registros detalhados, usar valores agregados como fallback
+      if (currentDeadMoney === 0 && (team.currentDeadMoney || 0) > 0) {
+        currentDeadMoney = team.currentDeadMoney || 0;
+      }
+      if (nextSeasonDeadMoney === 0 && (team.nextSeasonDeadMoney || 0) > 0) {
+        nextSeasonDeadMoney = team.nextSeasonDeadMoney || 0;
+      }
+
       // Calcular cap disponível
-      const currentDeadMoney = team.currentDeadMoney || 0;
       const availableCap = league!.salaryCap - totalSalaries - currentDeadMoney;
 
       // Projetar cap da próxima temporada (considerando aumento de 15% nos salários)
@@ -88,7 +123,7 @@ export default function LeagueDetailsPage() {
       const projectedNextSeasonCap =
         league!.salaryCap -
         (totalSalaries + projectedSalariesIncrease) -
-        (team.nextSeasonDeadMoney || 0);
+        nextSeasonDeadMoney;
 
       return {
         team: {
@@ -99,7 +134,7 @@ export default function LeagueDetailsPage() {
         totalSalaries,
         availableCap,
         currentDeadMoney,
-        nextSeasonDeadMoney: team.nextSeasonDeadMoney || 0,
+        nextSeasonDeadMoney,
         projectedNextSeasonCap,
         contractsExpiring,
         playersWithContracts: contracts,
