@@ -1,6 +1,6 @@
 'use client';
 
-import { TeamFinancialSummary } from '@/types';
+import { TeamFinancialSummary, League } from '@/types';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import { formatCurrency, getCurrencyClasses } from '@/utils/formatUtils';
 
@@ -9,6 +9,8 @@ interface TeamsTableProps {
   teams: TeamFinancialSummary[];
   /** Função chamada ao clicar em um time */
   onTeamClick: (teamId: string) => void;
+  /** Informações da liga para cálculos de salary cap */
+  league: League;
 }
 
 /**
@@ -21,10 +23,10 @@ interface TeamsTableProps {
  * Não deve mais recorrer a dados demo ou mock. Todos os dados financeiros
  * são calculados baseados nos contratos reais dos jogadores.
  */
-export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
+export default function TeamsTable({ teams, onTeamClick, league }: TeamsTableProps) {
   // Função para calcular percentual do cap usado
-  const getCapUsagePercentage = (totalSalaries: number, salaryCap: number = 279000000) => {
-    return ((totalSalaries / salaryCap) * 100).toFixed(1);
+  const getCapUsagePercentage = (totalSalaries: number) => {
+    return ((totalSalaries / league.salaryCap) * 100).toFixed(1);
   };
 
   // Função para obter cor baseada no percentual do cap usado
@@ -129,7 +131,7 @@ export default function TeamsTable({ teams, onTeamClick }: TeamsTableProps) {
                       {formatCurrency(teamSummary.availableCap)}
                     </span>
                     <span className="text-slate-400 text-sm">
-                      {((teamSummary.availableCap / 279000000) * 100).toFixed(1)}% livre
+                      {((teamSummary.availableCap / league.salaryCap) * 100).toFixed(1)}% livre
                     </span>
                   </div>
                 </td>
