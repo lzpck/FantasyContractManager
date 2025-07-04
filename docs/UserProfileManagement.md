@@ -7,17 +7,20 @@ Este documento descreve a funcionalidade de edição de perfil implementada no s
 ## Funcionalidades Implementadas
 
 ### 1. Edição de Dados Pessoais
+
 - **Nome**: Usuário pode alterar seu nome completo
 - **Email**: Usuário pode alterar seu endereço de email (com validação de unicidade)
 - **Campos somente leitura**: Login, perfil (role) e time associado não podem ser alterados pelo usuário
 
 ### 2. Alteração de Senha
+
 - **Validação de senha atual**: Sistema exige a senha atual antes de permitir alteração
 - **Nova senha**: Mínimo de 6 caracteres
 - **Confirmação**: Nova senha deve ser confirmada
 - **Hash seguro**: Utiliza bcrypt com salt rounds 12
 
 ### 3. Interface do Usuário
+
 - **Design responsivo**: Interface adaptável para desktop e mobile
 - **Navegação por abas**: Separação clara entre dados pessoais e alteração de senha
 - **Feedback visual**: Mensagens de sucesso e erro
@@ -28,11 +31,13 @@ Este documento descreve a funcionalidade de edição de perfil implementada no s
 ### Endpoints de API
 
 #### `GET /api/profile`
+
 - **Descrição**: Busca dados do perfil do usuário autenticado
 - **Autenticação**: Requerida
 - **Resposta**: Dados do usuário (sem senha)
 
 #### `PATCH /api/profile`
+
 - **Descrição**: Atualiza dados do perfil ou altera senha
 - **Autenticação**: Requerida
 - **Tipos de operação**:
@@ -67,14 +72,16 @@ const updateProfileSchema = z.object({
 });
 
 // Validação de senha
-const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Senha atual é obrigatória'),
-  newPassword: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres'),
-  confirmPassword: z.string().min(1, 'Confirmação de senha é obrigatória'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: 'Nova senha e confirmação não coincidem',
-  path: ['confirmPassword'],
-});
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Senha atual é obrigatória'),
+    newPassword: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres'),
+    confirmPassword: z.string().min(1, 'Confirmação de senha é obrigatória'),
+  })
+  .refine(data => data.newPassword === data.confirmPassword, {
+    message: 'Nova senha e confirmação não coincidem',
+    path: ['confirmPassword'],
+  });
 ```
 
 ## Segurança
@@ -197,6 +204,7 @@ git commit -m "docs: atualiza documentação da funcionalidade de perfil"
 ### Logs de Debug
 
 O sistema registra logs para:
+
 - Tentativas de alteração de dados
 - Erros de validação
 - Falhas de autenticação

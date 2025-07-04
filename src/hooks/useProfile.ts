@@ -31,7 +31,9 @@ interface PasswordFormData {
 interface UseProfileReturn {
   isLoading: boolean;
   error: string | null;
-  updateProfile: (data: ProfileFormData) => Promise<{ success: boolean; user?: User; error?: string }>;
+  updateProfile: (
+    data: ProfileFormData,
+  ) => Promise<{ success: boolean; user?: User; error?: string }>;
   changePassword: (data: PasswordFormData) => Promise<{ success: boolean; error?: string }>;
   fetchProfile: () => Promise<{ success: boolean; user?: User; error?: string }>;
 }

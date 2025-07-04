@@ -194,7 +194,9 @@ export default function ProfilePage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Meu Perfil</h1>
-          <p className="text-slate-300">Gerencie suas informações pessoais e configurações de conta</p>
+          <p className="text-slate-300">
+            Gerencie suas informações pessoais e configurações de conta
+          </p>
         </div>
 
         {/* Mensagem de feedback */}
@@ -257,7 +259,7 @@ export default function ProfilePage() {
                       type="text"
                       id="name"
                       value={profileData.name}
-                      onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                      onChange={e => setProfileData({ ...profileData, name: e.target.value })}
                       className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Digite seu nome completo"
                       required
@@ -266,14 +268,17 @@ export default function ProfilePage() {
 
                   {/* Email */}
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-slate-300 mb-2"
+                    >
                       Email
                     </label>
                     <input
                       type="email"
                       id="email"
                       value={profileData.email}
-                      onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                      onChange={e => setProfileData({ ...profileData, email: e.target.value })}
                       className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Digite seu email"
                       required
@@ -310,7 +315,11 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-slate-300 mb-2">Time</label>
                     <input
                       type="text"
-                      value={user.team.league ? `${user.team.name} - ${user.team.league.name}` : user.team.name}
+                      value={
+                        user.team.league
+                          ? `${user.team.name} - ${user.team.league.name}`
+                          : user.team.name
+                      }
                       className="w-full px-4 py-3 bg-slate-600/30 border border-slate-600 rounded-xl text-slate-400 cursor-not-allowed"
                       disabled
                     />
@@ -323,7 +332,9 @@ export default function ProfilePage() {
                     disabled={isLoading}
                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center space-x-2"
                   >
-                    {isLoading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
+                    {isLoading && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    )}
                     <span>{isLoading ? 'Salvando...' : 'Salvar Alterações'}</span>
                   </button>
                 </div>
@@ -334,7 +345,10 @@ export default function ProfilePage() {
               <form onSubmit={handlePasswordSubmit} className="space-y-6">
                 {/* Senha atual */}
                 <div>
-                  <label htmlFor="currentPassword" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="currentPassword"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Senha Atual
                   </label>
                   <div className="relative">
@@ -342,14 +356,18 @@ export default function ProfilePage() {
                       type={showPasswords.current ? 'text' : 'password'}
                       id="currentPassword"
                       value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                      onChange={e =>
+                        setPasswordData({ ...passwordData, currentPassword: e.target.value })
+                      }
                       className="w-full px-4 py-3 pr-12 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Digite sua senha atual"
                       required
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                      onClick={() =>
+                        setShowPasswords({ ...showPasswords, current: !showPasswords.current })
+                      }
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300"
                     >
                       {showPasswords.current ? (
@@ -363,7 +381,10 @@ export default function ProfilePage() {
 
                 {/* Nova senha */}
                 <div>
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="newPassword"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Nova Senha
                   </label>
                   <div className="relative">
@@ -371,7 +392,9 @@ export default function ProfilePage() {
                       type={showPasswords.new ? 'text' : 'password'}
                       id="newPassword"
                       value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      onChange={e =>
+                        setPasswordData({ ...passwordData, newPassword: e.target.value })
+                      }
                       className="w-full px-4 py-3 pr-12 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Digite sua nova senha"
                       minLength={6}
@@ -379,7 +402,9 @@ export default function ProfilePage() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                      onClick={() =>
+                        setShowPasswords({ ...showPasswords, new: !showPasswords.new })
+                      }
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300"
                     >
                       {showPasswords.new ? (
@@ -394,7 +419,10 @@ export default function ProfilePage() {
 
                 {/* Confirmar nova senha */}
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Confirmar Nova Senha
                   </label>
                   <div className="relative">
@@ -402,14 +430,18 @@ export default function ProfilePage() {
                       type={showPasswords.confirm ? 'text' : 'password'}
                       id="confirmPassword"
                       value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      onChange={e =>
+                        setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                      }
                       className="w-full px-4 py-3 pr-12 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Confirme sua nova senha"
                       required
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                      onClick={() =>
+                        setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })
+                      }
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300"
                     >
                       {showPasswords.confirm ? (
@@ -427,7 +459,9 @@ export default function ProfilePage() {
                     disabled={isLoading}
                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center space-x-2"
                   >
-                    {isLoading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
+                    {isLoading && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    )}
                     <span>{isLoading ? 'Alterando...' : 'Alterar Senha'}</span>
                   </button>
                 </div>

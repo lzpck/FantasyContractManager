@@ -15,14 +15,16 @@ const updateProfileSchema = z.object({
 /**
  * Schema de validação para alteração de senha
  */
-const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Senha atual é obrigatória'),
-  newPassword: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres'),
-  confirmPassword: z.string().min(1, 'Confirmação de senha é obrigatória'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: 'Nova senha e confirmação não coincidem',
-  path: ['confirmPassword'],
-});
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Senha atual é obrigatória'),
+    newPassword: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres'),
+    confirmPassword: z.string().min(1, 'Confirmação de senha é obrigatória'),
+  })
+  .refine(data => data.newPassword === data.confirmPassword, {
+    message: 'Nova senha e confirmação não coincidem',
+    path: ['confirmPassword'],
+  });
 
 /**
  * API para buscar dados do perfil do usuário autenticado
@@ -90,7 +92,7 @@ export async function PATCH(request: NextRequest) {
       if (!validation.success) {
         return NextResponse.json(
           { error: 'Dados inválidos', details: validation.error.errors },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -151,7 +153,7 @@ export async function PATCH(request: NextRequest) {
       if (!validation.success) {
         return NextResponse.json(
           { error: 'Dados inválidos', details: validation.error.errors },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
