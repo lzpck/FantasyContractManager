@@ -551,7 +551,7 @@ export default function LeagueDetailsPage() {
 
           {/* Tabela de times */}
           <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700">
-            <TeamsTable teams={filteredTeams} onTeamClick={handleTeamClick} />
+            <TeamsTable teams={filteredTeams} onTeamClick={handleTeamClick} league={league} />
           </div>
         </div>
       </div>
