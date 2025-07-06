@@ -197,7 +197,6 @@ async function syncTeamRosters(
           // Criar objeto temporário para usar nas próximas operações
           player = {
             id: `temp_${sleeperPlayerId}`,
-            sleeperPlayerId,
             ...newPlayer,
           } as any;
 
