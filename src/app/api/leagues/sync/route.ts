@@ -200,7 +200,13 @@ async function syncTeamRosters(
             ...newPlayer,
           } as any;
 
-          existingPlayersMap.set(sleeperPlayerId, player);
+          existingPlayersMap.set(sleeperPlayerId, player!);
+        }
+
+        // Garantir que player não é undefined antes de continuar
+        if (!player) {
+          console.error(`❌ Erro: jogador ${sleeperPlayerId} não pôde ser processado`);
+          continue;
         }
 
         // Verificar se jogador já existe no roster atual
