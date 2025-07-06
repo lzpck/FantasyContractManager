@@ -3,18 +3,21 @@
 ## Resumo das Otimizações Implementadas
 
 ### 1. **Cache de Dados de Jogadores NFL**
+
 - **Arquivo**: `src/services/sleeperService.ts`
 - **Implementação**: Cache de 1 hora para dados de jogadores da NFL
 - **Benefício**: Reduz chamadas desnecessárias à API Sleeper para dados que mudam raramente
 - **Impacto**: ~2-3 segundos de economia por sincronização
 
 ### 2. **Paralelização de Chamadas à API**
+
 - **Arquivo**: `src/services/sleeperService.ts`
 - **Implementação**: `Promise.all` para buscar dados da liga, rosters, usuários e jogadores simultaneamente
 - **Benefício**: Reduz tempo de espera de chamadas sequenciais
 - **Impacto**: ~5-8 segundos de economia
 
 ### 3. **Otimização de Operações de Banco de Dados**
+
 - **Arquivo**: `src/app/api/leagues/sync/route.ts`
 - **Implementações**:
   - Busca em lote de todos os rosters e jogadores existentes
@@ -25,18 +28,21 @@
 - **Impacto**: ~8-12 segundos de economia
 
 ### 4. **Timeout de Segurança**
+
 - **Arquivo**: `src/app/api/leagues/sync/route.ts`
 - **Implementação**: Timeout de 25 segundos com `Promise.race`
 - **Benefício**: Evita timeouts da Vercel (30s) com margem de segurança
 - **Impacto**: Prevenção de erros de timeout
 
 ### 5. **Logging de Performance**
+
 - **Arquivos**: `src/app/api/leagues/sync/route.ts`, `src/services/sleeperService.ts`
 - **Implementação**: Logs detalhados de tempo de execução de cada etapa
 - **Benefício**: Monitoramento e debugging de performance
 - **Impacto**: Visibilidade completa do processo
 
 ### 6. **Feedback de UX Melhorado**
+
 - **Arquivo**: `src/components/leagues/SyncButton.tsx`
 - **Implementações**:
   - Indicador de progresso em tempo real
@@ -49,6 +55,7 @@
 ## Benchmark de Performance
 
 ### Antes das Otimizações
+
 - **Tempo médio**: 35-45 segundos
 - **Principais gargalos**:
   - Chamadas sequenciais à API Sleeper
@@ -57,6 +64,7 @@
   - Falta de paralelização
 
 ### Após as Otimizações
+
 - **Tempo esperado**: 15-22 segundos
 - **Melhorias**:
   - ✅ Cache reduz chamadas desnecessárias
@@ -68,6 +76,7 @@
 ## Principais Trechos de Código Alterados
 
 ### 1. Cache de Jogadores NFL
+
 ```typescript
 // Cache simples em memória para jogadores da NFL
 let playersCache: { data: any; timestamp: number } | null = null;
@@ -75,30 +84,31 @@ const CACHE_DURATION = 60 * 60 * 1000; // 1 hora
 
 static async fetchSleeperPlayersWithCache(): Promise<any> {
   const now = Date.now();
-  
+
   if (playersCache && (now - playersCache.timestamp) < CACHE_DURATION) {
     console.log('📦 Usando cache de jogadores NFL');
     return playersCache.data;
   }
-  
+
   console.log('🔄 Buscando jogadores NFL da API Sleeper');
   const players = await this.fetchSleeperPlayers();
-  
+
   playersCache = {
     data: players,
     timestamp: now,
   };
-  
+
   return players;
 }
 ```
 
 ### 2. Paralelização de Chamadas à API
+
 ```typescript
 static async syncLeagueWithSleeper(league: League): Promise<SyncedLeagueData> {
   console.log('🔄 Iniciando sincronização paralela com Sleeper');
   const startTime = Date.now();
-  
+
   // OTIMIZAÇÃO: Paralelizar todas as chamadas à API
   const [leagueData, rostersData, usersData, playersData] = await Promise.all([
     this.fetchSleeperLeague(league.sleeperLeagueId!),
@@ -106,16 +116,16 @@ static async syncLeagueWithSleeper(league: League): Promise<SyncedLeagueData> {
     this.fetchSleeperUsers(league.sleeperLeagueId!),
     this.fetchSleeperPlayersWithCache(), // Usar cache
   ]);
-  
+
   // OTIMIZAÇÃO: Paralelizar transformações
   const [transformedLeague, transformedTeams] = await Promise.all([
     Promise.resolve(this.transformSleeperLeagueToLocal(leagueData)),
     Promise.resolve(this.transformSleeperTeamsToLocal(rostersData, usersData, playersData)),
   ]);
-  
+
   const endTime = Date.now();
   console.log(`✅ Sincronização com Sleeper concluída em ${endTime - startTime}ms`);
-  
+
   return {
     league: transformedLeague,
     teams: transformedTeams,
@@ -125,6 +135,7 @@ static async syncLeagueWithSleeper(league: League): Promise<SyncedLeagueData> {
 ```
 
 ### 3. Operações de Banco em Lote
+
 ```typescript
 // OTIMIZAÇÃO: Buscar todos os dados necessários de uma vez
 const [existingRosters, existingPlayers] = await Promise.all([
@@ -157,7 +168,7 @@ const BATCH_SIZE = 100;
 for (let i = 0; i < rostersToUpsert.length; i += BATCH_SIZE) {
   const batch = rostersToUpsert.slice(i, i + BATCH_SIZE);
   await Promise.all(
-    batch.map(roster => 
+    batch.map(roster =>
       prisma.teamRoster.upsert({
         where: {
           teamId_playerId: {
@@ -167,8 +178,8 @@ for (let i = 0; i < rostersToUpsert.length; i += BATCH_SIZE) {
         },
         update: roster,
         create: roster,
-      })
-    )
+      }),
+    ),
   );
 }
 ```

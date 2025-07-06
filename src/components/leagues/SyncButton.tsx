@@ -63,10 +63,10 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
       }, 1000);
 
       await onSync();
-      
+
       clearInterval(progressInterval);
       const totalTime = Date.now() - startTime;
-      
+
       setLastSyncStatus('success');
       setLastSyncTime(new Date());
       setPerformanceStats({
@@ -76,10 +76,10 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
       setSyncProgress('');
     } catch (error: any) {
       console.error('Erro na sincronização:', error);
-      
+
       const totalTime = Date.now() - startTime;
       const isTimeout = error?.message?.includes('timeout') || error?.message?.includes('Timeout');
-      
+
       setLastSyncStatus('error');
       setPerformanceStats({
         totalTime,
@@ -142,16 +142,18 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
                   </>
                 )}
               </div>
-              
+
               {/* Performance stats */}
               {performanceStats && (
                 <div className="text-xs text-slate-500">
                   {performanceStats.totalTime && (
-                    <span className={`inline-flex items-center px-2 py-1 rounded-md mr-2 ${
-                      performanceStats.withinTimeout 
-                        ? 'bg-green-900/30 text-green-400' 
-                        : 'bg-yellow-900/30 text-yellow-400'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-md mr-2 ${
+                        performanceStats.withinTimeout
+                          ? 'bg-green-900/30 text-green-400'
+                          : 'bg-yellow-900/30 text-yellow-400'
+                      }`}
+                    >
                       ⏱️ {(performanceStats.totalTime / 1000).toFixed(1)}s
                     </span>
                   )}
@@ -164,7 +166,7 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
               )}
             </div>
           )}
-          
+
           {/* Progress durante sincronização */}
           {isLoading && syncProgress && (
             <div className="mt-2 text-sm text-blue-400">
@@ -252,8 +254,9 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
             />
           </svg>
           <span className="text-sm text-blue-200">
-            <strong>Otimizado:</strong> Sincronização otimizada para execução em menos de 25 segundos.
-            Atualiza informações da liga e times sem afetar contratos e configurações financeiras.
+            <strong>Otimizado:</strong> Sincronização otimizada para execução em menos de 25
+            segundos. Atualiza informações da liga e times sem afetar contratos e configurações
+            financeiras.
           </span>
         </div>
       </div>
