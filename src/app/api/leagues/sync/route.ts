@@ -118,13 +118,13 @@ async function syncTeamRosters(
 ): Promise<SyncStats> {
   const startTime = Date.now();
   console.log('🔄 Iniciando sincronização otimizada de rosters');
-  
+
   const stats: SyncStats = {
     tradesProcessed: [],
     playersAdded: 0,
     playersRemoved: 0,
   };
-  
+
   try {
     // OTIMIZAÇÃO 1: Buscar todos os rosters atuais de uma vez
     const teamIds = teams.map(t => t.id);
@@ -132,26 +132,26 @@ async function syncTeamRosters(
       where: { teamId: { in: teamIds } },
       include: { player: true },
     });
-    
+
     // OTIMIZAÇÃO 2: Buscar todos os jogadores existentes de uma vez
     const allSleeperPlayerIds = sleeperRosters.flatMap(roster => [
       ...(roster.players || []),
       ...(roster.reserve || []),
       ...(roster.taxi || []),
     ]);
-    
+
     const existingPlayers = await prisma.player.findMany({
       where: { sleeperPlayerId: { in: allSleeperPlayerIds } },
     });
-    
+
     const existingPlayersMap = new Map(existingPlayers.map(p => [p.sleeperPlayerId, p]));
-    
+
     // OTIMIZAÇÃO 3: Preparar operações em lote
     const playersToCreate: any[] = [];
     const playersToUpdate: any[] = [];
     const rosterUpserts: any[] = [];
     const rosterDeletes: any[] = [];
-    
+
     for (const sleeperRoster of sleeperRosters) {
       // Encontrar o time correspondente
       const team = teams.find(t => t.sleeperTeamId === sleeperRoster.roster_id.toString());
@@ -191,16 +191,16 @@ async function syncTeamRosters(
             sleeperPlayerId,
             isActive: playerData.isActive,
           };
-          
+
           playersToCreate.push(newPlayer);
-          
+
           // Criar objeto temporário para usar nas próximas operações
           player = {
             id: `temp_${sleeperPlayerId}`,
             sleeperPlayerId,
             ...newPlayer,
           } as any;
-          
+
           existingPlayersMap.set(sleeperPlayerId, player);
         }
 
@@ -242,29 +242,35 @@ async function syncTeamRosters(
     }
 
     // OTIMIZAÇÃO 4: Executar operações em lote
-    console.log(`📦 Executando operações em lote: ${playersToCreate.length} criações, ${rosterUpserts.length} upserts, ${rosterDeletes.length} remoções`);
-    
+    console.log(
+      `📦 Executando operações em lote: ${playersToCreate.length} criações, ${rosterUpserts.length} upserts, ${rosterDeletes.length} remoções`,
+    );
+
     const batchStartTime = Date.now();
-    
+
     // Executar operações em paralelo quando possível
     await Promise.all([
       // Criar novos jogadores
-      playersToCreate.length > 0 ? prisma.player.createMany({
-        data: playersToCreate,
-        skipDuplicates: true,
-      }) : Promise.resolve(),
-      
+      playersToCreate.length > 0
+        ? prisma.player.createMany({
+            data: playersToCreate,
+            skipDuplicates: true,
+          })
+        : Promise.resolve(),
+
       // Remover entradas de roster
-      rosterDeletes.length > 0 ? prisma.teamRoster.deleteMany({
-        where: {
-          OR: rosterDeletes.map(del => ({
-            teamId: del.teamId,
-            playerId: del.playerId,
-          })),
-        },
-      }) : Promise.resolve(),
+      rosterDeletes.length > 0
+        ? prisma.teamRoster.deleteMany({
+            where: {
+              OR: rosterDeletes.map(del => ({
+                teamId: del.teamId,
+                playerId: del.playerId,
+              })),
+            },
+          })
+        : Promise.resolve(),
     ]);
-    
+
     // Buscar IDs reais dos jogadores criados
     if (playersToCreate.length > 0) {
       const createdPlayers = await prisma.player.findMany({
@@ -272,12 +278,12 @@ async function syncTeamRosters(
           sleeperPlayerId: { in: playersToCreate.map(p => p.sleeperPlayerId) },
         },
       });
-      
+
       // Atualizar mapa com IDs reais
       createdPlayers.forEach(player => {
         existingPlayersMap.set(player.sleeperPlayerId, player);
       });
-      
+
       // Atualizar rosterUpserts com IDs reais
       rosterUpserts.forEach(upsert => {
         const realPlayer = existingPlayersMap.get(upsert.sleeperPlayerId);
@@ -286,13 +292,13 @@ async function syncTeamRosters(
         }
       });
     }
-    
+
     // Executar upserts de roster em lotes menores para evitar timeout
     const BATCH_SIZE = 100;
     for (let i = 0; i < rosterUpserts.length; i += BATCH_SIZE) {
       const batch = rosterUpserts.slice(i, i + BATCH_SIZE);
       await Promise.all(
-        batch.map(upsert => 
+        batch.map(upsert =>
           prisma.teamRoster.upsert({
             where: {
               teamId_playerId: {
@@ -305,11 +311,11 @@ async function syncTeamRosters(
               status: upsert.status,
             },
             create: upsert,
-          })
-        )
+          }),
+        ),
       );
     }
-    
+
     const batchEndTime = Date.now();
     console.log(`⚡ Operações em lote concluídas em ${batchEndTime - batchStartTime}ms`);
 
@@ -446,7 +452,7 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
     // OTIMIZAÇÃO: Paralelizar atualização da liga e times
     console.log('🔄 Atualizando liga e times em paralelo...');
     const dbStartTime = Date.now();
-    
+
     const [updatedLeagueResult, teamUpdateResults] = await Promise.all([
       // Atualizar a liga
       prisma.league.update({
@@ -459,11 +465,13 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
           updatedAt: new Date().toISOString(),
         },
       }),
-      
+
       // Atualizar times em paralelo
       Promise.all(
         syncedData.teams.map(async team => {
-          const existingTeam = existingLeague.teams.find(t => t.sleeperTeamId === team.sleeperTeamId);
+          const existingTeam = existingLeague.teams.find(
+            t => t.sleeperTeamId === team.sleeperTeamId,
+          );
 
           if (existingTeam) {
             // Atualizar time existente
@@ -490,13 +498,13 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
               },
             });
           }
-        })
+        }),
       ),
     ]);
-    
+
     const updatedLeague = updatedLeagueResult;
     const updatedTeams = teamUpdateResults;
-    
+
     const dbEndTime = Date.now();
     console.log(`⚡ Atualização de banco concluída em ${dbEndTime - dbStartTime}ms`);
 
@@ -605,17 +613,17 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
 export async function POST(request: NextRequest) {
   const requestStartTime = Date.now();
   console.log('🚀 Iniciando requisição de sincronização');
-  
+
   try {
     // OTIMIZAÇÃO: Timeout de segurança para Vercel (25 segundos)
     const TIMEOUT_MS = 25000; // 25 segundos para dar margem
-    
+
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
         reject(new Error('Timeout: Sincronização excedeu 25 segundos'));
       }, TIMEOUT_MS);
     });
-    
+
     // Verificar autenticação
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -638,16 +646,13 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`📋 Sincronizando liga: ${leagueId}`);
-    
+
     // Sincronizar a liga com timeout
-    const result = await Promise.race([
-      syncLeague(leagueId),
-      timeoutPromise,
-    ]) as SyncResult;
-    
+    const result = (await Promise.race([syncLeague(leagueId), timeoutPromise])) as SyncResult;
+
     const requestEndTime = Date.now();
     const totalRequestTime = requestEndTime - requestStartTime;
-    
+
     console.log(`✅ Requisição de sincronização concluída em ${totalRequestTime}ms`);
 
     if (result.success) {
@@ -679,18 +684,23 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const requestEndTime = Date.now();
     const totalRequestTime = requestEndTime - requestStartTime;
-    
+
     console.error(`❌ Erro na API de sincronização após ${totalRequestTime}ms:`, error);
-    
+
     // Verificar se foi timeout
     const isTimeout = error instanceof Error && error.message.includes('Timeout');
-    
-    return NextResponse.json({ 
-      error: isTimeout ? 'Sincronização interrompida por timeout. Tente novamente.' : 'Erro interno do servidor',
-      performanceStats: {
-        totalTime: totalRequestTime,
-        timeout: isTimeout,
+
+    return NextResponse.json(
+      {
+        error: isTimeout
+          ? 'Sincronização interrompida por timeout. Tente novamente.'
+          : 'Erro interno do servidor',
+        performanceStats: {
+          totalTime: totalRequestTime,
+          timeout: isTimeout,
+        },
       },
-    }, { status: isTimeout ? 408 : 500 });
+      { status: isTimeout ? 408 : 500 },
+    );
   }
 }
