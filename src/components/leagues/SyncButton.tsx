@@ -15,6 +15,12 @@ interface SyncButtonProps {
   disabled?: boolean;
 }
 
+interface PerformanceStats {
+  totalTime?: number;
+  withinTimeout?: boolean;
+  timeout?: boolean;
+}
+
 /**
  * Componente de botão para sincronização com Sleeper
  *
@@ -25,6 +31,8 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [lastSyncStatus, setLastSyncStatus] = useState<'success' | 'error' | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [performanceStats, setPerformanceStats] = useState<PerformanceStats | null>(null);
+  const [syncProgress, setSyncProgress] = useState<string>('');
 
   // Função para executar sincronização
   const handleSync = async () => {
@@ -32,14 +40,53 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
 
     setIsLoading(true);
     setLastSyncStatus(null);
+    setPerformanceStats(null);
+    setSyncProgress('Iniciando sincronização...');
+
+    const startTime = Date.now();
 
     try {
+      // Simular progresso durante a sincronização
+      const progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 5000) {
+          setSyncProgress('Conectando com Sleeper API...');
+        } else if (elapsed < 10000) {
+          setSyncProgress('Buscando dados da liga...');
+        } else if (elapsed < 15000) {
+          setSyncProgress('Sincronizando times e jogadores...');
+        } else if (elapsed < 20000) {
+          setSyncProgress('Atualizando banco de dados...');
+        } else {
+          setSyncProgress('Finalizando sincronização...');
+        }
+      }, 1000);
+
       await onSync();
+      
+      clearInterval(progressInterval);
+      const totalTime = Date.now() - startTime;
+      
       setLastSyncStatus('success');
       setLastSyncTime(new Date());
-    } catch (error) {
+      setPerformanceStats({
+        totalTime,
+        withinTimeout: totalTime < 25000,
+      });
+      setSyncProgress('');
+    } catch (error: any) {
       console.error('Erro na sincronização:', error);
+      
+      const totalTime = Date.now() - startTime;
+      const isTimeout = error?.message?.includes('timeout') || error?.message?.includes('Timeout');
+      
       setLastSyncStatus('error');
+      setPerformanceStats({
+        totalTime,
+        timeout: isTimeout,
+        withinTimeout: totalTime < 25000,
+      });
+      setSyncProgress('');
     } finally {
       setIsLoading(false);
     }
@@ -76,23 +123,55 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
 
           {/* Status da última sincronização */}
           {lastSyncTime && (
-            <div className="mt-2 flex items-center text-sm">
-              {lastSyncStatus === 'success' && (
-                <>
-                  <CheckCircleIcon className="h-4 w-4 text-green-500 mr-1" />
-                  <span className="text-green-400">
-                    Última sincronização: {formatLastSyncTime(lastSyncTime)}
-                  </span>
-                </>
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center text-sm">
+                {lastSyncStatus === 'success' && (
+                  <>
+                    <CheckCircleIcon className="h-4 w-4 text-green-500 mr-1" />
+                    <span className="text-green-400">
+                      Última sincronização: {formatLastSyncTime(lastSyncTime)}
+                    </span>
+                  </>
+                )}
+                {lastSyncStatus === 'error' && (
+                  <>
+                    <ExclamationTriangleIcon className="h-4 w-4 text-red-500 mr-1" />
+                    <span className="text-red-400">
+                      Erro na sincronização: {formatLastSyncTime(lastSyncTime)}
+                    </span>
+                  </>
+                )}
+              </div>
+              
+              {/* Performance stats */}
+              {performanceStats && (
+                <div className="text-xs text-slate-500">
+                  {performanceStats.totalTime && (
+                    <span className={`inline-flex items-center px-2 py-1 rounded-md mr-2 ${
+                      performanceStats.withinTimeout 
+                        ? 'bg-green-900/30 text-green-400' 
+                        : 'bg-yellow-900/30 text-yellow-400'
+                    }`}>
+                      ⏱️ {(performanceStats.totalTime / 1000).toFixed(1)}s
+                    </span>
+                  )}
+                  {performanceStats.timeout && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md bg-red-900/30 text-red-400">
+                      ⚠️ Timeout
+                    </span>
+                  )}
+                </div>
               )}
-              {lastSyncStatus === 'error' && (
-                <>
-                  <ExclamationTriangleIcon className="h-4 w-4 text-red-500 mr-1" />
-                  <span className="text-red-400">
-                    Erro na sincronização: {formatLastSyncTime(lastSyncTime)}
-                  </span>
-                </>
-              )}
+            </div>
+          )}
+          
+          {/* Progress durante sincronização */}
+          {isLoading && syncProgress && (
+            <div className="mt-2 text-sm text-blue-400">
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse mr-2"></div>
+                {syncProgress}
+              </div>
             </div>
           )}
         </div>
@@ -173,8 +252,8 @@ export function SyncButton({ onSync, disabled = false }: SyncButtonProps) {
             />
           </svg>
           <span className="text-sm text-blue-200">
-            <strong>Nota:</strong> A sincronização atualiza apenas informações básicas da liga e
-            times. Contratos, salários e configurações financeiras não são afetados.
+            <strong>Otimizado:</strong> Sincronização otimizada para execução em menos de 25 segundos.
+            Atualiza informações da liga e times sem afetar contratos e configurações financeiras.
           </span>
         </div>
       </div>

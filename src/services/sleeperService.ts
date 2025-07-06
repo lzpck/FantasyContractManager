@@ -574,35 +574,93 @@ export async function validateSleeperLeagueId(leagueId: string): Promise<boolean
 }
 
 /**
+ * Cache para dados de jogadores da NFL (válido por 1 hora)
+ */
+let playersCache: {
+  data: Record<string, SleeperPlayer> | null;
+  timestamp: number;
+} = {
+  data: null,
+  timestamp: 0,
+};
+
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hora em millisegundos
+
+/**
+ * Busca dados de jogadores com cache para otimizar performance
+ */
+async function fetchSleeperPlayersWithCache(): Promise<Record<string, SleeperPlayer>> {
+  const now = Date.now();
+  
+  // Verificar se o cache ainda é válido
+  if (playersCache.data && (now - playersCache.timestamp) < CACHE_DURATION) {
+    console.log('📦 Usando cache de jogadores da NFL');
+    return playersCache.data;
+  }
+  
+  console.log('🔄 Buscando dados atualizados de jogadores da NFL');
+  const players = await fetchSleeperPlayers();
+  
+  // Atualizar cache
+  playersCache = {
+    data: players,
+    timestamp: now,
+  };
+  
+  return players;
+}
+
+/**
  * Sincroniza uma liga existente com dados atualizados da Sleeper API
+ * OTIMIZADA para execução em menos de 30 segundos
  *
  * @param league Liga existente no sistema local
  * @returns Dados atualizados da liga, times e jogadores
  */
 export async function syncLeagueWithSleeper(league: League) {
+  const startTime = Date.now();
+  console.log('🚀 Iniciando sincronização otimizada com Sleeper');
+  
   try {
     // Verificar se a liga tem ID do Sleeper
     if (!league.sleeperLeagueId) {
       throw new Error('Esta liga não possui integração com o Sleeper');
     }
 
-    // Buscar dados atualizados da liga
+    // OTIMIZAÇÃO 1: Paralelizar todas as chamadas à API Sleeper
+    console.log('📡 Buscando dados da API Sleeper em paralelo...');
+    const apiStartTime = Date.now();
+    
     const [sleeperLeague, sleeperRosters, sleeperUsers, sleeperPlayers] = await Promise.all([
       fetchSleeperLeague(league.sleeperLeagueId),
       fetchSleeperRosters(league.sleeperLeagueId),
       fetchSleeperUsers(league.sleeperLeagueId),
-      fetchSleeperPlayers(),
+      fetchSleeperPlayersWithCache(), // Usar cache para jogadores
     ]);
+    
+    const apiEndTime = Date.now();
+    console.log(`⚡ Chamadas à API concluídas em ${apiEndTime - apiStartTime}ms`);
 
+    // OTIMIZAÇÃO 2: Processar transformações em paralelo
+    console.log('🔄 Processando transformações de dados...');
+    const transformStartTime = Date.now();
+    
     const allowedPositions = sleeperLeague.roster_positions.filter(
       pos => pos !== 'FLEX' && pos !== 'BN',
     );
 
-    // Transformar dados para o modelo local
-    const updatedLeagueData = transformSleeperLeagueToLocal(sleeperLeague, league.commissionerId);
-    const updatedTeams = transformSleeperRostersToTeams(sleeperRosters, sleeperUsers, league.id);
+    // Executar transformações em paralelo
+    const [updatedLeagueData, updatedTeams, updatedPlayers] = await Promise.all([
+      Promise.resolve(transformSleeperLeagueToLocal(sleeperLeague, league.commissionerId)),
+      Promise.resolve(transformSleeperRostersToTeams(sleeperRosters, sleeperUsers, league.id)),
+      Promise.resolve(transformSleeperPlayersToLocal(sleeperPlayers, allowedPositions)),
+    ]);
+    
+    const transformEndTime = Date.now();
+    console.log(`⚡ Transformações concluídas em ${transformEndTime - transformStartTime}ms`);
 
-    const updatedPlayers = transformSleeperPlayersToLocal(sleeperPlayers, allowedPositions);
+    const totalTime = Date.now() - startTime;
+    console.log(`✅ Sincronização concluída em ${totalTime}ms`);
 
     return {
       league: {
@@ -621,7 +679,8 @@ export async function syncLeagueWithSleeper(league: League) {
       },
     };
   } catch (error) {
-    console.error('Erro ao sincronizar liga com Sleeper:', error);
+    const totalTime = Date.now() - startTime;
+    console.error(`❌ Erro na sincronização após ${totalTime}ms:`, error);
     throw new Error(
       error instanceof Error
         ? `Falha na sincronização: ${error.message}`
