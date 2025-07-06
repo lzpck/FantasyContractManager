@@ -109,28 +109,56 @@ interface SyncStats {
 
 /**
  * Sincroniza os rosters dos times, persistindo jogadores em team_rosters
+ * OTIMIZADA para reduzir operações de banco de dados
  */
 async function syncTeamRosters(
   sleeperRosters: any[],
   teams: any[],
   players: any[],
 ): Promise<SyncStats> {
+  const startTime = Date.now();
+  console.log('🔄 Iniciando sincronização otimizada de rosters');
+  
   const stats: SyncStats = {
     tradesProcessed: [],
     playersAdded: 0,
     playersRemoved: 0,
   };
+  
   try {
+    // OTIMIZAÇÃO 1: Buscar todos os rosters atuais de uma vez
+    const teamIds = teams.map(t => t.id);
+    const allCurrentRosters = await prisma.teamRoster.findMany({
+      where: { teamId: { in: teamIds } },
+      include: { player: true },
+    });
+    
+    // OTIMIZAÇÃO 2: Buscar todos os jogadores existentes de uma vez
+    const allSleeperPlayerIds = sleeperRosters.flatMap(roster => [
+      ...(roster.players || []),
+      ...(roster.reserve || []),
+      ...(roster.taxi || []),
+    ]);
+    
+    const existingPlayers = await prisma.player.findMany({
+      where: { sleeperPlayerId: { in: allSleeperPlayerIds } },
+    });
+    
+    const existingPlayersMap = new Map(existingPlayers.map(p => [p.sleeperPlayerId, p]));
+    
+    // OTIMIZAÇÃO 3: Preparar operações em lote
+    const playersToCreate: any[] = [];
+    const playersToUpdate: any[] = [];
+    const rosterUpserts: any[] = [];
+    const rosterDeletes: any[] = [];
+    
     for (const sleeperRoster of sleeperRosters) {
       // Encontrar o time correspondente
       const team = teams.find(t => t.sleeperTeamId === sleeperRoster.roster_id.toString());
       if (!team) continue;
 
-      // Buscar roster atual do time no banco
-      const currentRoster = await prisma.teamRoster.findMany({
-        where: { teamId: team.id },
-        include: { player: true },
-      });
+      // Buscar roster atual do time
+      const currentRoster = allCurrentRosters.filter(r => r.teamId === team.id);
 
       // Coletar todos os jogadores do Sleeper para este time
       const allSleeperPlayers = [
@@ -139,12 +167,9 @@ async function syncTeamRosters(
         ...(sleeperRoster.taxi || []).map((id: string) => ({ id, status: 'taxi' })),
       ];
 
-      // Atualizar status dos jogadores existentes e adicionar novos
+      // Processar jogadores do Sleeper
       for (const { id: sleeperPlayerId, status } of allSleeperPlayers) {
-        // Buscar ou criar o jogador
-        let player = await prisma.player.findUnique({
-          where: { sleeperPlayerId },
-        });
+        let player = existingPlayersMap.get(sleeperPlayerId);
 
         if (!player) {
           // Buscar dados do jogador nos dados sincronizados
@@ -154,119 +179,139 @@ async function syncTeamRosters(
             continue;
           }
 
-          // Criar novo jogador
-          player = await prisma.player.upsert({
-            where: { sleeperPlayerId },
-            update: {
-              name: playerData.name,
-              position: playerData.position,
-              fantasyPositions: Array.isArray(playerData.fantasyPositions)
-                ? playerData.fantasyPositions.join(',')
-                : playerData.fantasyPositions,
-              team: playerData.team || 'FA',
-              age: playerData.age,
-              isActive: playerData.isActive,
-            },
-            create: {
-              name: playerData.name,
-              position: playerData.position,
-              fantasyPositions: Array.isArray(playerData.fantasyPositions)
-                ? playerData.fantasyPositions.join(',')
-                : playerData.fantasyPositions,
-              team: playerData.team || 'FA',
-              age: playerData.age,
-              sleeperPlayerId,
-              isActive: playerData.isActive,
-            },
-          });
+          // Preparar criação do jogador
+          const newPlayer = {
+            name: playerData.name,
+            position: playerData.position,
+            fantasyPositions: Array.isArray(playerData.fantasyPositions)
+              ? playerData.fantasyPositions.join(',')
+              : playerData.fantasyPositions,
+            team: playerData.team || 'FA',
+            age: playerData.age,
+            sleeperPlayerId,
+            isActive: playerData.isActive,
+          };
+          
+          playersToCreate.push(newPlayer);
+          
+          // Criar objeto temporário para usar nas próximas operações
+          player = {
+            id: `temp_${sleeperPlayerId}`,
+            sleeperPlayerId,
+            ...newPlayer,
+          } as any;
+          
+          existingPlayersMap.set(sleeperPlayerId, player);
         }
 
         // Verificar se jogador já existe no roster atual
         const existingRosterEntry = currentRoster.find(r => r.playerId === player.id);
 
-        // Verificar e detectar possível trade
-        const tradeResult = await detectPlayerTrade(player.id, team.id, team.leagueId);
-
-        if (tradeResult.isTraded) {
-          stats.tradesProcessed.push(tradeResult);
-          console.log(
-            `✅ Trade detectada: ${tradeResult.playerName} de ${tradeResult.fromTeam} para ${tradeResult.toTeam}`,
-          );
-        } else if (!existingRosterEntry) {
-          // Jogador realmente adicionado (novo no roster, não é trade)
-          stats.playersAdded++;
+        // Verificar e detectar possível trade (apenas para logging)
+        if (!existingRosterEntry) {
+          const tradeResult = await detectPlayerTrade(player.id, team.id, team.leagueId);
+          if (tradeResult.isTraded) {
+            stats.tradesProcessed.push(tradeResult);
+          } else {
+            stats.playersAdded++;
+          }
         }
-        // Se existingRosterEntry existe mas não é trade, é apenas atualização de status
 
-        // Adicionar/atualizar jogador no roster do time
-        await prisma.teamRoster.upsert({
-          where: {
-            teamId_playerId: {
-              teamId: team.id,
-              playerId: player.id,
-            },
-          },
-          update: {
-            sleeperPlayerId,
-            status,
-          },
-          create: {
-            teamId: team.id,
-            playerId: player.id,
-            sleeperPlayerId,
-            status,
-          },
+        // Preparar upsert do roster
+        rosterUpserts.push({
+          teamId: team.id,
+          playerId: player.id,
+          sleeperPlayerId,
+          status,
         });
       }
 
-      // Remover jogadores que não estão mais no roster do Sleeper
+      // Preparar remoções
       const sleeperPlayerIds = allSleeperPlayers.map(p => p.id);
       const playersToRemove = currentRoster.filter(
         rosterEntry => !sleeperPlayerIds.includes(rosterEntry.sleeperPlayerId),
       );
 
       for (const rosterEntry of playersToRemove) {
-        // Verificar se o jogador foi tradado (tem contrato ativo em outro time)
-        const playerContract = await prisma.contract.findFirst({
-          where: {
-            playerId: rosterEntry.playerId,
-            leagueId: team.leagueId,
-            status: 'ACTIVE',
-            teamId: {
-              not: team.id,
-            },
-          },
-          include: {
-            team: true,
-          },
+        rosterDeletes.push({
+          teamId: team.id,
+          playerId: rosterEntry.playerId,
         });
-
-        if (playerContract) {
-          console.log(
-            `🔄 Jogador ${rosterEntry.player?.name || 'Desconhecido'} tradado de ${team.name} para ${playerContract.team.name}`,
-          );
-        }
-
-        // Remover do roster atual independentemente (trade ou corte)
-        await prisma.teamRoster.delete({
-          where: {
-            teamId_playerId: {
-              teamId: team.id,
-              playerId: rosterEntry.playerId,
-            },
-          },
-        });
-
-        // Contar jogador removido apenas se não foi tradado
-        if (!playerContract) {
-          stats.playersRemoved++;
-        }
+        stats.playersRemoved++;
       }
+    }
 
-      console.log(
-        `✅ Roster do time ${team.name} sincronizado: ${sleeperRoster.players?.length || 0} ativos, ${sleeperRoster.reserve?.length || 0} IR, ${sleeperRoster.taxi?.length || 0} taxi`,
+    // OTIMIZAÇÃO 4: Executar operações em lote
+    console.log(`📦 Executando operações em lote: ${playersToCreate.length} criações, ${rosterUpserts.length} upserts, ${rosterDeletes.length} remoções`);
+    
+    const batchStartTime = Date.now();
+    
+    // Executar operações em paralelo quando possível
+    await Promise.all([
+      // Criar novos jogadores
+      playersToCreate.length > 0 ? prisma.player.createMany({
+        data: playersToCreate,
+        skipDuplicates: true,
+      }) : Promise.resolve(),
+      
+      // Remover entradas de roster
+      rosterDeletes.length > 0 ? prisma.teamRoster.deleteMany({
+        where: {
+          OR: rosterDeletes.map(del => ({
+            teamId: del.teamId,
+            playerId: del.playerId,
+          })),
+        },
+      }) : Promise.resolve(),
+    ]);
+    
+    // Buscar IDs reais dos jogadores criados
+    if (playersToCreate.length > 0) {
+      const createdPlayers = await prisma.player.findMany({
+        where: {
+          sleeperPlayerId: { in: playersToCreate.map(p => p.sleeperPlayerId) },
+        },
+      });
+      
+      // Atualizar mapa com IDs reais
+      createdPlayers.forEach(player => {
+        existingPlayersMap.set(player.sleeperPlayerId, player);
+      });
+      
+      // Atualizar rosterUpserts com IDs reais
+      rosterUpserts.forEach(upsert => {
+        const realPlayer = existingPlayersMap.get(upsert.sleeperPlayerId);
+        if (realPlayer && realPlayer.id !== upsert.playerId) {
+          upsert.playerId = realPlayer.id;
+        }
+      });
+    }
+    
+    // Executar upserts de roster em lotes menores para evitar timeout
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < rosterUpserts.length; i += BATCH_SIZE) {
+      const batch = rosterUpserts.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(upsert => 
+          prisma.teamRoster.upsert({
+            where: {
+              teamId_playerId: {
+                teamId: upsert.teamId,
+                playerId: upsert.playerId,
+              },
+            },
+            update: {
+              sleeperPlayerId: upsert.sleeperPlayerId,
+              status: upsert.status,
+            },
+            create: upsert,
+          })
+        )
       );
     }
+    
+    const batchEndTime = Date.now();
+    console.log(`⚡ Operações em lote concluídas em ${batchEndTime - batchStartTime}ms`);
 
     // Log das estatísticas de sincronização
     if (stats.tradesProcessed.length > 0) {
@@ -276,14 +321,16 @@ async function syncTeamRosters(
       });
     }
 
-    console.log(`📊 Estatísticas da sincronização:`);
+    const totalTime = Date.now() - startTime;
+    console.log(`📊 Sincronização de rosters concluída em ${totalTime}ms:`);
     console.log(`   - Trades processadas: ${stats.tradesProcessed.length}`);
     console.log(`   - Jogadores adicionados: ${stats.playersAdded}`);
     console.log(`   - Jogadores removidos: ${stats.playersRemoved}`);
 
     return stats;
   } catch (error) {
-    console.error('❌ Erro ao sincronizar rosters dos times:', error);
+    const totalTime = Date.now() - startTime;
+    console.error(`❌ Erro ao sincronizar rosters após ${totalTime}ms:`, error);
     throw error;
   }
 }
@@ -394,52 +441,64 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
         prismaStatus = PrismaLeagueStatus.ACTIVE;
     }
 
-    // Atualizar a liga no banco de dados
-    const updatedLeague = await prisma.league.update({
-      where: { id: leagueId },
-      data: {
-        name: syncedData.league.name,
-        season: syncedData.league.season,
-        totalTeams: syncedData.league.totalTeams,
-        status: prismaStatus,
-        updatedAt: new Date().toISOString(),
-      },
-    });
+    // Liga já foi atualizada na operação paralela acima
 
-    // Atualizar times existentes e adicionar novos
-    const teamUpdatePromises = syncedData.teams.map(async team => {
-      const existingTeam = existingLeague.teams.find(t => t.sleeperTeamId === team.sleeperTeamId);
+    // OTIMIZAÇÃO: Paralelizar atualização da liga e times
+    console.log('🔄 Atualizando liga e times em paralelo...');
+    const dbStartTime = Date.now();
+    
+    const [updatedLeagueResult, teamUpdateResults] = await Promise.all([
+      // Atualizar a liga
+      prisma.league.update({
+        where: { id: leagueId },
+        data: {
+          name: syncedData.league.name,
+          season: syncedData.league.season,
+          totalTeams: syncedData.league.totalTeams,
+          status: prismaStatus,
+          updatedAt: new Date().toISOString(),
+        },
+      }),
+      
+      // Atualizar times em paralelo
+      Promise.all(
+        syncedData.teams.map(async team => {
+          const existingTeam = existingLeague.teams.find(t => t.sleeperTeamId === team.sleeperTeamId);
 
-      if (existingTeam) {
-        // Atualizar time existente
-        return prisma.team.update({
-          where: { id: existingTeam.id },
-          data: {
-            name: team.name,
-            ownerDisplayName: team.ownerDisplayName,
-            sleeperOwnerId: team.sleeperOwnerId,
-            updatedAt: new Date().toISOString(),
-          },
-        });
-      } else {
-        // Criar novo time
-        return prisma.team.create({
-          data: {
-            name: team.name,
-            leagueId: leagueId,
-            // ownerId é opcional - omitido da criação, será preenchido apenas na associação manual
-            sleeperTeamId: team.sleeperTeamId,
-            ownerDisplayName: team.ownerDisplayName,
-            sleeperOwnerId: team.sleeperOwnerId,
-            // Adicionar timestamps obrigatórios
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        });
-      }
-    });
-
-    const updatedTeams = await Promise.all(teamUpdatePromises);
+          if (existingTeam) {
+            // Atualizar time existente
+            return prisma.team.update({
+              where: { id: existingTeam.id },
+              data: {
+                name: team.name,
+                ownerDisplayName: team.ownerDisplayName,
+                sleeperOwnerId: team.sleeperOwnerId,
+                updatedAt: new Date().toISOString(),
+              },
+            });
+          } else {
+            // Criar novo time
+            return prisma.team.create({
+              data: {
+                name: team.name,
+                leagueId: leagueId,
+                sleeperTeamId: team.sleeperTeamId,
+                ownerDisplayName: team.ownerDisplayName,
+                sleeperOwnerId: team.sleeperOwnerId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+            });
+          }
+        })
+      ),
+    ]);
+    
+    const updatedLeague = updatedLeagueResult;
+    const updatedTeams = teamUpdateResults;
+    
+    const dbEndTime = Date.now();
+    console.log(`⚡ Atualização de banco concluída em ${dbEndTime - dbStartTime}ms`);
 
     // Sincronizar rosters dos times (persistir jogadores em team_rosters)
     const syncStats = await syncTeamRosters(
@@ -541,9 +600,22 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
  *
  * Sincroniza uma liga existente com a Sleeper API
  * Requer autenticação e perfil COMMISSIONER
+ * OTIMIZADA para execução em menos de 30 segundos
  */
 export async function POST(request: NextRequest) {
+  const requestStartTime = Date.now();
+  console.log('🚀 Iniciando requisição de sincronização');
+  
   try {
+    // OTIMIZAÇÃO: Timeout de segurança para Vercel (25 segundos)
+    const TIMEOUT_MS = 25000; // 25 segundos para dar margem
+    
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Timeout: Sincronização excedeu 25 segundos'));
+      }, TIMEOUT_MS);
+    });
+    
     // Verificar autenticação
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -565,8 +637,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'ID da liga é obrigatório' }, { status: 400 });
     }
 
-    // Sincronizar a liga
-    const result = await syncLeague(leagueId);
+    console.log(`📋 Sincronizando liga: ${leagueId}`);
+    
+    // Sincronizar a liga com timeout
+    const result = await Promise.race([
+      syncLeague(leagueId),
+      timeoutPromise,
+    ]) as SyncResult;
+    
+    const requestEndTime = Date.now();
+    const totalRequestTime = requestEndTime - requestStartTime;
+    
+    console.log(`✅ Requisição de sincronização concluída em ${totalRequestTime}ms`);
 
     if (result.success) {
       return NextResponse.json({
@@ -576,18 +658,39 @@ export async function POST(request: NextRequest) {
         details: result.details,
         tradesProcessed: result.tradesProcessed,
         syncStats: result.syncStats,
+        performanceStats: {
+          totalTime: totalRequestTime,
+          withinTimeout: totalRequestTime < TIMEOUT_MS,
+        },
       });
     } else {
       return NextResponse.json(
         {
           success: false,
           error: result.message,
+          performanceStats: {
+            totalTime: totalRequestTime,
+            withinTimeout: totalRequestTime < TIMEOUT_MS,
+          },
         },
         { status: 400 },
       );
     }
   } catch (error) {
-    console.error('Erro na API de sincronização:', error);
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
+    const requestEndTime = Date.now();
+    const totalRequestTime = requestEndTime - requestStartTime;
+    
+    console.error(`❌ Erro na API de sincronização após ${totalRequestTime}ms:`, error);
+    
+    // Verificar se foi timeout
+    const isTimeout = error instanceof Error && error.message.includes('Timeout');
+    
+    return NextResponse.json({ 
+      error: isTimeout ? 'Sincronização interrompida por timeout. Tente novamente.' : 'Erro interno do servidor',
+      performanceStats: {
+        totalTime: totalRequestTime,
+        timeout: isTimeout,
+      },
+    }, { status: isTimeout ? 408 : 500 });
   }
 }
