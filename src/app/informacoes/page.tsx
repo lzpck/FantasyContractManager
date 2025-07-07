@@ -349,53 +349,134 @@ export default function InformacoesPage() {
           {/* Tab: Contato */}
           {activeTab === 'contact' && (
             <div>
-              <h2 className="text-xl font-semibold text-slate-100 mb-6">Informações de Contato</h2>
-              <div className="max-w-2xl">
-                <div className="bg-slate-800 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-slate-100 mb-4">
-                    Desenvolvedor do Sistema
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <EnvelopeIcon className="w-5 h-5 text-blue-400" />
-                      <div>
-                        <p className="text-sm text-slate-400">Email</p>
-                        <p className="text-slate-100">zepechoukaleandro@gmail.com</p>
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-slate-100 mb-2">Informações de Contato</h2>
+                <p className="text-slate-400">Entre em contato comigo para dúvidas, sugestões ou suporte</p>
+              </div>
+              
+              <div className="max-w-4xl mx-auto">
+                {/* Card Principal do Desenvolvedor */}
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 shadow-2xl border border-slate-700">
+                  <div className="text-center mb-8">
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-white">LZ</span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-100 mb-2">
+                      Leandro Zepeck
+                    </h3>
+                    <p className="text-slate-400">Desenvolvedor Full Stack</p>
+                  </div>
+
+                  {/* Grid de Contatos */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    {/* Email */}
+                    <div className="bg-slate-700/50 rounded-xl p-4 hover:bg-slate-700/70 transition-all duration-200 group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
+                          <EnvelopeIcon className="w-6 h-6 text-blue-400" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-300 mb-1">Email</p>
+                          <a 
+                            href="mailto:zepechoukaleandro@gmail.com"
+                            className="text-slate-100 hover:text-blue-400 transition-colors break-all"
+                          >
+                            zepechoukaleandro@gmail.com
+                          </a>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="w-5 h-5 text-green-400">💬</span>
-                      <div>
-                        <p className="text-sm text-slate-400">WhatsApp</p>
-                        <p className="text-slate-100">(41) 99847-2047</p>
+
+                    {/* WhatsApp */}
+                    <div className="bg-slate-700/50 rounded-xl p-4 hover:bg-slate-700/70 transition-all duration-200 group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
+                          <span className="text-xl">💬</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-300 mb-1">WhatsApp</p>
+                          <a 
+                            href="https://wa.me/5541998472047"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-slate-100 hover:text-green-400 transition-colors"
+                          >
+                            (41) 99847-2047
+                          </a>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="w-5 h-5 text-purple-400">🎮</span>
-                      <div>
-                        <p className="text-sm text-slate-400">Discord</p>
-                        <p className="text-slate-100">lzpck</p>
+
+                    {/* Discord */}
+                    <div className="bg-slate-700/50 rounded-xl p-4 hover:bg-slate-700/70 transition-all duration-200 group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
+                          <span className="text-xl">🎮</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-300 mb-1">Discord</p>
+                          <p className="text-slate-100">lzpck</p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="w-5 h-5 text-gray-400">🐙</span>
-                      <div>
-                        <p className="text-sm text-slate-400">GitHub</p>
-                        <a 
-                          href="https://github.com/lzpck" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 transition-colors"
-                        >
-                          https://github.com/lzpck
-                        </a>
+
+                    {/* GitHub */}
+                    <div className="bg-slate-700/50 rounded-xl p-4 hover:bg-slate-700/70 transition-all duration-200 group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gray-500/20 rounded-lg flex items-center justify-center group-hover:bg-gray-500/30 transition-colors">
+                          <span className="text-xl">🐙</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-300 mb-1">GitHub</p>
+                          <a 
+                            href="https://github.com/lzpck" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-slate-100 hover:text-blue-400 transition-colors"
+                          >
+                            github.com/lzpck
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="mt-6 p-4 bg-blue-900/30 rounded-lg">
-                    <p className="text-sm text-blue-300">
-                      💡 Sinta-se à vontade para entrar em contato para dúvidas, sugestões ou reportar problemas!
-                    </p>
+
+                  {/* Mensagem de Boas-vindas */}
+                  <div className="bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-xl p-6 border border-blue-500/20">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg">💡</span>
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-medium text-slate-100 mb-2">Vamos conversar!</h4>
+                        <p className="text-slate-300 leading-relaxed">
+                          Estou sempre disponível para ajudar com dúvidas sobre o sistema, 
+                          receber sugestões de melhorias ou resolver qualquer problema que você possa encontrar. 
+                          Não hesite em entrar em contato!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cards de Estatísticas/Info Adicional */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                  <div className="bg-slate-800 rounded-xl p-6 text-center border border-slate-700">
+                    <div className="text-2xl mb-2">⚡</div>
+                    <h4 className="text-lg font-semibold text-slate-100 mb-1">Resposta Rápida</h4>
+                    <p className="text-sm text-slate-400">Geralmente respondo em até 24h</p>
+                  </div>
+                  
+                  <div className="bg-slate-800 rounded-xl p-6 text-center border border-slate-700">
+                    <div className="text-2xl mb-2">🛠️</div>
+                    <h4 className="text-lg font-semibold text-slate-100 mb-1">Suporte Técnico</h4>
+                    <p className="text-sm text-slate-400">Ajuda com bugs e problemas</p>
+                  </div>
+                  
+                  <div className="bg-slate-800 rounded-xl p-6 text-center border border-slate-700">
+                    <div className="text-2xl mb-2">💭</div>
+                    <h4 className="text-lg font-semibold text-slate-100 mb-1">Feedback</h4>
+                    <p className="text-sm text-slate-400">Suas ideias são bem-vindas</p>
                   </div>
                 </div>
               </div>
