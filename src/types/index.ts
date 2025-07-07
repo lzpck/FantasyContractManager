@@ -683,6 +683,63 @@ export interface ExtendContractData {
   effectiveSeason: number;
 }
 
+/**
+ * Interface para dados de classificação de um time
+ */
+export interface TeamStanding {
+  /** Posição na classificação */
+  position: number;
+  /** Dados do time */
+  team: Team;
+  /** Dados financeiros do time */
+  financialSummary: TeamFinancialSummary;
+  /** Número de vitórias */
+  wins: number;
+  /** Número de derrotas */
+  losses: number;
+  /** Número de empates */
+  ties: number;
+  /** Pontos feitos (PF) */
+  pointsFor: number;
+  /** Pontos contra (PA) */
+  pointsAgainst: number;
+  /** Sequência atual (W/L) */
+  streak: string;
+  /** Se está na zona de playoffs (top 6) */
+  isPlayoffTeam: boolean;
+  /** Dados do Sleeper roster */
+  sleeperData?: {
+    rosterId: number;
+    ownerId: string;
+    settings: {
+      wins: number;
+      losses: number;
+      ties: number;
+      fpts: number;
+      fpts_decimal: number;
+      fpts_against: number;
+      fpts_against_decimal: number;
+    };
+    metadata?: {
+      streak?: string;
+      record?: string;
+    };
+  };
+}
+
+/**
+ * Opções de ordenação para a classificação
+ */
+export type StandingsSortBy = 
+  | 'position'
+  | 'name'
+  | 'wins'
+  | 'losses'
+  | 'pointsFor'
+  | 'pointsAgainst'
+  | 'availableCap'
+  | 'totalSalaries';
+
 const types = {
   ContractStatus,
   PlayerPosition,

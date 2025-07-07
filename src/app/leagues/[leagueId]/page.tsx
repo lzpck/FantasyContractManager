@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { League, TeamFinancialSummary, Team } from '@/types';
+import { League, TeamFinancialSummary, Team, StandingsSortBy } from '@/types';
 import { useTeams } from '@/hooks/useTeams';
 import { useLeague } from '@/hooks/useLeagues';
 import { useAuth } from '@/hooks/useAuth';
 import { useRosterDiff, PlayerAdded, PlayerRemoved } from '@/hooks/useRosterDiff';
+import { useStandings } from '@/hooks/useStandings';
 import LeagueHeader from '@/components/leagues/LeagueHeader';
 import TeamsTable from '@/components/leagues/TeamsTable';
+import { StandingsTable } from '@/components/leagues/StandingsTable';
 import { SyncButton } from '@/components/leagues/SyncButton';
 import { FilterSortBar } from '@/components/leagues/FilterSortBar';
 import RosterTransactions from '@/components/leagues/RosterTransactions';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 
 /**
@@ -35,6 +38,9 @@ export default function LeagueDetailsPage() {
   const [sortBy, setSortBy] = useState<'name' | 'availableCap' | 'totalSalaries'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filterText, setFilterText] = useState('');
+  
+  // Estado para controle das abas
+  const [activeTab, setActiveTab] = useState('teams');
 
   // Estados para transações de roster
   const [playersAdded, setPlayersAdded] = useState<PlayerAdded[]>([]);
@@ -44,6 +50,15 @@ export default function LeagueDetailsPage() {
 
   const { teams, loading: teamsLoading } = useTeams(leagueId);
   const { calculateRosterDiff, isLoading: rosterDiffLoading } = useRosterDiff();
+  
+  // Hook para classificação
+  const { 
+    standings, 
+    loading: standingsLoading, 
+    error: standingsError,
+    loadStandings,
+    sortStandings 
+  } = useStandings(leagueId, league);
 
   // Encontrar o time do usuário atual na liga
   const userTeam = teams.find(team => team.ownerId === user?.id) || null;
@@ -303,7 +318,7 @@ export default function LeagueDetailsPage() {
           setTradesProcessed(data.syncStats.tradesProcessed);
         }
 
-        // Atualizar resumos financeiros com os novos times
+        // Atualizar dados financeiros com os novos times
         if (data.league.teams) {
           const summariesPromises = data.league.teams.map((team: Team) =>
             calculateTeamFinancials(team),
@@ -311,6 +326,9 @@ export default function LeagueDetailsPage() {
           const updatedFinancialSummaries = await Promise.all(summariesPromises);
           setTeamsFinancialSummary(updatedFinancialSummaries);
         }
+        
+        // Atualizar dados de classificação
+        await loadStandings();
 
         toast.success(data.message);
       } else {
@@ -325,6 +343,11 @@ export default function LeagueDetailsPage() {
   // Função para navegar para detalhes do time
   const handleTeamClick = (teamId: string) => {
     router.push(`/leagues/${leagueId}/teams/${teamId}`);
+  };
+  
+  // Função para manipular ordenação da classificação
+  const handleStandingsSort = (sortBy: StandingsSortBy, order: 'asc' | 'desc') => {
+    sortStandings(sortBy, order);
   };
 
   // Função para adicionar contrato para jogador recém-adicionado
@@ -535,22 +558,40 @@ export default function LeagueDetailsPage() {
             />
           )}
 
-          {/* Barra de filtros e ordenação */}
-          <div className="mb-6">
-            <FilterSortBar
-              filterText={filterText}
-              onFilterChange={setFilterText}
-              sortBy={sortBy}
-              onSortByChange={setSortBy}
-              sortOrder={sortOrder}
-              onSortOrderChange={setSortOrder}
-            />
-          </div>
+          {/* Sistema de abas */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="teams">Times</TabsTrigger>
+              <TabsTrigger value="standings">Classificação</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="teams" className="space-y-4">
+              {/* Barra de filtros e ordenação */}
+              <FilterSortBar
+                filterText={filterText}
+                onFilterChange={setFilterText}
+                sortBy={sortBy}
+                onSortByChange={setSortBy}
+                sortOrder={sortOrder}
+                onSortOrderChange={setSortOrder}
+              />
 
-          {/* Tabela de times */}
-          <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700">
-            <TeamsTable teams={filteredTeams} onTeamClick={handleTeamClick} league={league} />
-          </div>
+              {/* Tabela de times */}
+              <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700">
+                <TeamsTable teams={filteredTeams} onTeamClick={handleTeamClick} league={league} />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="standings" className="space-y-4">
+              <StandingsTable
+                standings={standings}
+                loading={standingsLoading}
+                error={standingsError}
+                onSort={handleStandingsSort}
+                onTeamClick={handleTeamClick}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
