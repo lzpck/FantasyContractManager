@@ -350,58 +350,51 @@ export default function InformacoesPage() {
           {activeTab === 'contact' && (
             <div>
               <h2 className="text-xl font-semibold text-slate-100 mb-6">Informações de Contato</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="max-w-2xl">
                 <div className="bg-slate-800 rounded-lg p-6">
                   <h3 className="text-lg font-medium text-slate-100 mb-4">
-                    Administrador do Sistema
+                    Desenvolvedor do Sistema
                   </h3>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <EnvelopeIcon className="w-5 h-5 text-blue-400" />
                       <div>
                         <p className="text-sm text-slate-400">Email</p>
-                        <p className="text-slate-100">admin@fantasycontractmanager.com</p>
+                        <p className="text-slate-100">zepechoukaleandro@gmail.com</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="w-5 h-5 text-green-400">💬</span>
                       <div>
                         <p className="text-sm text-slate-400">WhatsApp</p>
-                        <p className="text-slate-100">+55 (11) 99999-9999</p>
+                        <p className="text-slate-100">(41) 99847-2047</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="w-5 h-5 text-purple-400">🎮</span>
                       <div>
                         <p className="text-sm text-slate-400">Discord</p>
-                        <p className="text-slate-100">FantasyAdmin#1234</p>
+                        <p className="text-slate-100">lzpck</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="w-5 h-5 text-gray-400">🐙</span>
+                      <div>
+                        <p className="text-sm text-slate-400">GitHub</p>
+                        <a 
+                          href="https://github.com/lzpck" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          https://github.com/lzpck
+                        </a>
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="bg-slate-800 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-slate-100 mb-4">
-                    Horário de Atendimento
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Segunda a Sexta</span>
-                      <span className="text-slate-100">09:00 - 18:00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Sábado</span>
-                      <span className="text-slate-100">09:00 - 14:00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Domingo</span>
-                      <span className="text-slate-100">Fechado</span>
-                    </div>
-                  </div>
-                  <div className="mt-4 p-3 bg-blue-900/30 rounded-lg">
+                  <div className="mt-6 p-4 bg-blue-900/30 rounded-lg">
                     <p className="text-sm text-blue-300">
-                      💡 Para questões urgentes durante jogos da NFL, estamos disponíveis 24/7 via
-                      Discord.
+                      💡 Sinta-se à vontade para entrar em contato para dúvidas, sugestões ou reportar problemas!
                     </p>
                   </div>
                 </div>
