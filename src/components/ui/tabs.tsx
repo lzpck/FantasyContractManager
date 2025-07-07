@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 /**
  * Componente de Tabs - Sistema de abas reutilizável
- * 
+ *
  * Baseado no padrão de design do shadcn/ui, fornece uma interface
  * de abas acessível e responsiva para organizar conteúdo.
  */
@@ -39,7 +39,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
     const [internalValue, setInternalValue] = React.useState(defaultValue || '');
     const isControlled = value !== undefined;
     const currentValue = isControlled ? value : internalValue;
-    
+
     const handleValueChange = React.useCallback(
       (newValue: string) => {
         if (!isControlled) {
@@ -47,7 +47,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
         }
         onValueChange?.(newValue);
       },
-      [isControlled, onValueChange]
+      [isControlled, onValueChange],
     );
 
     return (
@@ -57,7 +57,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
         </div>
       </TabsContext.Provider>
     );
-  }
+  },
 );
 Tabs.displayName = 'Tabs';
 
@@ -74,13 +74,13 @@ const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(
       role="tablist"
       className={cn(
         'inline-flex h-12 items-center justify-start rounded-t-2xl bg-slate-800 border border-slate-700 border-b-0 p-1 text-slate-400 shadow-lg',
-        className
+        className,
       )}
       {...props}
     >
       {children}
     </div>
-  )
+  ),
 );
 TabsList.displayName = 'TabsList';
 
@@ -110,7 +110,7 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
           isSelected
             ? 'bg-slate-700 text-blue-400 border-blue-400 shadow-lg'
             : 'text-slate-400 hover:bg-slate-700/50',
-          className
+          className,
         )}
         onClick={() => onValueChange(value)}
         {...props}
@@ -118,7 +118,7 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
         {children}
       </button>
     );
-  }
+  },
 );
 TabsTrigger.displayName = 'TabsTrigger';
 
@@ -146,14 +146,14 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
         aria-labelledby={`tab-${value}`}
         className={cn(
           'bg-slate-800 rounded-b-2xl rounded-tr-2xl border border-slate-700 border-t-0 shadow-xl p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
-          className
+          className,
         )}
         {...props}
       >
         {children}
       </div>
     );
-  }
+  },
 );
 TabsContent.displayName = 'TabsContent';
 

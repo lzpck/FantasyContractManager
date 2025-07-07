@@ -17,11 +17,13 @@ O Fantasy Contract Manager suporta múltiplos ambientes de banco de dados para f
 ## 🗄️ Bancos Configurados
 
 ### Produção (Main Branch)
+
 - **Host**: `ep-old-violet-acwdosej-pooler.sa-east-1.aws.neon.tech`
 - **Database**: `fantasy_contract_manager`
 - **Uso**: Deploy em produção, testes finais
 
 ### Desenvolvimento (Development Branch)
+
 - **Host**: `ep-tight-mountain-ac5ljfzf-pooler.sa-east-1.aws.neon.tech`
 - **Database**: `fantasy_contract_manager_development`
 - **Uso**: Desenvolvimento local, testes de features
@@ -67,12 +69,14 @@ npm run dev
 ### Método 3: Edição Direta
 
 Edite o arquivo `.env` e copie o conteúdo do ambiente desejado:
+
 - De `.env.development` para desenvolvimento
 - De `.env.production` para produção
 
 ## 🔧 Comandos Úteis
 
 ### Verificar Conexão
+
 ```bash
 # Verificar qual banco está ativo
 npx prisma db pull
@@ -82,6 +86,7 @@ npx prisma studio
 ```
 
 ### Sincronização de Schema
+
 ```bash
 # Aplicar mudanças no schema (development)
 npm run db:push:development
@@ -91,6 +96,7 @@ npm run db:push:production
 ```
 
 ### Backup e Restore
+
 ```bash
 # Fazer backup dos dados (manual via Prisma Studio ou pg_dump)
 # Restaurar dados (manual via psql ou Prisma Studio)
@@ -123,6 +129,7 @@ npm run db:push:production
 ## 🆘 Troubleshooting
 
 ### Erro de Conexão
+
 ```bash
 # Verificar se o arquivo .env está correto
 cat .env | grep DATABASE_URL
@@ -132,6 +139,7 @@ npx prisma db pull
 ```
 
 ### Schema Desatualizado
+
 ```bash
 # Regenerar cliente Prisma
 npx prisma generate
@@ -141,6 +149,7 @@ npx prisma db push
 ```
 
 ### Dados Corrompidos
+
 ```bash
 # Reset completo (CUIDADO!)
 npm run db:reset:development  # Só em desenvolvimento!
@@ -149,6 +158,7 @@ npm run db:reset:development  # Só em desenvolvimento!
 ## 📞 Suporte
 
 Em caso de problemas:
+
 1. Verifique este documento
 2. Consulte a documentação do Prisma
 3. Verifique os logs do Neon
