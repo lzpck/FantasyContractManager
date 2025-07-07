@@ -24,6 +24,12 @@
     "db:reset:production": "copy .env.production .env && prisma migrate reset --force && npm run db:seed",
     "db:push:development": "copy .env.development .env && prisma db push",
     "db:push:production": "copy .env.production .env && prisma db push",
+    "dev:local": "copy .env.local .env && copy prisma\\schema.prisma.local prisma\\schema.prisma && next dev --turbopack",
+    "db:push:local": "copy .env.local .env && copy prisma\\schema.prisma.local prisma\\schema.prisma && prisma db push",
+    "db:seed:local": "copy .env.local .env && copy prisma\\schema.prisma.local prisma\\schema.prisma && tsx prisma/seed.ts",
+    "db:reset:local": "copy .env.local .env && copy prisma\\schema.prisma.local prisma\\schema.prisma && prisma migrate reset --force && npm run db:seed:local",
+    "db:studio:local": "copy .env.local .env && copy prisma\\schema.prisma.local prisma\\schema.prisma && prisma studio",
+    "restore:schema": "git checkout HEAD -- prisma/schema.prisma",
     "sync-sleeper": "tsx scripts/sync-sleeper-data.ts",
     "test": "jest",
     "test:watch": "jest --watch"
