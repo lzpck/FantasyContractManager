@@ -323,67 +323,67 @@ export function useStandings(leagueId: string, league: League | null) {
     ): TeamStanding[] => {
       const numPlayoffTeams = playoffTeams || playoffTeamsCount;
       const sorted = [...standings].sort((a, b) => {
-          let valueA: number | string;
-          let valueB: number | string;
+        let valueA: number | string;
+        let valueB: number | string;
 
-          switch (sortBy) {
-            case 'position':
-              valueA = a.position;
-              valueB = b.position;
-              break;
-            case 'name':
-              valueA = a.team.name.toLowerCase();
-              valueB = b.team.name.toLowerCase();
-              break;
-            case 'wins':
-              valueA = a.wins;
-              valueB = b.wins;
-              break;
-            case 'losses':
-              valueA = a.losses;
-              valueB = b.losses;
-              break;
-            case 'pct':
-              valueA = a.pct;
-              valueB = b.pct;
-              break;
-            case 'pointsFor':
-              valueA = a.pointsFor;
-              valueB = b.pointsFor;
-              break;
-            case 'pointsAgainst':
-              valueA = a.pointsAgainst;
-              valueB = b.pointsAgainst;
-              break;
-            case 'availableCap':
-              valueA = a.financialSummary.availableCap;
-              valueB = b.financialSummary.availableCap;
-              break;
-            case 'totalSalaries':
-              valueA = a.financialSummary.totalSalaries;
-              valueB = b.financialSummary.totalSalaries;
-              break;
-            default:
-              valueA = a.position;
-              valueB = b.position;
-          }
-
-          if (typeof valueA === 'string' && typeof valueB === 'string') {
-            return order === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
-          }
-
-          const numA = Number(valueA);
-          const numB = Number(valueB);
-          return order === 'asc' ? numA - numB : numB - numA;
-        });
-
-        // Recalcular posições se não estiver ordenando por posição
-        if (sortBy !== 'position') {
-          sorted.forEach((standing, index) => {
-            standing.position = index + 1;
-            standing.isPlayoffTeam = index < numPlayoffTeams;
-          });
+        switch (sortBy) {
+          case 'position':
+            valueA = a.position;
+            valueB = b.position;
+            break;
+          case 'name':
+            valueA = a.team.name.toLowerCase();
+            valueB = b.team.name.toLowerCase();
+            break;
+          case 'wins':
+            valueA = a.wins;
+            valueB = b.wins;
+            break;
+          case 'losses':
+            valueA = a.losses;
+            valueB = b.losses;
+            break;
+          case 'pct':
+            valueA = a.pct;
+            valueB = b.pct;
+            break;
+          case 'pointsFor':
+            valueA = a.pointsFor;
+            valueB = b.pointsFor;
+            break;
+          case 'pointsAgainst':
+            valueA = a.pointsAgainst;
+            valueB = b.pointsAgainst;
+            break;
+          case 'availableCap':
+            valueA = a.financialSummary.availableCap;
+            valueB = b.financialSummary.availableCap;
+            break;
+          case 'totalSalaries':
+            valueA = a.financialSummary.totalSalaries;
+            valueB = b.financialSummary.totalSalaries;
+            break;
+          default:
+            valueA = a.position;
+            valueB = b.position;
         }
+
+        if (typeof valueA === 'string' && typeof valueB === 'string') {
+          return order === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+        }
+
+        const numA = Number(valueA);
+        const numB = Number(valueB);
+        return order === 'asc' ? numA - numB : numB - numA;
+      });
+
+      // Recalcular posições se não estiver ordenando por posição
+      if (sortBy !== 'position') {
+        sorted.forEach((standing, index) => {
+          standing.position = index + 1;
+          standing.isPlayoffTeam = index < numPlayoffTeams;
+        });
+      }
 
       // Recalcular posições se não estiver ordenando por posição
       if (sortBy !== 'position') {
