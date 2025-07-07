@@ -129,8 +129,7 @@ export async function POST(request: NextRequest) {
           leagueId: team.leagueId,
           userId: user.id,
           role: 'MEMBER',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          joinedAt: new Date().toISOString(),
         },
       });
 

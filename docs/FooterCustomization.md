@@ -13,9 +13,7 @@ O rodapé está localizado em: `src/components/layout/Footer.tsx`
 Substitua "Seu Nome" pelo seu nome real:
 
 ```tsx
-<span className="font-semibold text-blue-400">
-  Seu Nome Aqui
-</span>
+<span className="font-semibold text-blue-400">Seu Nome Aqui</span>
 ```
 
 ### 2. Links Sociais/Profissionais
@@ -94,10 +92,10 @@ Você pode adicionar mais links sociais ou profissionais:
 Se não quiser exibir links sociais, você pode remover toda a seção:
 
 ```tsx
-{/* Remover esta seção inteira */}
-<div className="flex items-center space-x-3">
-  {/* ... links sociais ... */}
-</div>
+{
+  /* Remover esta seção inteira */
+}
+<div className="flex items-center space-x-3">{/* ... links sociais ... */}</div>;
 ```
 
 ## Características do Rodapé

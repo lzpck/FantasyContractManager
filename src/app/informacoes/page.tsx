@@ -352,16 +352,14 @@ export default function InformacoesPage() {
               <h2 className="text-xl font-semibold text-slate-100 mb-6">Informações de Contato</h2>
               <div className="max-w-2xl mx-auto">
                 <div className="bg-slate-800 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-slate-100 mb-6">
-                    Entre em Contato
-                  </h3>
+                  <h3 className="text-lg font-medium text-slate-100 mb-6">Entre em Contato</h3>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <EnvelopeIcon className="w-5 h-5 text-blue-400" />
                       <div>
                         <p className="text-sm text-slate-400">Email</p>
-                        <a 
-                          href="mailto:zepechoukaleandro@gmail.com" 
+                        <a
+                          href="mailto:zepechoukaleandro@gmail.com"
                           className="text-slate-100 hover:text-blue-400 transition-colors"
                         >
                           zepechoukaleandro@gmail.com
@@ -372,9 +370,9 @@ export default function InformacoesPage() {
                       <span className="w-5 h-5 text-green-400">💬</span>
                       <div>
                         <p className="text-sm text-slate-400">WhatsApp</p>
-                        <a 
-                          href="https://wa.me/5541998472047" 
-                          target="_blank" 
+                        <a
+                          href="https://wa.me/5541998472047"
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="text-slate-100 hover:text-green-400 transition-colors"
                         >
@@ -390,10 +388,11 @@ export default function InformacoesPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6 p-4 bg-blue-900/30 rounded-lg">
                     <p className="text-sm text-blue-300">
-                      💡 Responderemos o mais rápido possível. Para questões urgentes durante jogos da NFL, utilize o Discord para contato direto.
+                      💡 Responderemos o mais rápido possível. Para questões urgentes durante jogos
+                      da NFL, utilize o Discord para contato direto.
                     </p>
                   </div>
                 </div>

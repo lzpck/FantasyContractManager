@@ -18,9 +18,7 @@ export function Footer() {
             <Code className="h-5 w-5 text-blue-400" />
             <span className="text-sm">
               Desenvolvido por{' '}
-              <span className="font-semibold text-blue-400">
-                Leandro Zepechouka
-              </span>
+              <span className="font-semibold text-blue-400">Leandro Zepechouka</span>
             </span>
           </div>
 
@@ -31,7 +29,7 @@ export function Footer() {
               <span className="hidden md:inline">•</span>
               <span>© {currentYear}</span>
             </div>
-            
+
             {/* Links sociais/profissionais */}
             <div className="flex items-center space-x-3">
               <a
