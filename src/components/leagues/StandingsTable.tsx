@@ -173,21 +173,32 @@ export function StandingsTable({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Barra de busca */}
-      <div className="relative">
-        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-        <input
-          type="text"
-          placeholder="Buscar time ou manager..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+    <div className="space-y-0">
+      {/* Cabeçalho com busca e ordenação */}
+      <div className="bg-slate-800 border border-slate-700 border-b-0 rounded-t-2xl p-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrophyIcon className="h-6 w-6 text-yellow-500" />
+            <h2 className="text-xl font-bold text-slate-100">Classificação</h2>
+          </div>
+          
+          {/* Barra de busca */}
+          <div className="relative w-full sm:w-80">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Buscar time ou manager..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Tabela de classificação */}
-      <div className="overflow-x-auto">
+      <div className="bg-slate-800 border border-slate-700 border-t-0 rounded-b-2xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-600">
           <thead className="bg-slate-700">
             <tr>
@@ -349,21 +360,22 @@ export function StandingsTable({
             })}
           </tbody>
         </table>
-      </div>
-
-      {/* Legenda */}
-      <div className="mt-6 p-4 bg-slate-700/50 rounded-lg">
-        <h4 className="text-sm font-medium text-slate-200 mb-2">Legenda:</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-xs text-slate-400">
-          <div><strong>Pos:</strong> Posição na classificação</div>
-          <div><strong>V/D/E:</strong> Vitórias/Derrotas/Empates</div>
-          <div><strong>PF/PA:</strong> Pontos Feitos/Pontos Contra</div>
-          <div><strong>Streak:</strong> Sequência atual (W=Vitória, L=Derrota)</div>
-          <div><strong>Cap Disponível:</strong> Salary cap restante</div>
-          <div><strong>🏆 Playoffs:</strong> Top 6 times classificados</div>
         </div>
-        <div className="mt-2 text-xs text-slate-500">
-          <strong>Critério de desempate:</strong> 1º Vitórias, 2º Pontos Feitos
+        
+        {/* Legenda */}
+        <div className="p-4 bg-slate-700/50 border-t border-slate-600">
+          <h4 className="text-sm font-medium text-slate-200 mb-2">Legenda:</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-xs text-slate-400">
+            <div><strong>Pos:</strong> Posição na classificação</div>
+            <div><strong>V/D/E:</strong> Vitórias/Derrotas/Empates</div>
+            <div><strong>PF/PA:</strong> Pontos Feitos/Pontos Contra</div>
+            <div><strong>Streak:</strong> Sequência atual (W=Vitória, L=Derrota)</div>
+            <div><strong>Cap Disponível:</strong> Salary cap restante</div>
+            <div><strong>🏆 Playoffs:</strong> Top 6 times classificados</div>
+          </div>
+          <div className="mt-2 text-xs text-slate-500">
+            <strong>Critério de desempate:</strong> 1º Vitórias, 2º Pontos Feitos
+          </div>
         </div>
       </div>
     </div>

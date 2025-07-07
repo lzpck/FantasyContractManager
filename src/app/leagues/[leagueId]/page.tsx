@@ -560,29 +560,31 @@ export default function LeagueDetailsPage() {
 
           {/* Sistema de abas */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="w-fit">
               <TabsTrigger value="teams">Times</TabsTrigger>
               <TabsTrigger value="standings">Classificação</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="teams" className="space-y-4">
+            <TabsContent value="teams" className="space-y-0">
               {/* Barra de filtros e ordenação */}
-              <FilterSortBar
-                filterText={filterText}
-                onFilterChange={setFilterText}
-                sortBy={sortBy}
-                onSortByChange={setSortBy}
-                sortOrder={sortOrder}
-                onSortOrderChange={setSortOrder}
-              />
+              <div className="bg-slate-800 border border-slate-700 border-b-0 rounded-t-2xl p-4">
+                <FilterSortBar
+                  filterText={filterText}
+                  onFilterChange={setFilterText}
+                  sortBy={sortBy}
+                  onSortByChange={setSortBy}
+                  sortOrder={sortOrder}
+                  onSortOrderChange={setSortOrder}
+                />
+              </div>
 
               {/* Tabela de times */}
-              <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700">
+              <div className="bg-slate-800 rounded-b-2xl shadow-xl border border-slate-700 border-t-0">
                 <TeamsTable teams={filteredTeams} onTeamClick={handleTeamClick} league={league} />
               </div>
             </TabsContent>
             
-            <TabsContent value="standings" className="space-y-4">
+            <TabsContent value="standings" className="p-0">
               <StandingsTable
                 standings={standings}
                 loading={standingsLoading}
