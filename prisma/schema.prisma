@@ -1,68 +1,39 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  // uncomment next line if you use Prisma <5.10
-  // directUrl = env("DATABASE_URL_UNPOOLED")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// ============================================================================
-// AUTENTICAÇÃO E USUÁRIOS
-// ============================================================================
-
-/**
- * Modelo de usuário com perfis e permissões
- */
+/// *
+/// * Modelo de usuário com perfis e permissões
 model User {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String?
-  login         String?   @unique // Nome de usuário único
-  email         String    @unique
+  login         String?      @unique
+  email         String       @unique
   emailVerified String?
   image         String?
-  password      String? // Para autenticação local
-
-  // Perfis e permissões
-  role     UserRole @default(USER)
-  isActive Boolean  @default(true)
-
-  // Associação com time (um usuário pode ter apenas um time)
-  teamId   String?  @unique // Relacionamento único com time
-
-  // Timestamps (ISO 8601 format)
-  createdAt String @default("")
-  updatedAt String @default("")
-
-  // Relacionamentos NextAuth
-  accounts Account[]
-  sessions Session[]
-
-  // Relacionamentos da aplicação
-  team    Team?    @relation("UserTeam", fields: [teamId], references: [id])
-  teams   Team[]   @relation("TeamOwner") // Manter compatibilidade com relacionamento existente
-  leagues League[] @relation("LeagueCommissioner")
-  leagueUsers LeagueUser[] // Associações como membro de ligas
+  password      String?
+  role          UserRole     @default(USER)
+  isActive      Boolean      @default(true)
+  teamId        String?      @unique
+  createdAt     String       @default("")
+  updatedAt     String       @default("")
+  accounts      Account[]
+  leagueUsers   LeagueUser[]
+  leagues       League[]     @relation("LeagueCommissioner")
+  sessions      Session[]
+  teams         Team[]       @relation("TeamOwner")
+  team          Team?        @relation("UserTeam", fields: [teamId], references: [id])
 
   @@map("users")
 }
 
-/**
- * Tipos de perfil de usuário
- */
-enum UserRole {
-  COMMISSIONER // Comissário - acesso total à liga
-  USER // Usuário - acesso básico
-}
-
-/**
- * Contas de autenticação (NextAuth)
- */
+/// *
+/// * Contas de autenticação (NextAuth)
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -76,194 +47,136 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
 }
 
-/**
- * Sessões de usuário (NextAuth)
- */
+/// *
+/// * Sessões de usuário (NextAuth)
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
+  id           String @id @default(cuid())
+  sessionToken String @unique
   userId       String
   expires      String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
 
-/**
- * Tokens de verificação (NextAuth)
- */
+/// *
+/// * Tokens de verificação (NextAuth)
 model VerificationToken {
   identifier String
-  token      String   @unique
+  token      String @unique
   expires    String
 
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
 
-// ============================================================================
-// LIGAS E TIMES
-// ============================================================================
-
-/**
- * Modelo de liga
- */
+/// *
+/// * Modelo de liga
 model League {
-  id              String       @id @default(cuid())
-  name            String
-  season          Int
-  salaryCap       Float
-  totalTeams      Int
-  status          LeagueStatus @default(ACTIVE)
-  sleeperLeagueId String?
-
-  // Configurações
-  maxFranchiseTags         Int    @default(1)
-  annualIncreasePercentage Float  @default(15.0)
-  minimumSalary            Float  @default(1.0)
-  seasonTurnoverDate       String @default("04-01")
-  
-  // Configuração de Dead Money (JSON)
-  deadMoneyConfig          String @default("{\"currentSeason\":1.0,\"futureSeasons\":{\"1\":0,\"2\":0.5,\"3\":0.75,\"4\":1.0}}")
-
-  // Relacionamentos
-  commissionerId String
-  commissioner   User       @relation("LeagueCommissioner", fields: [commissionerId], references: [id])
-  teams          Team[]
-  contracts      Contract[]
-  leagueUsers    LeagueUser[] // Membros da liga
-
-  // Timestamps (ISO 8601 format)
-  createdAt String @default("")
-  updatedAt String @default("")
+  id                       String       @id @default(cuid())
+  name                     String
+  season                   Int
+  salaryCap                Float
+  totalTeams               Int
+  status                   LeagueStatus @default(ACTIVE)
+  sleeperLeagueId          String?
+  maxFranchiseTags         Int          @default(1)
+  annualIncreasePercentage Float        @default(15.0)
+  minimumSalary            Float        @default(1.0)
+  seasonTurnoverDate       String       @default("04-01")
+  deadMoneyConfig          String       @default("{\"currentSeason\":1.0,\"futureSeasons\":{\"1\":0,\"2\":0.5,\"3\":0.75,\"4\":1.0}}")
+  commissionerId           String
+  createdAt                String       @default("")
+  updatedAt                String       @default("")
+  contracts                Contract[]
+  leagueUsers              LeagueUser[]
+  commissioner             User         @relation("LeagueCommissioner", fields: [commissionerId], references: [id])
+  teams                    Team[]
 
   @@map("leagues")
 }
 
-/**
- * Status da liga
- */
-enum LeagueStatus {
-  ACTIVE
-  OFFSEASON
-  ARCHIVED
-}
-
-/**
- * Modelo para associar usuários às ligas como membros
- */
+/// *
+/// * Modelo para associar usuários às ligas como membros
 model LeagueUser {
-  id       String @id @default(cuid())
-  leagueId String
-  userId   String
-  role     String @default("MEMBER") // MEMBER, COMMISSIONER
-  
-  // Timestamps (ISO 8601 format)
+  id        String @id @default(cuid())
+  leagueId  String
+  userId    String
+  role      String @default("MEMBER")
   createdAt String @default("")
   updatedAt String @default("")
-  
-  // Relacionamentos
-  league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  league    League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([leagueId, userId])
   @@map("league_users")
 }
 
-/**
- * Modelo de time
- */
+/// *
+/// * Modelo de time
 model Team {
-  id           String @id @default(cuid())
-  name         String
-  abbreviation String?
+  id                  String       @id @default(cuid())
+  name                String
+  abbreviation        String?
+  sleeperOwnerId      String?
+  ownerDisplayName    String?
+  sleeperTeamId       String?
+  currentSalaryCap    Float        @default(0)
+  currentDeadMoney    Float        @default(0)
+  nextSeasonDeadMoney Float        @default(0)
+  leagueId            String
+  ownerId             String?
+  createdAt           String       @default("")
+  updatedAt           String       @default("")
+  contracts           Contract[]
+  deadMoney           DeadMoney[]
+  roster              TeamRoster[]
+  league              League       @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  owner               User?        @relation("TeamOwner", fields: [ownerId], references: [id])
+  user                User?        @relation("UserTeam")
 
-  // Proprietário no Sleeper
-  sleeperOwnerId   String?
-  ownerDisplayName String?
-
-  // Integração Sleeper
-  sleeperTeamId String?
-
-  // Salary Cap
-  currentSalaryCap    Float @default(0)
-  currentDeadMoney    Float @default(0)
-  nextSeasonDeadMoney Float @default(0)
-
-  // Relacionamentos
-  leagueId String
-  league   League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-
-  // Proprietário local (usuário do sistema) - opcional até associação manual
-  ownerId   String?
-  owner     User?      @relation("TeamOwner", fields: [ownerId], references: [id])
-  user      User?      @relation("UserTeam") // Novo relacionamento único com usuário
-  contracts Contract[]
-  roster    TeamRoster[]
-  deadMoney DeadMoney[]
-
-  // Timestamps (ISO 8601 format)
-  createdAt String @default("")
-  updatedAt String @default("")
-
-  // Garantir um time por usuário do Sleeper por liga
   @@unique([leagueId, sleeperOwnerId])
   @@map("teams")
 }
 
-/**
- * Modelo de jogador
- */
+/// *
+/// * Modelo de jogador
 model Player {
-  id               String @id @default(cuid())
+  id               String       @id @default(cuid())
   name             String
   position         String
   fantasyPositions String
-  team             String // Time da NFL
+  team             String
   age              Int?
-
-  // Integração Sleeper
-  sleeperPlayerId String @unique
-
-  // Status
-  isActive Boolean @default(true)
-
-  // Timestamps (ISO 8601 format)
-  createdAt String @default("")
-  updatedAt String @default("")
-
-  contracts Contract[]
-  teamRosters TeamRoster[]
-  deadMoney DeadMoney[]
+  sleeperPlayerId  String       @unique
+  isActive         Boolean      @default(true)
+  createdAt        String       @default("")
+  updatedAt        String       @default("")
+  contracts        Contract[]
+  deadMoney        DeadMoney[]
+  teamRosters      TeamRoster[]
 
   @@map("players")
 }
 
-/**
- * Modelo para associar jogadores aos rosters dos times
- */
+/// *
+/// * Modelo para associar jogadores aos rosters dos times
 model TeamRoster {
   id              String @id @default(cuid())
   teamId          String
   playerId        String
   sleeperPlayerId String
-  status          String @default("active") // active, ir, taxi
-  
-  // Timestamps (ISO 8601 format)
-  createdAt String @default("")
-  updatedAt String @default("")
-
-  // Relacionamentos
-  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  status          String @default("active")
+  createdAt       String @default("")
+  updatedAt       String @default("")
+  player          Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  team            Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, playerId])
   @@index([teamId])
@@ -271,31 +184,8 @@ model TeamRoster {
   @@map("team_rosters")
 }
 
-/**
- * Status possíveis de um contrato
- */
-enum ContractStatus {
-  ACTIVE
-  EXPIRED
-  TAGGED
-  EXTENDED
-  CUT
-}
-
-/**
- * Forma de aquisição de um jogador
- */
-enum AcquisitionType {
-  AUCTION
-  FAAB
-  ROOKIE_DRAFT
-  TRADE
-  UNDISPUTED
-}
-
-/**
- * Contrato atribuído a um jogador
- */
+/// *
+/// * Contrato atribuído a um jogador
 model Contract {
   id                        String          @id @default(cuid())
   playerId                  String
@@ -314,32 +204,64 @@ model Contract {
   fourthYearOptionActivated Boolean         @default(false)
   createdAt                 String          @default("")
   updatedAt                 String          @default("")
-
-  player   Player     @relation(fields: [playerId], references: [id])
-  team     Team       @relation(fields: [teamId], references: [id])
-  league   League     @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  deadMoney DeadMoney[]
+  league                    League          @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  player                    Player          @relation(fields: [playerId], references: [id])
+  team                      Team            @relation(fields: [teamId], references: [id])
+  deadMoney                 DeadMoney[]
 
   @@map("contracts")
 }
 
-/**
- * Registro de dead money para jogadores cortados
- */
+/// *
+/// * Registro de dead money para jogadores cortados
 model DeadMoney {
-  id         String  @id @default(cuid())
+  id         String    @id @default(cuid())
   teamId     String
   playerId   String
   contractId String?
   amount     Float
   year       Int
   reason     String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  player   Player   @relation(fields: [playerId], references: [id])
-  contract Contract? @relation(fields: [contractId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  contract   Contract? @relation(fields: [contractId], references: [id])
+  player     Player    @relation(fields: [playerId], references: [id])
+  team       Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@map("dead_money")
+}
+
+/// *
+/// * Tipos de perfil de usuário
+enum UserRole {
+  COMMISSIONER
+  USER
+}
+
+/// *
+/// * Status da liga
+enum LeagueStatus {
+  ACTIVE
+  OFFSEASON
+  ARCHIVED
+}
+
+/// *
+/// * Status possíveis de um contrato
+enum ContractStatus {
+  ACTIVE
+  EXPIRED
+  TAGGED
+  EXTENDED
+  CUT
+}
+
+/// *
+/// * Forma de aquisição de um jogador
+enum AcquisitionType {
+  AUCTION
+  FAAB
+  ROOKIE_DRAFT
+  TRADE
+  UNDISPUTED
 }
