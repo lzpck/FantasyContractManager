@@ -91,16 +91,16 @@ export async function PUT(request: NextRequest) {
     const updatedContract = await prisma.contract.update({
       where: { id: contractId },
       data: {
+        salary: currentSalary || originalSalary,
         originalSalary,
-        currentSalary: currentSalary || originalSalary,
         originalYears,
         yearsRemaining: yearsRemaining || originalYears,
-        acquisitionType: acquisitionType?.toUpperCase(),
+        contractType: acquisitionType?.toUpperCase() as any,
         hasFourthYearOption: hasFourthYearOption || false,
         hasBeenTagged: hasBeenTagged || false,
         hasBeenExtended: hasBeenExtended || false,
-        fourthYearOptionActivated: fourthYearOptionActivated || false,
-        status: (status || 'ACTIVE').toUpperCase(),
+        fourthYearActivated: fourthYearOptionActivated || false,
+        isActive: status !== 'INACTIVE',
         updatedAt: new Date().toISOString(),
       },
       include: {
