@@ -52,7 +52,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
 
     return (
       <TabsContext.Provider value={{ value: currentValue, onValueChange: handleValueChange }}>
-        <div ref={ref} className={cn('w-full', className)} {...props}>
+        <div ref={ref} className={cn('w-full space-y-0', className)} {...props}>
           {children}
         </div>
       </TabsContext.Provider>
@@ -73,7 +73,7 @@ const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(
       ref={ref}
       role="tablist"
       className={cn(
-        'inline-flex h-10 items-center justify-center rounded-md bg-slate-800 p-1 text-slate-400 border border-slate-700',
+        'inline-flex h-12 items-center justify-start rounded-t-2xl bg-slate-800 border border-slate-700 border-b-0 p-1 text-slate-400 shadow-lg',
         className
       )}
       {...props}
@@ -106,12 +106,10 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
         data-state={isSelected ? 'active' : 'inactive'}
         disabled={disabled}
         className={cn(
-          'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
-          'disabled:pointer-events-none disabled:opacity-50',
+          'inline-flex items-center justify-center whitespace-nowrap rounded-t-lg px-6 py-3 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-b-2 border-transparent hover:text-blue-400 hover:border-blue-400/50',
           isSelected
-            ? 'bg-slate-700 text-slate-100 shadow-sm border border-slate-600'
-            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50',
+            ? 'bg-slate-700 text-blue-400 border-blue-400 shadow-lg'
+            : 'text-slate-400 hover:bg-slate-700/50',
           className
         )}
         onClick={() => onValueChange(value)}
@@ -147,7 +145,7 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
         id={`tabpanel-${value}`}
         aria-labelledby={`tab-${value}`}
         className={cn(
-          'mt-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+          'bg-slate-800 rounded-b-2xl rounded-tr-2xl border border-slate-700 border-t-0 shadow-xl p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
           className
         )}
         {...props}

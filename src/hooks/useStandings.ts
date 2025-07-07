@@ -54,6 +54,12 @@ export function useStandings(leagueId: string, league: League | null) {
 
       // Para cada time financeiro, encontrar dados correspondentes no Sleeper
       teamFinancials.forEach(financial => {
+        // Verificar se o time existe e tem sleeperOwnerId
+        if (!financial.team || !financial.team.sleeperOwnerId) {
+          console.warn('Time sem sleeperOwnerId encontrado:', financial.team);
+          return;
+        }
+        
         const sleeperRoster = sleeperRosters.find(
           roster => roster.owner_id === financial.team.sleeperOwnerId
         );
