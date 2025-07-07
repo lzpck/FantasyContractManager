@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { AuthNavigation } from './AuthNavigation';
+import { Footer } from './Footer';
 
 /**
  * Componente que renderiza condicionalmente o layout baseado na rota atual
@@ -16,9 +17,14 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const authRoutes = ['/auth/signin', '/auth/signup', '/unauthorized'];
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
-  // Se for uma rota de autenticação, renderizar apenas o conteúdo
+  // Se for uma rota de autenticação, renderizar apenas o conteúdo com rodapé
   if (isAuthRoute) {
-    return <main className="bg-[#0f172a] min-h-screen">{children}</main>;
+    return (
+      <div className="bg-[#0f172a] min-h-screen flex flex-col">
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </div>
+    );
   }
 
   // Layout normal com sidebar para outras rotas
@@ -44,7 +50,10 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Conteúdo principal */}
-        <main className="bg-[#0f172a] min-h-screen">{children}</main>
+        <div className="bg-[#0f172a] min-h-screen flex flex-col">
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </div>
       </div>
     </>
   );
