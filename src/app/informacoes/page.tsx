@@ -351,9 +351,11 @@ export default function InformacoesPage() {
             <div>
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-slate-100 mb-2">Informações de Contato</h2>
-                <p className="text-slate-400">Entre em contato comigo para dúvidas, sugestões ou suporte</p>
+                <p className="text-slate-400">
+                  Entre em contato comigo para dúvidas, sugestões ou suporte
+                </p>
               </div>
-              
+
               <div className="max-w-4xl mx-auto">
                 {/* Card Principal do Desenvolvedor */}
                 <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 shadow-2xl border border-slate-700">
@@ -362,7 +364,7 @@ export default function InformacoesPage() {
                       <span className="text-2xl font-bold text-white">LZ</span>
                     </div>
                     <h3 className="text-xl font-semibold text-slate-100 mb-2">
-                      Leandro Zepeck
+                      Leandro Zepechouka
                     </h3>
                     <p className="text-slate-400">Desenvolvedor Full Stack</p>
                   </div>
@@ -377,7 +379,7 @@ export default function InformacoesPage() {
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium text-slate-300 mb-1">Email</p>
-                          <a 
+                          <a
                             href="mailto:zepechoukaleandro@gmail.com"
                             className="text-slate-100 hover:text-blue-400 transition-colors break-all"
                           >
@@ -395,7 +397,7 @@ export default function InformacoesPage() {
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium text-slate-300 mb-1">WhatsApp</p>
-                          <a 
+                          <a
                             href="https://wa.me/5541998472047"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -428,9 +430,9 @@ export default function InformacoesPage() {
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium text-slate-300 mb-1">GitHub</p>
-                          <a 
-                            href="https://github.com/lzpck" 
-                            target="_blank" 
+                          <a
+                            href="https://github.com/lzpck"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-slate-100 hover:text-blue-400 transition-colors"
                           >
@@ -448,11 +450,13 @@ export default function InformacoesPage() {
                         <span className="text-lg">💡</span>
                       </div>
                       <div>
-                        <h4 className="text-lg font-medium text-slate-100 mb-2">Vamos conversar!</h4>
+                        <h4 className="text-lg font-medium text-slate-100 mb-2">
+                          Vamos conversar!
+                        </h4>
                         <p className="text-slate-300 leading-relaxed">
-                          Estou sempre disponível para ajudar com dúvidas sobre o sistema, 
-                          receber sugestões de melhorias ou resolver qualquer problema que você possa encontrar. 
-                          Não hesite em entrar em contato!
+                          Estou sempre disponível para ajudar com dúvidas sobre o sistema, receber
+                          sugestões de melhorias ou resolver qualquer problema que você possa
+                          encontrar. Não hesite em entrar em contato!
                         </p>
                       </div>
                     </div>
@@ -466,13 +470,13 @@ export default function InformacoesPage() {
                     <h4 className="text-lg font-semibold text-slate-100 mb-1">Resposta Rápida</h4>
                     <p className="text-sm text-slate-400">Geralmente respondo em até 24h</p>
                   </div>
-                  
+
                   <div className="bg-slate-800 rounded-xl p-6 text-center border border-slate-700">
                     <div className="text-2xl mb-2">🛠️</div>
                     <h4 className="text-lg font-semibold text-slate-100 mb-1">Suporte Técnico</h4>
                     <p className="text-sm text-slate-400">Ajuda com bugs e problemas</p>
                   </div>
-                  
+
                   <div className="bg-slate-800 rounded-xl p-6 text-center border border-slate-700">
                     <div className="text-2xl mb-2">💭</div>
                     <h4 className="text-lg font-semibold text-slate-100 mb-1">Feedback</h4>
