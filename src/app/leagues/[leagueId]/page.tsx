@@ -38,7 +38,7 @@ export default function LeagueDetailsPage() {
   const [sortBy, setSortBy] = useState<'name' | 'availableCap' | 'totalSalaries'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filterText, setFilterText] = useState('');
-  
+
   // Estado para controle das abas
   const [activeTab, setActiveTab] = useState('teams');
 
@@ -50,14 +50,15 @@ export default function LeagueDetailsPage() {
 
   const { teams, loading: teamsLoading } = useTeams(leagueId);
   const { calculateRosterDiff, isLoading: rosterDiffLoading } = useRosterDiff();
-  
+
   // Hook para classificação
-  const { 
-    standings, 
-    loading: standingsLoading, 
+  const {
+    standings,
+    loading: standingsLoading,
     error: standingsError,
+    playoffTeamsCount,
     loadStandings,
-    sortStandings 
+    sortStandings,
   } = useStandings(leagueId, league);
 
   // Encontrar o time do usuário atual na liga
@@ -326,7 +327,7 @@ export default function LeagueDetailsPage() {
           const updatedFinancialSummaries = await Promise.all(summariesPromises);
           setTeamsFinancialSummary(updatedFinancialSummaries);
         }
-        
+
         // Atualizar dados de classificação
         await loadStandings();
 
@@ -344,7 +345,7 @@ export default function LeagueDetailsPage() {
   const handleTeamClick = (teamId: string) => {
     router.push(`/leagues/${leagueId}/teams/${teamId}`);
   };
-  
+
   // Função para manipular ordenação da classificação
   const handleStandingsSort = (sortBy: StandingsSortBy, order: 'asc' | 'desc') => {
     sortStandings(sortBy, order);
@@ -564,7 +565,7 @@ export default function LeagueDetailsPage() {
               <TabsTrigger value="teams">Times</TabsTrigger>
               <TabsTrigger value="standings">Classificação</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="teams" className="space-y-0">
               {/* Barra de filtros e ordenação */}
               <div className="bg-slate-800 border border-slate-700 border-b-0 rounded-t-2xl p-4">
@@ -583,7 +584,7 @@ export default function LeagueDetailsPage() {
                 <TeamsTable teams={filteredTeams} onTeamClick={handleTeamClick} league={league} />
               </div>
             </TabsContent>
-            
+
             <TabsContent value="standings" className="p-0">
               <StandingsTable
                 standings={standings}
@@ -591,6 +592,8 @@ export default function LeagueDetailsPage() {
                 error={standingsError}
                 onSort={handleStandingsSort}
                 onTeamClick={handleTeamClick}
+                league={league}
+                playoffTeamsCount={playoffTeamsCount}
               />
             </TabsContent>
           </Tabs>

@@ -705,7 +705,9 @@ export interface TeamStanding {
   pointsAgainst: number;
   /** Sequência atual (W/L) */
   streak: string;
-  /** Se está na zona de playoffs (top 6) */
+  /** Porcentagem de vitórias (PCT) */
+  pct: number;
+  /** Se está na zona de playoffs (baseado no número de times de playoffs da liga) */
   isPlayoffTeam: boolean;
   /** Dados do Sleeper roster */
   sleeperData?: {
@@ -730,11 +732,12 @@ export interface TeamStanding {
 /**
  * Opções de ordenação para a classificação
  */
-export type StandingsSortBy = 
+export type StandingsSortBy =
   | 'position'
   | 'name'
   | 'wins'
   | 'losses'
+  | 'pct'
   | 'pointsFor'
   | 'pointsAgainst'
   | 'availableCap'
