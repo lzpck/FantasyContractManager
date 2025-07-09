@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const contract = player.contracts[0]; // Contrato mais recente
+    const contract: any = player.contracts[0]; // Contrato mais recente
     const isLastYear = contract.yearsRemaining === 1;
     const canExtend = !contract.hasBeenExtended && isLastYear;
     const canTag = !contract.hasBeenTagged && isLastYear;
 
-    let analysis: any = {
+    const analysis: any = {
       player: {
         name: player.name,
         position: player.position,
