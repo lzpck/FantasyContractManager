@@ -68,17 +68,18 @@ Na seção "Actions", adicione as seguintes configurações:
 #### Schema OpenAPI
 
 ```yaml
-openapi: 3.0.0
+openapi: 3.1.0
 info:
   title: Fantasy Contract Manager API
   version: 1.0.0
-  description: API para consultar jogadores e contratos do Fantasy Contract Manager
+  description: API para consultar jogadores, contratos e salários em ligas de fantasy football
 servers:
-  - url: https://seu-dominio.vercel.app
+  - url: https://fcm-desenv.vercel.app/
     description: Servidor de produção
 paths:
   /api/gpt/players:
     get:
+      operationId: getPlayers
       summary: Buscar jogadores
       description: Busca jogadores por nome, posição ou ID do Sleeper
       parameters:
@@ -94,12 +95,12 @@ paths:
             type: string
         - name: position
           in: query
-          description: Posição do jogador
+          description: Posição do jogador (QB, RB, WR, TE, etc.)
           schema:
             type: string
         - name: includeContracts
           in: query
-          description: Incluir informações de contratos
+          description: Incluir informações de contratos e salários do jogador
           schema:
             type: boolean
             default: true
@@ -119,9 +120,11 @@ paths:
                     type: array
                     items:
                       type: object
+  /api/gpt/players/search:
     post:
+      operationId: searchPlayers
       summary: Busca avançada de jogadores
-      description: Busca múltiplos jogadores de uma vez
+      description: Busca múltiplos jogadores de uma vez, podendo comparar contratos
       requestBody:
         required: true
         content:
@@ -143,6 +146,7 @@ paths:
           description: Resultados da busca
   /api/gpt/contracts:
     get:
+      operationId: getContracts
       summary: Buscar contratos
       description: Busca contratos por jogador, time ou liga
       parameters:
@@ -163,7 +167,7 @@ paths:
             type: string
         - name: status
           in: query
-          description: Status do contrato
+          description: Status do contrato (ACTIVE, EXPIRED, EXTENDED, TAGGED)
           schema:
             type: string
             enum: [ACTIVE, EXPIRED, EXTENDED, TAGGED]
@@ -182,9 +186,11 @@ paths:
       responses:
         '200':
           description: Lista de contratos encontrados
+  /api/gpt/contracts/analysis:
     post:
+      operationId: analyzeContract
       summary: Análise de contratos
-      description: Análise detalhada para negociação
+      description: Análise detalhada para negociação (extensão, tag, corte, etc)
       requestBody:
         required: true
         content:
@@ -201,7 +207,7 @@ paths:
                   enum: [extension, tag, trade, cut]
       responses:
         '200':
-          description: Análise do contrato
+          description: Resultado da análise do contrato
 # Sem autenticação necessária - endpoints públicos
 ```
 
