@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       };
 
       if (includeContracts && player.contracts) {
-        playerData.contracts = player.contracts.map(contract => ({
+        playerData.contracts = player.contracts.map((contract: any) => ({
           id: contract.id,
           currentSalary: contract.currentSalary,
           yearsRemaining: contract.yearsRemaining,
