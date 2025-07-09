@@ -141,12 +141,27 @@ export async function GET(request: NextRequest) {
 
       const result: any = { ...baseContract };
 
-      if (includePlayer && contract.player && typeof contract.player === 'object' && 'id' in contract.player) {
+      if (
+        includePlayer &&
+        contract.player &&
+        typeof contract.player === 'object' &&
+        'id' in contract.player &&
+        'name' in contract.player &&
+        'position' in contract.player &&
+        'fantasyPositions' in contract.player &&
+        'team' in contract.player &&
+        'age' in contract.player &&
+        'sleeperPlayerId' in contract.player &&
+        'isActive' in contract.player
+      ) {
         result.player = {
           id: contract.player.id,
           name: contract.player.name,
           position: contract.player.position,
-          fantasyPositions: contract.player.fantasyPositions?.split(',').filter(Boolean) || [],
+          fantasyPositions:
+            typeof contract.player.fantasyPositions === 'string'
+              ? contract.player.fantasyPositions.split(',').filter(Boolean)
+              : [],
           nflTeam: contract.player.team,
           age: contract.player.age,
           sleeperPlayerId: contract.player.sleeperPlayerId,
