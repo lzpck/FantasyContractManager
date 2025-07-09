@@ -3,11 +3,13 @@
 ## 📋 Configuração Inicial
 
 ### Base URL Local
+
 ```
 http://localhost:3000
 ```
 
 ### Headers Necessários
+
 ```json
 {
   "Content-Type": "application/json"
@@ -21,11 +23,13 @@ http://localhost:3000
 ## 🏈 Endpoints de Jogadores
 
 ### 1. GET /api/gpt/players
+
 **Descrição:** Busca jogadores por nome, posição ou ID do Sleeper
 
 **URL:** `GET http://localhost:3000/api/gpt/players`
 
 **Parâmetros de Query:**
+
 - `name` (string, opcional): Nome do jogador (busca parcial)
 - `sleeperPlayerId` (string, opcional): ID específico do Sleeper
 - `position` (string, opcional): Posição do jogador (QB, RB, WR, TE, etc.)
@@ -45,6 +49,7 @@ GET http://localhost:3000/api/gpt/players?sleeperPlayerId=4046&includeContracts=
 ```
 
 **Exemplo de Resposta:**
+
 ```json
 {
   "success": true,
@@ -80,11 +85,13 @@ GET http://localhost:3000/api/gpt/players?sleeperPlayerId=4046&includeContracts=
 ```
 
 ### 2. POST /api/gpt/players/search
+
 **Descrição:** Busca avançada de múltiplos jogadores simultaneamente
 
 **URL:** `POST http://localhost:3000/api/gpt/players/search`
 
 **Body da Requisição:**
+
 ```json
 {
   "players": ["Josh Allen", "Patrick Mahomes", "Lamar Jackson"],
@@ -94,6 +101,7 @@ GET http://localhost:3000/api/gpt/players?sleeperPlayerId=4046&includeContracts=
 ```
 
 **Exemplo de Resposta:**
+
 ```json
 {
   "success": true,
@@ -122,11 +130,13 @@ GET http://localhost:3000/api/gpt/players?sleeperPlayerId=4046&includeContracts=
 ## 📄 Endpoints de Contratos
 
 ### 3. GET /api/gpt/contracts
+
 **Descrição:** Busca contratos por jogador, time ou liga
 
 **URL:** `GET http://localhost:3000/api/gpt/contracts`
 
 **Parâmetros de Query:**
+
 - `playerName` (string, opcional): Nome do jogador
 - `teamId` (string, opcional): ID do time
 - `leagueId` (string, opcional): ID da liga
@@ -148,6 +158,7 @@ GET http://localhost:3000/api/gpt/contracts?teamId=team-uuid&includePlayer=true
 ```
 
 **Exemplo de Resposta:**
+
 ```json
 {
   "success": true,
@@ -185,11 +196,13 @@ GET http://localhost:3000/api/gpt/contracts?teamId=team-uuid&includePlayer=true
 ```
 
 ### 4. POST /api/gpt/contracts/analysis
+
 **Descrição:** Análise detalhada de contratos para negociação
 
 **URL:** `POST http://localhost:3000/api/gpt/contracts/analysis`
 
 **Body da Requisição:**
+
 ```json
 {
   "playerName": "Josh Allen",
@@ -199,6 +212,7 @@ GET http://localhost:3000/api/gpt/contracts?teamId=team-uuid&includePlayer=true
 ```
 
 **Tipos de Análise Disponíveis:**
+
 - `extension`: Análise para extensão de contrato
 - `tag`: Análise para franchise tag
 - `trade`: Análise para negociação
@@ -234,6 +248,7 @@ GET http://localhost:3000/api/gpt/contracts?teamId=team-uuid&includePlayer=true
 ```
 
 **Exemplo de Resposta (Extension):**
+
 ```json
 {
   "success": true,
@@ -272,6 +287,7 @@ GET http://localhost:3000/api/gpt/contracts?teamId=team-uuid&includePlayer=true
 ```
 
 **Exemplo de Resposta (Trade):**
+
 ```json
 {
   "success": true,
@@ -295,11 +311,13 @@ GET http://localhost:3000/api/gpt/contracts?teamId=team-uuid&includePlayer=true
 ## 🔧 Configuração no Insomnia
 
 ### 1. Criar Nova Collection
+
 1. Abra o Insomnia
 2. Clique em "Create" → "Request Collection"
 3. Nome: "Fantasy Contract Manager - API GPT"
 
 ### 2. Configurar Environment
+
 1. Clique no dropdown de Environment
 2. Selecione "Manage Environments"
 3. Crie um novo environment:
@@ -316,15 +334,18 @@ GET http://localhost:3000/api/gpt/contracts?teamId=team-uuid&includePlayer=true
 Para cada endpoint, crie uma nova request:
 
 **GET Players:**
+
 - Method: GET
 - URL: `{{ _.base_url }}/api/gpt/players`
 - Query: `name=Josh&includeContracts=true`
 
 **POST Players Search:**
+
 - Method: POST
 - URL: `{{ _.base_url }}/api/gpt/players/search`
 - Headers: `Content-Type: {{ _.content_type }}`
 - Body (JSON):
+
 ```json
 {
   "players": ["Josh Allen", "Patrick Mahomes"],
@@ -333,15 +354,18 @@ Para cada endpoint, crie uma nova request:
 ```
 
 **GET Contracts:**
+
 - Method: GET
 - URL: `{{ _.base_url }}/api/gpt/contracts`
 - Query: `playerName=Josh Allen&includePlayer=true&includeTeam=true`
 
 **POST Contract Analysis:**
+
 - Method: POST
 - URL: `{{ _.base_url }}/api/gpt/contracts/analysis`
 - Headers: `Content-Type: {{ _.content_type }}`
 - Body (JSON):
+
 ```json
 {
   "playerName": "Josh Allen",
@@ -354,6 +378,7 @@ Para cada endpoint, crie uma nova request:
 ## 🚨 Tratamento de Erros
 
 ### Códigos de Status HTTP
+
 - `200`: Sucesso
 - `400`: Erro de validação (parâmetros inválidos)
 - `404`: Recurso não encontrado
@@ -362,6 +387,7 @@ Para cada endpoint, crie uma nova request:
 ### Exemplos de Respostas de Erro
 
 **400 - Bad Request:**
+
 ```json
 {
   "error": "Nome do jogador é obrigatório"
@@ -369,6 +395,7 @@ Para cada endpoint, crie uma nova request:
 ```
 
 **404 - Not Found:**
+
 ```json
 {
   "error": "Jogador não encontrado"
@@ -376,6 +403,7 @@ Para cada endpoint, crie uma nova request:
 ```
 
 **500 - Internal Server Error:**
+
 ```json
 {
   "error": "Erro interno do servidor"
@@ -412,18 +440,21 @@ npx prisma db seed
 ## 🎯 Casos de Teste Recomendados
 
 ### Cenários Positivos
+
 1. Buscar jogador existente com contratos
 2. Buscar múltiplos jogadores simultaneamente
 3. Analisar extensão de contrato elegível
 4. Analisar trade de jogador com contrato atrativo
 
 ### Cenários de Erro
+
 1. Buscar jogador inexistente
 2. Enviar tipo de análise inválido
 3. Enviar body malformado
 4. Buscar contrato sem especificar critérios
 
 ### Cenários Edge Case
+
 1. Jogador sem contratos ativos
 2. Análise de jogador já estendido
 3. Busca com caracteres especiais
