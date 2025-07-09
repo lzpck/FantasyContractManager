@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
     const availableCap = contract.team.league.salaryCap - totalSalaryUsed;
 
     // Análise específica por tipo
-    let analysis: any = {
+    const analysis: any = {
       contract: {
         id: contract.id,
         originalSalary: contract.originalSalary,
