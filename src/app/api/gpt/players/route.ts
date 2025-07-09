@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 /**
  * API endpoint específico para integração com ChatGPT
  * Permite consultar informações de jogadores e seus contratos
- * 
+ *
  * Autenticação: API Key no header 'X-API-Key'
  */
 
@@ -12,24 +12,24 @@ import { prisma } from '@/lib/prisma';
 // function validateApiKey(request: NextRequest): boolean {
 //   const apiKey = request.headers.get('X-API-Key');
 //   const validApiKey = process.env.GPT_API_KEY;
-//   
+//
 //   if (!validApiKey) {
 //     console.error('GPT_API_KEY não configurada no ambiente');
 //     return false;
 //   }
-//   
+//
 //   return apiKey === validApiKey;
 // }
 
 /**
  * GET /api/gpt/players
- * 
+ *
  * Parâmetros de consulta:
  * - name: Nome do jogador (busca parcial)
  * - sleeperPlayerId: ID específico do Sleeper
  * - position: Posição do jogador (QB, RB, WR, TE, etc.)
  * - includeContracts: true/false - incluir informações de contratos
- * 
+ *
  * Exemplo de uso:
  * GET /api/gpt/players?name=Josh Allen&includeContracts=true
  * GET /api/gpt/players?sleeperPlayerId=4881&includeContracts=true
@@ -46,18 +46,18 @@ export async function GET(request: NextRequest) {
 
     // Construir filtros de busca
     const whereClause: any = {};
-    
+
     if (name) {
       whereClause.name = {
         contains: name,
-        mode: 'insensitive'
+        mode: 'insensitive',
       };
     }
-    
+
     if (sleeperPlayerId) {
       whereClause.sleeperPlayerId = sleeperPlayerId;
     }
-    
+
     if (position) {
       whereClause.position = position;
     }
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     if (includeContracts) {
       includeClause.contracts = {
         where: {
-          status: 'ACTIVE' // Apenas contratos ativos
+          status: 'ACTIVE', // Apenas contratos ativos
         },
         include: {
           team: {
@@ -80,15 +80,15 @@ export async function GET(request: NextRequest) {
                   id: true,
                   name: true,
                   season: true,
-                  salaryCap: true
-                }
-              }
-            }
-          }
+                  salaryCap: true,
+                },
+              },
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       };
     }
 
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       where: whereClause,
       include: includeClause,
       orderBy: { name: 'asc' },
-      take: 50 // Limitar resultados para evitar sobrecarga
+      take: 50, // Limitar resultados para evitar sobrecarga
     });
 
     // Formatar resposta
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
         nflTeam: player.team,
         age: player.age,
         sleeperPlayerId: player.sleeperPlayerId,
-        isActive: player.isActive
+        isActive: player.isActive,
       };
 
       if (includeContracts && player.contracts) {
@@ -131,11 +131,11 @@ export async function GET(request: NextRequest) {
                 id: contract.team.league.id,
                 name: contract.team.league.name,
                 season: contract.team.league.season,
-                salaryCap: contract.team.league.salaryCap
-              }
+                salaryCap: contract.team.league.salaryCap,
+              },
             },
-            createdAt: contract.createdAt
-          }))
+            createdAt: contract.createdAt,
+          })),
         };
       }
 
@@ -145,26 +145,25 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       count: formattedPlayers.length,
-      players: formattedPlayers
+      players: formattedPlayers,
     });
-
   } catch (error) {
     console.error('Erro na API GPT Players:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Erro interno do servidor',
-        message: 'Não foi possível processar a solicitação'
+        message: 'Não foi possível processar a solicitação',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 /**
  * POST /api/gpt/players/search
- * 
+ *
  * Busca avançada de jogadores com múltiplos critérios
- * 
+ *
  * Body:
  * {
  *   "players": ["Josh Allen", "Patrick Mahomes"],
@@ -180,29 +179,26 @@ export async function POST(request: NextRequest) {
     const { players: playerNames, includeContracts = false, leagueId } = body;
 
     if (!playerNames || !Array.isArray(playerNames)) {
-      return NextResponse.json(
-        { error: 'Lista de jogadores é obrigatória' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lista de jogadores é obrigatória' }, { status: 400 });
     }
 
     // Construir filtros
     const whereClause: any = {
       name: {
         in: playerNames,
-        mode: 'insensitive'
-      }
+        mode: 'insensitive',
+      },
     };
 
     // Configurar include
     const includeClause: any = {};
     if (includeContracts) {
       const contractWhere: any = { status: 'ACTIVE' };
-      
+
       // Filtrar por liga específica se fornecida
       if (leagueId) {
         contractWhere.team = {
-          leagueId: leagueId
+          leagueId: leagueId,
         };
       }
 
@@ -219,19 +215,19 @@ export async function POST(request: NextRequest) {
                   id: true,
                   name: true,
                   season: true,
-                  salaryCap: true
-                }
-              }
-            }
-          }
-        }
+                  salaryCap: true,
+                },
+              },
+            },
+          },
+        },
       };
     }
 
     const players = await prisma.player.findMany({
       where: whereClause,
       include: includeClause,
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
     });
 
     // Formatar resposta similar ao GET
@@ -244,7 +240,7 @@ export async function POST(request: NextRequest) {
         nflTeam: player.team,
         age: player.age,
         sleeperPlayerId: player.sleeperPlayerId,
-        isActive: player.isActive
+        isActive: player.isActive,
       };
 
       if (includeContracts && player.contracts) {
@@ -265,11 +261,11 @@ export async function POST(request: NextRequest) {
                 id: contract.team.league.id,
                 name: contract.team.league.name,
                 season: contract.team.league.season,
-                salaryCap: contract.team.league.salaryCap
-              }
+                salaryCap: contract.team.league.salaryCap,
+              },
             },
-            createdAt: contract.createdAt
-          }))
+            createdAt: contract.createdAt,
+          })),
         };
       }
 
@@ -280,17 +276,16 @@ export async function POST(request: NextRequest) {
       success: true,
       count: formattedPlayers.length,
       players: formattedPlayers,
-      searchedNames: playerNames
+      searchedNames: playerNames,
     });
-
   } catch (error) {
     console.error('Erro na busca avançada GPT Players:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Erro interno do servidor',
-        message: 'Não foi possível processar a busca'
+        message: 'Não foi possível processar a busca',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

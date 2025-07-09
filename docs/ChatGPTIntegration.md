@@ -11,6 +11,7 @@ Este documento explica como configurar um GPT customizado para se comunicar com 
 **✅ Simplificado:** Os endpoints do ChatGPT agora são públicos e não requerem autenticação via API Key.
 
 **Motivos:**
+
 - O GPT customizado já é limitado por natureza
 - Os endpoints não expõem dados sensíveis
 - Facilita a configuração e uso
@@ -21,10 +22,12 @@ Este documento explica como configurar um GPT customizado para se comunicar com 
 A API oferece dois endpoints principais para o ChatGPT:
 
 #### 🏈 `/api/gpt/players`
+
 - **GET**: Busca jogadores por nome, posição ou ID do Sleeper
 - **POST**: Busca avançada de múltiplos jogadores
 
 #### 📄 `/api/gpt/contracts`
+
 - **GET**: Busca contratos por jogador, time ou liga
 - **POST**: Análise detalhada de contratos para negociação
 
@@ -213,11 +216,13 @@ Os endpoints são públicos e podem ser acessados diretamente pelo ChatGPT sem h
 ### 1. Consultar Salário de um Jogador
 
 **Prompt para o GPT:**
+
 ```
 "Qual é o salário atual do Josh Allen?"
 ```
 
 **O GPT fará uma chamada:**
+
 ```
 GET /api/gpt/players?name=Josh Allen&includeContracts=true
 ```
@@ -225,11 +230,13 @@ GET /api/gpt/players?name=Josh Allen&includeContracts=true
 ### 2. Analisar Extensão de Contrato
 
 **Prompt para o GPT:**
+
 ```
 "Posso estender o contrato do Patrick Mahomes? Qual seria o custo?"
 ```
 
 **O GPT fará uma chamada:**
+
 ```
 POST /api/gpt/contracts/analysis
 {
@@ -241,11 +248,13 @@ POST /api/gpt/contracts/analysis
 ### 3. Comparar Múltiplos Jogadores
 
 **Prompt para o GPT:**
+
 ```
 "Compare os contratos de Josh Allen, Patrick Mahomes e Lamar Jackson"
 ```
 
 **O GPT fará uma chamada:**
+
 ```
 POST /api/gpt/players/search
 {

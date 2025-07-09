@@ -9,11 +9,13 @@ Este documento apresenta exemplos reais de como usar o GPT customizado para nego
 ### 1. Consulta Básica de Salário
 
 **👤 Usuário:**
+
 ```
 Qual é o salário atual do Josh Allen?
 ```
 
 **🤖 GPT Response:**
+
 ```
 Consultando os dados atualizados do Josh Allen...
 
@@ -37,11 +39,13 @@ Consultando os dados atualizados do Josh Allen...
 ### 2. Análise de Extensão de Contrato
 
 **👤 Usuário:**
+
 ```
 Estou pensando em estender o contrato do Tyreek Hill. Ele está no último ano. Qual seria uma oferta justa?
 ```
 
 **🤖 GPT Response:**
+
 ```
 Analisando a situação contratual do Tyreek Hill...
 
@@ -79,11 +83,13 @@ Analisando a situação contratual do Tyreek Hill...
 ### 3. Comparação de Múltiplos Jogadores
 
 **👤 Usuário:**
+
 ```
 Compare os contratos dos top 5 quarterbacks da liga
 ```
 
 **🤖 GPT Response:**
+
 ```
 Consultando os contratos dos quarterbacks...
 
@@ -119,11 +125,13 @@ Consultando os contratos dos quarterbacks...
 ### 4. Análise de Salary Cap
 
 **👤 Usuário:**
+
 ```
 Meu time está com 92% do salary cap usado. Preciso liberar espaço. Quais jogadores posso cortar?
 ```
 
 **🤖 GPT Response:**
+
 ```
 Analisando sua situação de salary cap...
 
@@ -167,11 +175,13 @@ Analisando sua situação de salary cap...
 ### 5. Análise de Franchise Tag
 
 **👤 Usuário:**
+
 ```
 Posso usar franchise tag no Saquon Barkley? Quanto custaria?
 ```
 
 **🤖 GPT Response:**
+
 ```
 Analisando a elegibilidade para Franchise Tag...
 
@@ -212,11 +222,13 @@ Ofereça 3 anos por $25M-$28M anuais
 ### 6. Análise de Trade
 
 **👤 Usuário:**
+
 ```
 Estou pensando em trocar o DeAndre Hopkins por picks. Qual o valor dele?
 ```
 
 **🤖 GPT Response:**
+
 ```
 Analisando o valor de trade do DeAndre Hopkins...
 
@@ -288,6 +300,7 @@ Você pode criar prompts mais específicos para sua liga:
 ### Contexto de Liga
 
 Para melhores resultados, sempre forneça:
+
 - Nome da liga
 - Situação do seu time (competindo/rebuilding)
 - Objetivos específicos (liberar cap, melhorar posição)
