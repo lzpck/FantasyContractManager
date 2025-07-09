@@ -36,21 +36,23 @@ export async function POST(request: NextRequest) {
     const include: any = {};
     if (includeContracts) {
       include.contracts = {
-        where: leagueId ? {
-          team: {
-            leagueId: leagueId
-          }
-        } : {},
+        where: leagueId
+          ? {
+              team: {
+                leagueId: leagueId,
+              },
+            }
+          : {},
         include: {
           team: {
             include: {
-              league: true
-            }
-          }
+              league: true,
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       };
     }
 
@@ -80,16 +82,20 @@ export async function POST(request: NextRequest) {
           status: contract.status,
           hasBeenExtended: contract.hasBeenExtended,
           hasBeenTagged: contract.hasBeenTagged,
-          team: contract.team ? {
-            id: contract.team.id,
-            name: contract.team.name,
-            sleeperTeamId: contract.team.sleeperTeamId,
-            league: contract.team.league ? {
-              id: contract.team.league.id,
-              name: contract.team.league.name,
-              sleeperLeagueId: contract.team.league.sleeperLeagueId
-            } : null
-          } : null
+          team: contract.team
+            ? {
+                id: contract.team.id,
+                name: contract.team.name,
+                sleeperTeamId: contract.team.sleeperTeamId,
+                league: contract.team.league
+                  ? {
+                      id: contract.team.league.id,
+                      name: contract.team.league.name,
+                      sleeperLeagueId: contract.team.league.sleeperLeagueId,
+                    }
+                  : null,
+              }
+            : null,
         }));
       }
 
@@ -101,12 +107,8 @@ export async function POST(request: NextRequest) {
       count: formattedPlayers.length,
       players: formattedPlayers,
     });
-
   } catch (error) {
     console.error('Erro na busca avançada de jogadores:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

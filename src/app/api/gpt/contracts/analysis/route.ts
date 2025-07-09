@@ -38,23 +38,25 @@ export async function POST(request: NextRequest) {
       },
       include: {
         contracts: {
-          where: leagueId ? {
-            team: {
-              leagueId: leagueId
-            }
-          } : {},
+          where: leagueId
+            ? {
+                team: {
+                  leagueId: leagueId,
+                },
+              }
+            : {},
           include: {
             team: {
               include: {
-                league: true
-              }
-            }
+                league: true,
+              },
+            },
           },
           orderBy: {
-            createdAt: 'desc'
-          }
-        }
-      }
+            createdAt: 'desc',
+          },
+        },
+      },
     });
 
     if (!player) {
@@ -62,7 +64,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (!player.contracts || player.contracts.length === 0) {
-      return NextResponse.json({ error: 'Nenhum contrato encontrado para este jogador' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Nenhum contrato encontrado para este jogador' },
+        { status: 404 },
+      );
     }
 
     const contract = player.contracts[0]; // Contrato mais recente
@@ -74,7 +79,7 @@ export async function POST(request: NextRequest) {
       player: {
         name: player.name,
         position: player.position,
-        team: player.team
+        team: player.team,
       },
       contract: {
         id: contract.id,
@@ -83,80 +88,88 @@ export async function POST(request: NextRequest) {
         status: contract.status,
         hasBeenExtended: contract.hasBeenExtended,
         hasBeenTagged: contract.hasBeenTagged,
-        team: contract.team ? {
-          id: contract.team.id,
-          name: contract.team.name,
-          sleeperTeamId: contract.team.sleeperTeamId,
-          league: contract.team.league
-        } : null
+        team: contract.team
+          ? {
+              id: contract.team.id,
+              name: contract.team.name,
+              sleeperTeamId: contract.team.sleeperTeamId,
+              league: contract.team.league,
+            }
+          : null,
       },
       analysisType,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     switch (analysisType) {
       case 'extension':
         analysis.result = {
           eligible: canExtend,
-          reason: canExtend 
+          reason: canExtend
             ? 'Jogador elegível para extensão (último ano de contrato e não foi estendido)'
-            : contract.hasBeenExtended 
+            : contract.hasBeenExtended
               ? 'Jogador já foi estendido neste contrato'
               : 'Jogador não está no último ano de contrato',
-          recommendation: canExtend 
+          recommendation: canExtend
             ? 'Considere estender o contrato se o jogador tem bom desempenho'
             : 'Aguarde até o último ano do contrato para extensão',
-          estimatedCost: canExtend ? Math.round(contract.currentSalary * 1.2) : null
+          estimatedCost: canExtend ? Math.round(contract.currentSalary * 1.2) : null,
         };
         break;
 
       case 'tag':
         analysis.result = {
           eligible: canTag,
-          reason: canTag 
+          reason: canTag
             ? 'Jogador elegível para franchise tag (último ano de contrato e não foi tagueado)'
-            : contract.hasBeenTagged 
+            : contract.hasBeenTagged
               ? 'Jogador já foi tagueado neste contrato'
               : 'Jogador não está no último ano de contrato',
-          recommendation: canTag 
+          recommendation: canTag
             ? 'Use franchise tag se quiser manter o jogador por mais um ano'
             : 'Franchise tag não disponível para este contrato',
-          estimatedCost: canTag ? Math.round(contract.currentSalary * 1.5) : null
+          estimatedCost: canTag ? Math.round(contract.currentSalary * 1.5) : null,
         };
         break;
 
       case 'trade':
-        const attractiveness = contract.yearsRemaining > 1 && contract.currentSalary < 15000000 ? 'Alta' : 
-                              contract.yearsRemaining === 1 ? 'Baixa' : 'Média';
-        
+        const attractiveness =
+          contract.yearsRemaining > 1 && contract.currentSalary < 15000000
+            ? 'Alta'
+            : contract.yearsRemaining === 1
+              ? 'Baixa'
+              : 'Média';
+
         analysis.result = {
           eligible: true,
           attractiveness,
           reason: `Contrato com ${contract.yearsRemaining} ano(s) restante(s) e salário de $${contract.currentSalary.toLocaleString()}`,
-          recommendation: attractiveness === 'Alta' 
-            ? 'Bom momento para negociar - contrato atrativo'
-            : attractiveness === 'Média'
-              ? 'Negociação possível, mas pode precisar de incentivos'
-              : 'Difícil de negociar - contrato expirando ou salário alto',
-          marketValue: contract.currentSalary
+          recommendation:
+            attractiveness === 'Alta'
+              ? 'Bom momento para negociar - contrato atrativo'
+              : attractiveness === 'Média'
+                ? 'Negociação possível, mas pode precisar de incentivos'
+                : 'Difícil de negociar - contrato expirando ou salário alto',
+          marketValue: contract.currentSalary,
         };
         break;
 
       case 'cut':
-        const shouldCut = contract.currentSalary > 20000000 || 
-                         (contract.yearsRemaining === 1 && contract.currentSalary > 10000000);
-        
+        const shouldCut =
+          contract.currentSalary > 20000000 ||
+          (contract.yearsRemaining === 1 && contract.currentSalary > 10000000);
+
         analysis.result = {
           eligible: true,
           recommended: shouldCut,
-          reason: shouldCut 
+          reason: shouldCut
             ? 'Salário alto justifica considerar o corte'
             : 'Salário dentro do esperado para a posição',
-          recommendation: shouldCut 
+          recommendation: shouldCut
             ? 'Considere cortar para liberar espaço salarial'
             : 'Mantenha o jogador - bom custo-benefício',
           salarySavings: contract.currentSalary,
-          capHit: Math.round(contract.currentSalary * 0.3) // Estimativa de dead money
+          capHit: Math.round(contract.currentSalary * 0.3), // Estimativa de dead money
         };
         break;
 
@@ -166,14 +179,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      analysis
+      analysis,
     });
-
   } catch (error) {
     console.error('Erro na análise de contrato:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
