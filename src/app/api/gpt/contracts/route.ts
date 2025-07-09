@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
         originalSalary: contract.originalSalary,
         currentSalary: contract.currentSalary,
         originalYears: contract.originalYears,
-        remainingYears: contract.remainingYears,
+        remainingYears: contract.yearsRemaining,
         status: contract.status,
         acquisitionType: contract.acquisitionType,
         canExtend: contract.canExtend,
@@ -169,7 +169,15 @@ export async function GET(request: NextRequest) {
         };
       }
 
-      if (includeTeam && contract.team) {
+      if (
+        includeTeam &&
+        contract.team &&
+        typeof contract.team === 'object' &&
+        'id' in contract.team &&
+        'name' in contract.team &&
+        'sleeperTeamId' in contract.team &&
+        'league' in contract.team
+      ) {
         result.team = {
           id: contract.team.id,
           name: contract.team.name,
@@ -277,8 +285,8 @@ export async function POST(request: NextRequest) {
 
     // Calcular informações para análise
     const currentYear = new Date().getFullYear();
-    const contractYear = contract.originalYears - contract.remainingYears + 1;
-    const isLastYear = contract.remainingYears === 1;
+    const contractYear = contract.originalYears - contract.yearsRemaining + 1;
+    const isLastYear = contract.yearsRemaining === 1;
     const nextYearSalary = Math.round(contract.currentSalary * 1.15); // Aumento de 15%
 
     // Buscar salary cap disponível do time
@@ -302,7 +310,7 @@ export async function POST(request: NextRequest) {
         originalSalary: contract.originalSalary,
         currentSalary: contract.currentSalary,
         originalYears: contract.originalYears,
-        remainingYears: contract.remainingYears,
+        remainingYears: contract.yearsRemaining,
         contractYear: contractYear,
         isLastYear: isLastYear,
         nextYearSalary: nextYearSalary,
@@ -356,8 +364,8 @@ export async function POST(request: NextRequest) {
         // Calcular dead money
         const deadMoneyCurrent = contract.currentSalary;
         const deadMoneyFuture =
-          contract.remainingYears > 1
-            ? Math.round(contract.currentSalary * 0.25 * (contract.remainingYears - 1))
+          contract.yearsRemaining > 1
+          ? Math.round(contract.currentSalary * 0.25 * (contract.yearsRemaining - 1))
             : 0;
 
         analysis.cutAnalysis = {
@@ -366,8 +374,8 @@ export async function POST(request: NextRequest) {
           totalDeadMoney: deadMoneyCurrent + deadMoneyFuture,
           capSavings: 0, // No ano atual não há economia
           futureCapSavings:
-            contract.remainingYears > 1
-              ? Math.round(contract.currentSalary * 0.75 * (contract.remainingYears - 1))
+            contract.yearsRemaining > 1
+          ? Math.round(contract.currentSalary * 0.75 * (contract.yearsRemaining - 1))
               : 0,
         };
         break;
@@ -376,11 +384,11 @@ export async function POST(request: NextRequest) {
         analysis.tradeAnalysis = {
           tradeable: true,
           contractValue: contract.currentSalary,
-          remainingYears: contract.remainingYears,
-          attractiveness:
-            contract.remainingYears > 1 && contract.currentSalary < 20000000
-              ? 'Alta'
-              : contract.remainingYears === 1
+          remainingYears: contract.yearsRemaining,
+        canExtend:
+          contract.yearsRemaining > 1 && contract.currentSalary < 20000000
+            ? 'Sim'
+            : contract.yearsRemaining === 1
                 ? 'Baixa'
                 : 'Média',
         };
