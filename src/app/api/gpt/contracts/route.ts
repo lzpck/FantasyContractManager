@@ -133,8 +133,8 @@ export async function GET(request: NextRequest) {
         remainingYears: contract.yearsRemaining,
         status: contract.status,
         acquisitionType: contract.acquisitionType,
-        canExtend: contract.canExtend,
-        canTag: contract.canTag,
+        canExtend: contract.yearsRemaining === 1 && !contract.hasBeenExtended,
+        canTag: contract.yearsRemaining === 1 && !contract.hasBeenTagged,
         createdAt: contract.createdAt,
         updatedAt: contract.updatedAt,
       };
@@ -314,8 +314,8 @@ export async function POST(request: NextRequest) {
         contractYear: contractYear,
         isLastYear: isLastYear,
         nextYearSalary: nextYearSalary,
-        canExtend: contract.canExtend,
-        canTag: contract.canTag,
+        canExtend: contract.yearsRemaining === 1 && !contract.hasBeenExtended,
+        canTag: contract.yearsRemaining === 1 && !contract.hasBeenTagged,
       },
       player: contract.player,
       team: contract.team,
@@ -329,8 +329,8 @@ export async function POST(request: NextRequest) {
     switch (analysisType) {
       case 'extension':
         analysis.extensionAnalysis = {
-          eligible: contract.canExtend && isLastYear,
-          reason: !contract.canExtend
+          eligible: !contract.hasBeenExtended && isLastYear,
+          reason: contract.hasBeenExtended
             ? 'Jogador já foi estendido anteriormente'
             : !isLastYear
               ? 'Só pode estender no último ano do contrato'
@@ -349,8 +349,8 @@ export async function POST(request: NextRequest) {
         const tagCost = Math.max(nextYearSalary, positionAverage);
 
         analysis.tagAnalysis = {
-          eligible: contract.canTag && isLastYear,
-          reason: !contract.canTag
+          eligible: !contract.hasBeenTagged && isLastYear,
+          reason: contract.hasBeenTagged
             ? 'Jogador já foi tagueado anteriormente'
             : !isLastYear
               ? 'Só pode taguear após o último ano'
@@ -365,7 +365,7 @@ export async function POST(request: NextRequest) {
         const deadMoneyCurrent = contract.currentSalary;
         const deadMoneyFuture =
           contract.yearsRemaining > 1
-          ? Math.round(contract.currentSalary * 0.25 * (contract.yearsRemaining - 1))
+            ? Math.round(contract.currentSalary * 0.25 * (contract.yearsRemaining - 1))
             : 0;
 
         analysis.cutAnalysis = {
@@ -375,7 +375,7 @@ export async function POST(request: NextRequest) {
           capSavings: 0, // No ano atual não há economia
           futureCapSavings:
             contract.yearsRemaining > 1
-          ? Math.round(contract.currentSalary * 0.75 * (contract.yearsRemaining - 1))
+              ? Math.round(contract.currentSalary * 0.75 * (contract.yearsRemaining - 1))
               : 0,
         };
         break;
@@ -385,10 +385,10 @@ export async function POST(request: NextRequest) {
           tradeable: true,
           contractValue: contract.currentSalary,
           remainingYears: contract.yearsRemaining,
-        canExtend:
-          contract.yearsRemaining > 1 && contract.currentSalary < 20000000
-            ? 'Sim'
-            : contract.yearsRemaining === 1
+          attractiveness:
+            contract.yearsRemaining > 1 && contract.currentSalary < 20000000
+              ? 'Alta'
+              : contract.yearsRemaining === 1
                 ? 'Baixa'
                 : 'Média',
         };
