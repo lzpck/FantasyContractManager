@@ -1,6 +1,7 @@
 import React from 'react';
 import { PlayerWithContract, PlayerRosterStatus, League, DeadMoneyConfig } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
+import { getPositionTailwindClasses } from '@/utils/positionColors';
 import { PencilIcon, PlusIcon, ArrowPathIcon, TagIcon } from '@heroicons/react/24/outline';
 
 interface PlayerRosterSectionsProps {
@@ -250,10 +251,16 @@ export function PlayerRosterSections({
                     positions = [player.position];
                   }
 
-                  return positions.join(', ');
+                  return positions;
                 };
 
-                const displayPositions = getDisplayPositions(player);
+                const getFirstPosition = (player: any) => {
+                  const positions = getDisplayPositions(player);
+                  return positions.length > 0 ? positions[0] : 'N/A';
+                };
+
+                const displayPositionsText = getDisplayPositions(player).join(', ');
+                const firstPosition = getFirstPosition(player);
 
                 return (
                   <tr key={player.id} className="hover:bg-slate-700">
@@ -266,8 +273,10 @@ export function PlayerRosterSections({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {displayPositions}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPositionTailwindClasses(firstPosition)}`}
+                      >
+                        {displayPositionsText}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-100">

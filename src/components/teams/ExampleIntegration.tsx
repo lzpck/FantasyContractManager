@@ -13,6 +13,7 @@ import { useContractModal, useCanManageContracts } from '@/hooks/useContractModa
 import ContractModal from './ContractModal';
 import { PlusIcon, PencilIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/formatUtils';
+import { getPositionTailwindClasses } from '@/utils/positionColors';
 
 // Dados de exemplo para demonstração
 const EXAMPLE_LEAGUE: League = {
@@ -239,7 +240,9 @@ function ContractsTable({
                   <div className="text-sm text-slate-400">{playerWithContract.player.nflTeam}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPositionTailwindClasses(playerWithContract.player.position)}`}
+                  >
                     {playerWithContract.player.position}
                   </span>
                 </td>
