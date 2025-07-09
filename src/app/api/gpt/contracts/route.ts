@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 /**
  * API endpoint específico para consultar contratos via ChatGPT
  * Permite buscar contratos por jogador, time ou liga
- * 
+ *
  * Autenticação: API Key no header 'X-API-Key'
  */
 
@@ -12,18 +12,18 @@ import { prisma } from '@/lib/prisma';
 // function validateApiKey(request: NextRequest): boolean {
 //   const apiKey = request.headers.get('X-API-Key');
 //   const validApiKey = process.env.GPT_API_KEY;
-//   
+//
 //   if (!validApiKey) {
 //     console.error('GPT_API_KEY não configurada no ambiente');
 //     return false;
 //   }
-//   
+//
 //   return apiKey === validApiKey;
 // }
 
 /**
  * GET /api/gpt/contracts
- * 
+ *
  * Parâmetros de consulta:
  * - playerId: ID do jogador
  * - playerName: Nome do jogador (busca parcial)
@@ -32,7 +32,7 @@ import { prisma } from '@/lib/prisma';
  * - status: Status do contrato (ACTIVE, EXPIRED, etc.)
  * - includePlayer: true/false - incluir dados do jogador
  * - includeTeam: true/false - incluir dados do time
- * 
+ *
  * Exemplo de uso:
  * GET /api/gpt/contracts?playerName=Josh Allen&status=ACTIVE&includePlayer=true&includeTeam=true
  */
@@ -51,37 +51,37 @@ export async function GET(request: NextRequest) {
 
     // Construir filtros de busca
     const whereClause: any = {};
-    
+
     if (playerId) {
       whereClause.playerId = playerId;
     }
-    
+
     if (playerName) {
       whereClause.player = {
         name: {
           contains: playerName,
-          mode: 'insensitive'
-        }
+          mode: 'insensitive',
+        },
       };
     }
-    
+
     if (teamId) {
       whereClause.teamId = teamId;
     }
-    
+
     if (leagueId) {
       whereClause.team = {
-        leagueId: leagueId
+        leagueId: leagueId,
       };
     }
-    
+
     if (status) {
       whereClause.status = status;
     }
 
     // Configurar includes
     const includeClause: any = {};
-    
+
     if (includePlayer) {
       includeClause.player = {
         select: {
@@ -92,11 +92,11 @@ export async function GET(request: NextRequest) {
           team: true, // NFL team
           age: true,
           sleeperPlayerId: true,
-          isActive: true
-        }
+          isActive: true,
+        },
       };
     }
-    
+
     if (includeTeam) {
       includeClause.team = {
         select: {
@@ -108,10 +108,10 @@ export async function GET(request: NextRequest) {
               id: true,
               name: true,
               season: true,
-              salaryCap: true
-            }
-          }
-        }
+              salaryCap: true,
+            },
+          },
+        },
       };
     }
 
@@ -119,11 +119,8 @@ export async function GET(request: NextRequest) {
     const contracts = await prisma.contract.findMany({
       where: whereClause,
       include: includeClause,
-      orderBy: [
-        { createdAt: 'desc' },
-        { currentSalary: 'desc' }
-      ],
-      take: 100 // Limitar resultados
+      orderBy: [{ createdAt: 'desc' }, { currentSalary: 'desc' }],
+      take: 100, // Limitar resultados
     });
 
     // Formatar resposta
@@ -139,7 +136,7 @@ export async function GET(request: NextRequest) {
         canExtend: contract.canExtend,
         canTag: contract.canTag,
         createdAt: contract.createdAt,
-        updatedAt: contract.updatedAt
+        updatedAt: contract.updatedAt,
       };
 
       const result: any = { ...baseContract };
@@ -153,7 +150,7 @@ export async function GET(request: NextRequest) {
           nflTeam: contract.player.team,
           age: contract.player.age,
           sleeperPlayerId: contract.player.sleeperPlayerId,
-          isActive: contract.player.isActive
+          isActive: contract.player.isActive,
         };
       }
 
@@ -162,7 +159,7 @@ export async function GET(request: NextRequest) {
           id: contract.team.id,
           name: contract.team.name,
           sleeperTeamId: contract.team.sleeperTeamId,
-          league: contract.team.league
+          league: contract.team.league,
         };
       }
 
@@ -172,26 +169,25 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       count: formattedContracts.length,
-      contracts: formattedContracts
+      contracts: formattedContracts,
     });
-
   } catch (error) {
     console.error('Erro na API GPT Contracts:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Erro interno do servidor',
-        message: 'Não foi possível processar a solicitação'
+        message: 'Não foi possível processar a solicitação',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 /**
  * POST /api/gpt/contracts/analysis
- * 
+ *
  * Análise de contratos para negociação
- * 
+ *
  * Body:
  * {
  *   "playerName": "Josh Allen",
@@ -207,10 +203,7 @@ export async function POST(request: NextRequest) {
     const { playerName, leagueId, analysisType } = body;
 
     if (!playerName) {
-      return NextResponse.json(
-        { error: 'Nome do jogador é obrigatório' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Nome do jogador é obrigatório' }, { status: 400 });
     }
 
     // Buscar contrato ativo do jogador
@@ -219,15 +212,15 @@ export async function POST(request: NextRequest) {
         player: {
           name: {
             contains: playerName,
-            mode: 'insensitive'
-          }
+            mode: 'insensitive',
+          },
         },
         status: 'ACTIVE',
         ...(leagueId && {
           team: {
-            leagueId: leagueId
-          }
-        })
+            leagueId: leagueId,
+          },
+        }),
       },
       include: {
         player: {
@@ -239,8 +232,8 @@ export async function POST(request: NextRequest) {
             team: true,
             age: true,
             sleeperPlayerId: true,
-            isActive: true
-          }
+            isActive: true,
+          },
         },
         team: {
           select: {
@@ -252,18 +245,18 @@ export async function POST(request: NextRequest) {
                 id: true,
                 name: true,
                 season: true,
-                salaryCap: true
-              }
-            }
-          }
-        }
-      }
+                salaryCap: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!contract) {
       return NextResponse.json(
         { error: 'Contrato ativo não encontrado para este jogador' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -277,11 +270,11 @@ export async function POST(request: NextRequest) {
     const teamContracts = await prisma.contract.findMany({
       where: {
         teamId: contract.teamId,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
       },
       select: {
-        currentSalary: true
-      }
+        currentSalary: true,
+      },
     });
 
     const totalSalaryUsed = teamContracts.reduce((sum, c) => sum + c.currentSalary, 0);
@@ -299,28 +292,31 @@ export async function POST(request: NextRequest) {
         isLastYear: isLastYear,
         nextYearSalary: nextYearSalary,
         canExtend: contract.canExtend,
-        canTag: contract.canTag
+        canTag: contract.canTag,
       },
       player: contract.player,
       team: contract.team,
       financials: {
         totalSalaryUsed: totalSalaryUsed,
         availableCap: availableCap,
-        capPercentage: (totalSalaryUsed / contract.team.league.salaryCap) * 100
-      }
+        capPercentage: (totalSalaryUsed / contract.team.league.salaryCap) * 100,
+      },
     };
 
     switch (analysisType) {
       case 'extension':
         analysis.extensionAnalysis = {
           eligible: contract.canExtend && isLastYear,
-          reason: !contract.canExtend ? 'Jogador já foi estendido anteriormente' : 
-                  !isLastYear ? 'Só pode estender no último ano do contrato' : 'Elegível para extensão',
+          reason: !contract.canExtend
+            ? 'Jogador já foi estendido anteriormente'
+            : !isLastYear
+              ? 'Só pode estender no último ano do contrato'
+              : 'Elegível para extensão',
           suggestedYears: [1, 2, 3, 4],
           suggestedSalaryRange: {
             min: Math.round(contract.currentSalary * 0.9),
-            max: Math.round(contract.currentSalary * 1.5)
-          }
+            max: Math.round(contract.currentSalary * 1.5),
+          },
         };
         break;
 
@@ -328,29 +324,36 @@ export async function POST(request: NextRequest) {
         // Buscar média dos top 10 da posição (simulado)
         const positionAverage = Math.round(contract.currentSalary * 1.2); // Simulação
         const tagCost = Math.max(nextYearSalary, positionAverage);
-        
+
         analysis.tagAnalysis = {
           eligible: contract.canTag && isLastYear,
-          reason: !contract.canTag ? 'Jogador já foi tagueado anteriormente' : 
-                  !isLastYear ? 'Só pode taguear após o último ano' : 'Elegível para tag',
+          reason: !contract.canTag
+            ? 'Jogador já foi tagueado anteriormente'
+            : !isLastYear
+              ? 'Só pode taguear após o último ano'
+              : 'Elegível para tag',
           estimatedCost: tagCost,
-          affordable: tagCost <= availableCap
+          affordable: tagCost <= availableCap,
         };
         break;
 
       case 'cut':
         // Calcular dead money
         const deadMoneyCurrent = contract.currentSalary;
-        const deadMoneyFuture = contract.remainingYears > 1 ? 
-          Math.round(contract.currentSalary * 0.25 * (contract.remainingYears - 1)) : 0;
-        
+        const deadMoneyFuture =
+          contract.remainingYears > 1
+            ? Math.round(contract.currentSalary * 0.25 * (contract.remainingYears - 1))
+            : 0;
+
         analysis.cutAnalysis = {
           deadMoneyCurrent: deadMoneyCurrent,
           deadMoneyFuture: deadMoneyFuture,
           totalDeadMoney: deadMoneyCurrent + deadMoneyFuture,
           capSavings: 0, // No ano atual não há economia
-          futureCapSavings: contract.remainingYears > 1 ? 
-            Math.round(contract.currentSalary * 0.75 * (contract.remainingYears - 1)) : 0
+          futureCapSavings:
+            contract.remainingYears > 1
+              ? Math.round(contract.currentSalary * 0.75 * (contract.remainingYears - 1))
+              : 0,
         };
         break;
 
@@ -359,8 +362,12 @@ export async function POST(request: NextRequest) {
           tradeable: true,
           contractValue: contract.currentSalary,
           remainingYears: contract.remainingYears,
-          attractiveness: contract.remainingYears > 1 && contract.currentSalary < 20000000 ? 'Alta' : 
-                         contract.remainingYears === 1 ? 'Baixa' : 'Média'
+          attractiveness:
+            contract.remainingYears > 1 && contract.currentSalary < 20000000
+              ? 'Alta'
+              : contract.remainingYears === 1
+                ? 'Baixa'
+                : 'Média',
         };
         break;
     }
@@ -368,17 +375,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       analysisType: analysisType,
-      ...analysis
+      ...analysis,
     });
-
   } catch (error) {
     console.error('Erro na análise de contratos GPT:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Erro interno do servidor',
-        message: 'Não foi possível processar a análise'
+        message: 'Não foi possível processar a análise',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
