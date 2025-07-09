@@ -1,206 +1,381 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
 import { useContracts } from '@/hooks/useContracts';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-
+import { useAuth } from '@/hooks/useAuth';
+import { ContractsTable } from '@/components/contracts/ContractsTable';
+import { toast } from 'sonner';
 import { ContractWithPlayer, ContractStatus } from '@/types';
 
 function ContractsContent() {
-  const { user } = useAuth();
-  const { contracts, loading, error } = useContracts();
+  const { contracts, loading } = useContracts();
+  const { canImportLeague } = useAuth();
   const searchParams = useSearchParams();
+
+  // Estados para filtros e paginação
   const [filteredContracts, setFilteredContracts] = useState<ContractWithPlayer[]>([]);
+  const [filterText, setFilterText] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [yearsRemainingFilter, setYearsRemainingFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [contractsPerPage] = useState(25);
+  const [sortBy, setSortBy] = useState<'name' | 'position' | 'salary' | 'yearsRemaining'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  // Aplicar filtros baseados nos parâmetros da URL
+  // Aplicar filtros baseados nos parâmetros de query da URL
   useEffect(() => {
-    if (!contracts) return;
+    const status = searchParams.get('status');
+    const yearsRemaining = searchParams.get('yearsRemaining');
 
-    let filtered = [...contracts];
-
-    // Filtro por status
-    const statusFilter = searchParams.get('status');
-    if (statusFilter === 'active') {
-      filtered = filtered.filter(contract => contract.status === ContractStatus.ACTIVE);
+    if (status) {
+      setStatusFilter(status);
     }
 
-    // Filtro por anos restantes
-    const yearsRemainingFilter = searchParams.get('yearsRemaining');
-    if (yearsRemainingFilter) {
+    if (yearsRemaining) {
+      setYearsRemainingFilter(yearsRemaining);
+    }
+  }, [searchParams]);
+
+  // Aplicar filtros e ordenação
+  useEffect(() => {
+    let filtered = [...contracts];
+
+    // Aplicar filtro de texto
+    if (filterText) {
+      filtered = filtered.filter(
+        contract =>
+          contract.player.name.toLowerCase().includes(filterText.toLowerCase()) ||
+          contract.player.nflTeam?.toLowerCase().includes(filterText.toLowerCase()),
+      );
+    }
+
+    // Aplicar filtro de status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(contract => contract.status === statusFilter);
+    }
+
+    // Aplicar filtro de anos restantes
+    if (yearsRemainingFilter !== 'all') {
       const years = parseInt(yearsRemainingFilter);
       filtered = filtered.filter(contract => contract.yearsRemaining === years);
     }
 
+    // Aplicar ordenação
+    filtered.sort((a, b) => {
+      let valueA: any;
+      let valueB: any;
+
+      switch (sortBy) {
+        case 'name':
+          valueA = a.player.name;
+          valueB = b.player.name;
+          break;
+        case 'position':
+          valueA = a.player.position;
+          valueB = b.player.position;
+          break;
+        case 'salary':
+          valueA = a.currentSalary;
+          valueB = b.currentSalary;
+          break;
+        case 'yearsRemaining':
+          valueA = a.yearsRemaining;
+          valueB = b.yearsRemaining;
+          break;
+        default:
+          valueA = a.player.name;
+          valueB = b.player.name;
+      }
+
+      if (typeof valueA === 'string' && typeof valueB === 'string') {
+        return sortOrder === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+      } else {
+        return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
+      }
+    });
+
     setFilteredContracts(filtered);
-  }, [contracts, searchParams]);
+    setCurrentPage(1); // Reset para primeira página quando filtros mudam
+  }, [contracts, filterText, statusFilter, yearsRemainingFilter, sortBy, sortOrder]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando contratos...</p>
-        </div>
-      </div>
-    );
-  }
+  // Calcular contratos da página atual
+  const indexOfLastContract = currentPage * contractsPerPage;
+  const indexOfFirstContract = indexOfLastContract - contractsPerPage;
+  const currentContracts = filteredContracts.slice(indexOfFirstContract, indexOfLastContract);
+  const totalPages = Math.ceil(filteredContracts.length / contractsPerPage);
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            <p className="font-bold">Erro ao carregar contratos</p>
-            <p>{error}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Obter status únicos para o filtro
+  const uniqueStatuses = Array.from(new Set(contracts.map(contract => contract.status))).sort();
 
-  const getStatusColor = (status: string, yearsRemaining?: number) => {
-    // Priorizar anos restantes para contratos ativos
-    if (status === 'ACTIVE' && yearsRemaining !== undefined) {
-      if (yearsRemaining <= 1) return 'bg-red-100 text-red-800'; // Último ano - vermelho
-      if (yearsRemaining <= 2) return 'bg-yellow-100 text-yellow-800'; // Expira em breve - amarelo
-    }
+  // Obter anos restantes únicos para o filtro
+  const uniqueYearsRemaining = Array.from(
+    new Set(contracts.map(contract => contract.yearsRemaining)),
+  ).sort((a, b) => a - b);
 
-    switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800';
-      case 'EXPIRED':
-        return 'bg-red-100 text-red-800';
-      case 'TAGGED':
-        return 'bg-purple-100 text-purple-800'; // Alterado para roxo para consistência
-      case 'EXTENDED':
-        return 'bg-blue-100 text-blue-800';
-      case 'CUT':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const formatSalary = (salary: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(salary);
+  // Função para traduzir status
+  const translateStatus = (status: string) => {
+    const translations: { [key: string]: string } = {
+      ACTIVE: 'Ativo',
+      EXPIRED: 'Expirado',
+      TAGGED: 'Tagueado',
+      EXTENDED: 'Estendido',
+      CUT: 'Cortado',
+    };
+    return translations[status] || status;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        <div className="flex-1 p-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Contratos</h1>
-            <p className="text-gray-600 mt-2">Gerencie todos os seus contratos de jogadores.</p>
+    <div className="min-h-screen bg-background">
+      <div>
+        <div className="px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-foreground">Contratos</h1>
           </div>
 
-          {/* Filtros aplicados */}
-          {(searchParams.get('status') || searchParams.get('yearsRemaining')) && (
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Filtros aplicados:</h3>
-              <div className="flex gap-2">
-                {searchParams.get('status') === 'active' && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Contratos Ativos
-                  </span>
-                )}
-                {searchParams.get('yearsRemaining') === '1' && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                    Vencendo em 1 ano
-                  </span>
-                )}
+          {/* Barra de Filtros */}
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+              {/* Busca por texto */}
+              <div>
+                <label
+                  htmlFor="search"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+                >
+                  Buscar
+                </label>
+                <input
+                  type="text"
+                  id="search"
+                  value={filterText}
+                  onChange={e => setFilterText(e.target.value)}
+                  placeholder="Nome do jogador..."
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
+                />
+              </div>
+
+              {/* Filtro por status */}
+              <div>
+                <label
+                  htmlFor="status"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+                >
+                  Status
+                </label>
+                <select
+                  id="status"
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                >
+                  <option
+                    value="all"
+                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
+                    Todos os status
+                  </option>
+                  {uniqueStatuses.map(status => (
+                    <option
+                      key={status}
+                      value={status}
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
+                      {translateStatus(status)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por anos restantes */}
+              <div>
+                <label
+                  htmlFor="yearsRemaining"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+                >
+                  Anos Restantes
+                </label>
+                <select
+                  id="yearsRemaining"
+                  value={yearsRemainingFilter}
+                  onChange={e => setYearsRemainingFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                >
+                  <option
+                    value="all"
+                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
+                    Todos os anos
+                  </option>
+                  {uniqueYearsRemaining.map(years => (
+                    <option
+                      key={years}
+                      value={years.toString()}
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
+                      {years} {years === 1 ? 'ano' : 'anos'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Ordenação */}
+              <div>
+                <label
+                  htmlFor="sort"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+                >
+                  Ordenar por
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    id="sort"
+                    value={sortBy}
+                    onChange={e =>
+                      setSortBy(e.target.value as 'name' | 'position' | 'salary' | 'yearsRemaining')
+                    }
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
+                    <option
+                      value="name"
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
+                      Nome
+                    </option>
+                    <option
+                      value="position"
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
+                      Posição
+                    </option>
+                    <option
+                      value="salary"
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
+                      Salário
+                    </option>
+                    <option
+                      value="yearsRemaining"
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
+                      Anos Restantes
+                    </option>
+                  </select>
+                  <button
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
+                    {sortOrder === 'asc' ? '↑' : '↓'}
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Botão para limpar filtros */}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => {
+                  setFilterText('');
+                  setStatusFilter('all');
+                  setYearsRemainingFilter('all');
+                  setSortBy('name');
+                  setSortOrder('asc');
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                Limpar Filtros
+              </button>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-300">Carregando contratos...</p>
+            </div>
+          ) : (
+            <>
+              <ContractsTable contracts={currentContracts} />
+
+              {/* Paginação */}
+              {totalPages > 1 && (
+                <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6 mt-6 rounded-lg shadow-sm">
+                  <div className="flex-1 flex justify-between sm:hidden">
+                    <button
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Anterior
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                      className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Próximo
+                    </button>
+                  </div>
+                  <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700 dark:text-gray-200">
+                        Mostrando <span className="font-medium">{indexOfFirstContract + 1}</span> a{' '}
+                        <span className="font-medium">
+                          {Math.min(indexOfLastContract, filteredContracts.length)}
+                        </span>{' '}
+                        de <span className="font-medium">{filteredContracts.length}</span> contratos
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                        <button
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Anterior
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                          .filter(page => {
+                            const distance = Math.abs(page - currentPage);
+                            return distance <= 2 || page === 1 || page === totalPages;
+                          })
+                          .map((page, index, array) => {
+                            const showEllipsis = index > 0 && array[index - 1] !== page - 1;
+                            return (
+                              <div key={page}>
+                                {showEllipsis && (
+                                  <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    ...
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => setCurrentPage(page)}
+                                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                    currentPage === page
+                                      ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                                  }`}
+                                >
+                                  {page}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        <button
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          disabled={currentPage === totalPages}
+                          className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Próximo
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
-
-          {/* Tabela de Contratos */}
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">
-                Contratos ({filteredContracts.length})
-              </h3>
-            </div>
-
-            {filteredContracts.length === 0 ? (
-              <div className="px-6 py-12 text-center">
-                <p className="text-gray-500">
-                  Nenhum contrato encontrado com os filtros aplicados.
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Jogador
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Posição
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Salário Atual
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Anos Restantes
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Time NFL
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredContracts.map(contract => (
-                      <tr key={contract.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {contract.player.name}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{contract.player.position}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {formatSalary(contract.currentSalary)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {contract.yearsRemaining}{' '}
-                            {contract.yearsRemaining === 1 ? 'ano' : 'anos'}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status, contract.yearsRemaining)}`}
-                          >
-                            {contract.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {contract.player.nflTeam || 'N/A'}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>
@@ -209,8 +384,15 @@ function ContractsContent() {
 
 export default function ContractsPage() {
   return (
-    <ProtectedRoute>
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-400">Carregando contratos...</p>
+        </div>
+      </div>
+    }>
       <ContractsContent />
-    </ProtectedRoute>
+    </Suspense>
   );
 }
