@@ -121,6 +121,16 @@ O Fantasy Contract Manager é uma aplicação web moderna que elimina planilhas 
 - ✅ **Notificações**: Sistema de alertas para ações importantes
 - ✅ **Fuso Horário BR**: Todas as datas em horário de Brasília (ISO 8601)
 
+### **🤖 Integração com ChatGPT**
+
+- ✅ **API Dedicada**: Endpoints específicos para consulta de dados
+- ✅ **GPT Customizado**: Assistente especializado em negociações
+- ✅ **Consultas em Tempo Real**: Acesso direto aos dados atualizados
+- ✅ **Análises Automáticas**: Recomendações baseadas em dados reais
+- ✅ **Segurança**: Autenticação via API Key para acesso controlado
+
+> 📖 **Documentação Completa**: [ChatGPT Integration Guide](./docs/ChatGPTIntegration.md)
+
 ## 🛠️ Instalação e Execução
 
 ### **📦 Pré-requisitos**
