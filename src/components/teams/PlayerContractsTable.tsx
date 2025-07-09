@@ -2,6 +2,7 @@
 
 import { PlayerWithContract, ContractStatus, Contract } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
+import { getPositionTailwindClasses } from '@/utils/positionColors';
 import {
   ChevronUpIcon,
   ChevronDownIcon,
@@ -262,7 +263,9 @@ export function PlayerContractsTable({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPositionTailwindClasses(player.position)}`}
+                      >
                         {player.position}
                       </span>
                     </td>

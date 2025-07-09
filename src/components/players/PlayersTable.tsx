@@ -1,6 +1,7 @@
 'use client';
 
 import { Player, PlayerPosition } from '@/types';
+import { getPositionTailwindClasses } from '@/utils/positionColors';
 
 interface PlayersTableProps {
   players: Player[];
@@ -18,15 +19,7 @@ interface PlayersTableProps {
 export function PlayersTable({ players }: PlayersTableProps) {
   // Função para obter cor do badge de posição fantasy
   const getPositionColor = (position: string) => {
-    const colors: { [key: string]: string } = {
-      QB: 'bg-purple-600 text-purple-100',
-      RB: 'bg-green-600 text-green-100',
-      WR: 'bg-blue-600 text-blue-100',
-      TE: 'bg-yellow-600 text-yellow-100',
-      K: 'bg-slate-600 text-slate-100',
-      DEF: 'bg-red-600 text-red-100',
-    };
-    return colors[position] || 'bg-slate-600 text-slate-100';
+    return getPositionTailwindClasses(position);
   };
 
   // Função para renderizar as posições fantasy do jogador

@@ -1,7 +1,8 @@
 'use client';
 
-import { ContractWithPlayer, ContractStatus } from '@/types';
+import { PlayerWithContract, ContractStatus, ContractWithPlayer } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
+import { getPositionTailwindClasses } from '@/utils/positionColors';
 
 interface ContractsTableProps {
   contracts: ContractWithPlayer[];
@@ -18,15 +19,7 @@ interface ContractsTableProps {
 export function ContractsTable({ contracts }: ContractsTableProps) {
   // Função para obter cor do badge de posição
   const getPositionColor = (position: string) => {
-    const colors: { [key: string]: string } = {
-      QB: 'bg-purple-600 text-purple-100',
-      RB: 'bg-green-600 text-green-100',
-      WR: 'bg-blue-600 text-blue-100',
-      TE: 'bg-yellow-600 text-yellow-100',
-      K: 'bg-slate-600 text-slate-100',
-      DEF: 'bg-red-600 text-red-100',
-    };
-    return colors[position] || 'bg-slate-600 text-slate-100';
+    return getPositionTailwindClasses(position);
   };
 
   // Função para obter cor do status do contrato

@@ -3,6 +3,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { PlayerWithContract, ContractStatus } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
+import { POSITION_COLORS, getPositionColor } from '@/utils/positionColors';
 
 interface PositionDistributionChartProps {
   players: PlayerWithContract[];
@@ -11,32 +12,7 @@ interface PositionDistributionChartProps {
 export default function PositionDistributionChart({ players }: PositionDistributionChartProps) {
   // Filtrar jogadores com contratos
 
-  // Cores distintas para cada posição - otimizadas para acessibilidade e modo escuro
-  const POSITION_COLORS: Record<string, string> = {
-    QB: '#4F8EF7', // Azul vibrante
-    RB: '#19C37D', // Verde esmeralda
-    WR: '#FF9800', // Laranja
-    TE: '#9C27B0', // Roxo
-    K: '#E53935', // Vermelho
-    DL: '#00BCD4', // Ciano
-    LB: '#FF5722', // Vermelho-laranja
-    DB: '#795548', // Marrom
-    DEF: '#607D8B', // Azul-acinzentado
-    // Posições adicionais com cores de fallback
-    DT: '#3F51B5', // Índigo
-    DE: '#009688', // Verde-azulado
-    OLB: '#FF6F00', // Âmbar escuro
-    ILB: '#8BC34A', // Verde-lima
-    CB: '#E91E63', // Rosa
-    S: '#673AB7', // Roxo escuro
-    FS: '#2196F3', // Azul
-    SS: '#FFC107', // Amarelo
-  };
-
-  // Função para obter cor da posição com fallback
-  const getPositionColor = (position: string): string => {
-    return POSITION_COLORS[position] || '#9CA3AF'; // Cinza como fallback
-  };
+  // Cores importadas do utilitário centralizado
 
   // Filtrar jogadores que têm contratos válidos e ativos (não cortados)
   const playersWithValidContracts = players.filter(
