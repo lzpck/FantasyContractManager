@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { Team, League, PlayerWithContract, Contract, ContractStatus } from '@/types';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatCapUsage, getCurrencyClasses } from '@/utils/formatUtils';
@@ -146,6 +146,18 @@ export default function TeamHeader({
               {league.name} • {league.season}
             </p>
           </div>
+        </div>
+        
+        {/* Botão de Negociação de Contratos */}
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => window.open('https://chatgpt.com/g/g-683a78936f648191b2248f2dd84f3397-fantasy-football-agent-negotiator', '_blank')}
+            className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
+            title="Abrir Agente Negociador de Contratos"
+          >
+            <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2" />
+            <span className="font-medium">Negociar Contratos</span>
+          </button>
         </div>
       </div>
 
