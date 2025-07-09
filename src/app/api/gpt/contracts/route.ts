@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
 
       const result: any = { ...baseContract };
 
-      if (includePlayer && contract.player) {
+      if (includePlayer && contract.player && typeof contract.player === 'object' && 'id' in contract.player) {
         result.player = {
           id: contract.player.id,
           name: contract.player.name,
