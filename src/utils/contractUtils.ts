@@ -261,10 +261,53 @@ export function canApplyFranchiseTag(
  * @param currentSeason - Temporada atual
  * @returns Cálculo detalhado da franchise tag
  */
+/**
+ * Calcula a média dos top 10 salários de uma posição específica
+ * baseado nos contratos ativos da liga
+ *
+ * @param position - Posição do jogador
+ * @param allContracts - Todos os contratos da liga com dados dos jogadores
+ * @param currentSeason - Temporada atual
+ * @returns Média dos top 10 salários da posição
+ */
+export function calculatePositionTop10Average(
+  position: PlayerPosition,
+  allContracts: { contract: Contract; player: Player }[],
+  currentSeason: number,
+): number {
+  // Filtra contratos ativos da mesma posição
+  const samePositionContracts = allContracts.filter(
+    ({ contract, player }) =>
+      contract.status === ContractStatus.ACTIVE && player.position === position,
+  );
+
+  // Se não há contratos suficientes, retorna valor mínimo padrão
+  if (samePositionContracts.length === 0) {
+    return 1.0; // $1M como valor mínimo
+  }
+
+  // Calcula o salário atual de cada contrato considerando aumentos anuais
+  const currentSalaries = samePositionContracts.map(({ contract }) => {
+    const yearsFromSigning = currentSeason - contract.signedSeason;
+    return calculateAnnualSalary(contract, yearsFromSigning);
+  });
+
+  // Ordena os salários em ordem decrescente
+  const sortedSalaries = currentSalaries.sort((a, b) => b - a);
+
+  // Pega os top 10 (ou todos se houver menos de 10)
+  const top10Salaries = sortedSalaries.slice(0, 10);
+
+  // Calcula a média
+  const average = top10Salaries.reduce((sum, salary) => sum + salary, 0) / top10Salaries.length;
+
+  return Math.round(average * 100) / 100;
+}
+
 export function calculateFranchiseTagValue(
   player: Player,
   playerContract: Contract,
-  allContracts: Contract[],
+  allContracts: { contract: Contract; player: Player }[],
   currentSeason: number,
 ): FranchiseTagCalculation {
   // Calcula salário atual + 15%
@@ -272,24 +315,12 @@ export function calculateFranchiseTagValue(
   const currentSalary = calculateAnnualSalary(playerContract, yearsFromSigning);
   const salaryWith15Percent = currentSalary * 1.15;
 
-  // Filtra contratos ativos da mesma posição
-  // Em implementação real, seria necessário fazer join com tabela de jogadores
-  // para calcular a média dos top 10 da posição
-
-  // Para este exemplo, vamos usar um valor mock para a média da posição
-  // Em implementação real, seria calculado dinamicamente
-  const positionAverages: Record<PlayerPosition, number> = {
-    [PlayerPosition.QB]: 25.0,
-    [PlayerPosition.RB]: 12.0,
-    [PlayerPosition.WR]: 15.0,
-    [PlayerPosition.TE]: 8.0,
-    [PlayerPosition.K]: 3.0,
-    [PlayerPosition.DL]: 10.0,
-    [PlayerPosition.LB]: 8.0,
-    [PlayerPosition.DB]: 9.0,
-  };
-
-  const positionTop10Average = positionAverages[player.position] || 5.0;
+  // Calcula a média dinâmica dos top 10 da posição
+  const positionTop10Average = calculatePositionTop10Average(
+    player.position,
+    allContracts,
+    currentSeason,
+  );
 
   // Valor final é o maior entre os dois
   const finalTagValue = Math.max(salaryWith15Percent, positionTop10Average);

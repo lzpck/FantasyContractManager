@@ -6,6 +6,8 @@ import { XMarkIcon, PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/formatUtils';
 import { useContractModal } from '@/hooks/useContractModal';
 import { useContractOperations } from '@/hooks/useContractOperations';
+import { useLeagueContracts } from '@/hooks/useContracts';
+import { calculateFranchiseTagValue } from '@/utils/contractUtils';
 import { toast } from 'sonner';
 import ContractModal from './ContractModal';
 
@@ -52,6 +54,9 @@ export default function ContractActionsModal({
   });
 
   const contractModal = useContractModal();
+
+  // Hook para obter todos os contratos da liga (necessário para cálculo da franchise tag)
+  const { contracts: leagueContracts } = useLeagueContracts(league.id);
 
   const {
     createContract,
@@ -130,12 +135,25 @@ export default function ContractActionsModal({
     return remainingSalary * 0.25; // 25% do salário restante
   };
 
-  // Calcular valor da franchise tag
+  // Calcular valor da franchise tag usando cálculo dinâmico
   const calculateTagValue = () => {
-    if (!player?.contract) return 0;
-    const salaryIncrease = player.contract.currentSalary * 1.15;
-    const positionAverage = player.contract.currentSalary * 1.2; // Mock da média da posição
-    return Math.max(salaryIncrease, positionAverage);
+    if (!player?.contract || !player.player) return 0;
+    
+    // Preparar dados dos contratos com jogadores para o cálculo
+    const contractsWithPlayers = leagueContracts.map(contractWithPlayer => ({
+      contract: contractWithPlayer,
+      player: contractWithPlayer.player
+    }));
+    
+    // Usar a função de cálculo dinâmico da franchise tag
+    const tagCalculation = calculateFranchiseTagValue(
+      player.player,
+      player.contract,
+      contractsWithPlayers,
+      league.season
+    );
+    
+    return tagCalculation.finalTagValue;
   };
 
   // Verificar elegibilidade para ações
