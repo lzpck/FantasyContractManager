@@ -158,48 +158,26 @@ function DashboardContent() {
   // Cálculos dinâmicos baseados em dados reais
   const totalLeagues = leagues.length;
 
-  // Contratos ativos: filtrar apenas contratos com status ACTIVE
-  const activeContracts = contracts.filter(
+  // Filtrar contratos pela liga selecionada
+  const selectedLeagueContracts = selectedLeagueId 
+    ? contracts.filter(contract => {
+        // Buscar o time do contrato e verificar se pertence à liga selecionada
+        const contractTeam = teams.find(team => team.id === contract.teamId);
+        return contractTeam?.leagueId === selectedLeagueId;
+      })
+    : [];
+
+  // Contratos ativos: filtrar apenas contratos com status ACTIVE da liga selecionada
+  const activeContracts = selectedLeagueContracts.filter(
     contract => contract.status === ContractStatus.ACTIVE,
   ).length;
 
-  // Contratos vencendo: filtrar contratos com yearsRemaining = 1
-  const expiringContracts = contracts.filter(
+  // Contratos vencendo: filtrar contratos com yearsRemaining = 1 da liga selecionada
+  const expiringContracts = selectedLeagueContracts.filter(
     contract => contract.status === ContractStatus.ACTIVE && contract.yearsRemaining === 1,
   ).length;
 
-  // Cap médio utilizado: calcular média de utilização do cap dos times do usuário
-  const userTeams = teams.filter(team => team.ownerId === authUser?.id);
-  const averageCapUsed =
-    userTeams.length > 0 && salaryCapData
-      ? userTeams.reduce((acc, team) => {
-          const teamCapData = salaryCapData.find(data => data.teamId === team.id);
-          return acc + (teamCapData?.usedPercentage || 0);
-        }, 0) / userTeams.length
-      : 0;
-
-  // Calcular valor médio em milhões
-  const averageCapUsedInMillions =
-    userTeams.length > 0 && salaryCapData
-      ? userTeams.reduce((acc, team) => {
-          const teamCapData = salaryCapData.find(data => data.teamId === team.id);
-          const league = leagues.find(l => l.id === team.leagueId);
-          const salaryCap = league?.salaryCap || 279000000; // Default $279M
-          const usedAmount = ((teamCapData?.usedPercentage || 0) * salaryCap) / 100;
-          return acc + usedAmount;
-        }, 0) /
-        userTeams.length /
-        1000000 // Converter para milhões
-      : 0;
-
   // Verificar alertas
-  const hasCapAlert =
-    salaryCapData &&
-    userTeams.some(team => {
-      const teamCapData = salaryCapData.find(data => data.teamId === team.id);
-      return (teamCapData?.usedPercentage || 0) > 90;
-    });
-
   const hasExpiringAlert = expiringContracts > 0;
 
   // Filtrar ligas onde o usuário é GM ou comissário
@@ -296,7 +274,7 @@ function DashboardContent() {
           </div>
 
           {/* Cards de resumo */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <SummaryCard
               title="Total de Ligas"
               value={totalLeagues.toString()}
@@ -307,25 +285,19 @@ function DashboardContent() {
             />
             <SummaryCard
               title="Contratos Ativos"
-              value={activeContracts.toString()}
+              value={selectedLeagueId ? activeContracts.toString() : '-'}
+              subtitle={selectedLeagueId ? undefined : 'Selecione uma liga'}
               icon={DocumentTextIcon}
-              onClick={handleActiveContractsClick}
+              onClick={selectedLeagueId ? handleActiveContractsClick : undefined}
               hasAlert={false}
             />
             <SummaryCard
-              title="Cap Médio Utilizado"
-              value={`$${averageCapUsedInMillions.toFixed(1)}M`}
-              icon={CurrencyDollarIcon}
-              progressPercentage={averageCapUsed}
-              subtitle={`${averageCapUsed.toFixed(1)}% do cap total`}
-              hasAlert={hasCapAlert}
-            />
-            <SummaryCard
               title="Contratos Vencendo"
-              value={expiringContracts.toString()}
+              value={selectedLeagueId ? expiringContracts.toString() : '-'}
+              subtitle={selectedLeagueId ? undefined : 'Selecione uma liga'}
               icon={ClockIcon}
-              onClick={handleExpiringContractsClick}
-              hasAlert={hasExpiringAlert}
+              onClick={selectedLeagueId ? handleExpiringContractsClick : undefined}
+              hasAlert={hasExpiringAlert && selectedLeagueId}
             />
           </div>
 
