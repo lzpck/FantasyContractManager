@@ -147,11 +147,16 @@ export default function TeamHeader({
             </p>
           </div>
         </div>
-        
+
         {/* Botão de Negociação de Contratos */}
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => window.open('https://chatgpt.com/g/g-683a78936f648191b2248f2dd84f3397-fantasy-football-agent-negotiator', '_blank')}
+            onClick={() =>
+              window.open(
+                'https://chatgpt.com/g/g-683a78936f648191b2248f2dd84f3397-fantasy-football-agent-negotiator',
+                '_blank',
+              )
+            }
             className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
             title="Abrir Agente Negociador de Contratos"
           >
