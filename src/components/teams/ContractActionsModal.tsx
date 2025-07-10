@@ -138,21 +138,21 @@ export default function ContractActionsModal({
   // Calcular valor da franchise tag usando cálculo dinâmico
   const calculateTagValue = () => {
     if (!player?.contract || !player.player) return 0;
-    
+
     // Preparar dados dos contratos com jogadores para o cálculo
     const contractsWithPlayers = leagueContracts.map(contractWithPlayer => ({
       contract: contractWithPlayer,
-      player: contractWithPlayer.player
+      player: contractWithPlayer.player,
     }));
-    
+
     // Usar a função de cálculo dinâmico da franchise tag
     const tagCalculation = calculateFranchiseTagValue(
       player.player,
       player.contract,
       contractsWithPlayers,
-      league.season
+      league.season,
     );
-    
+
     return tagCalculation.finalTagValue;
   };
 
