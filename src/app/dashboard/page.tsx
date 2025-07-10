@@ -11,8 +11,12 @@ import { useSalaryCap } from '@/hooks/useSalaryCap';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 import { SummaryCard } from '@/components/dashboard/SummaryCard';
-import { SalaryCapChart } from '@/components/dashboard/SalaryCapChart';
-import { LeaguesList } from '@/components/dashboard/LeaguesList';
+import { LeagueSelector } from '@/components/dashboard/LeagueSelector';
+import { TopSalaries } from '@/components/dashboard/TopSalaries';
+import { TopSalariesByPosition } from '@/components/dashboard/TopSalariesByPosition';
+import { TopSpendingTeams } from '@/components/dashboard/TopSpendingTeams';
+import { TopCapSpaceTeams } from '@/components/dashboard/TopCapSpaceTeams';
+import { FranchiseTagValues } from '@/components/dashboard/FranchiseTagValues';
 
 import { getNFLState } from '@/services/nflStateService';
 import { ContractStatus } from '@/types';
@@ -39,6 +43,7 @@ function DashboardContent() {
   const { contracts, loading: contractsLoading } = useContracts();
   const { salaryCapData, loading: salaryCapLoading } = useSalaryCap();
   const [nflState, setNflState] = useState<{ season: string; week: number } | null>(null);
+  const [selectedLeagueId, setSelectedLeagueId] = useState<string>('');
 
   // Verificar se o usuário é comissário
   useEffect(() => {
@@ -63,6 +68,20 @@ function DashboardContent() {
       });
     }
   }, [isAuthenticated, authUser, state.user, setUser]);
+
+  // Definir liga selecionada automaticamente
+  useEffect(() => {
+    if (leagues.length > 0 && !selectedLeagueId) {
+      // Filtrar apenas ligas onde o usuário é GM ou comissário
+      const userLeagues = leagues.filter(league => 
+        league.ownerId === authUser?.id || 
+        league.commissioners?.includes(authUser?.id || '')
+      );
+      if (userLeagues.length > 0) {
+        setSelectedLeagueId(userLeagues[0].id);
+      }
+    }
+  }, [leagues, selectedLeagueId, authUser?.id]);
 
   // Buscar estado atual da NFL
   useEffect(() => {
@@ -183,6 +202,73 @@ function DashboardContent() {
 
   const hasExpiringAlert = expiringContracts > 0;
 
+  // Filtrar ligas onde o usuário é GM ou comissário
+  const userManagedLeagues = leagues.filter(league => 
+    league.ownerId === authUser?.id || 
+    league.commissioners?.includes(authUser?.id || '')
+  );
+
+  // Dados fictícios para as novas seções (serão substituídos por dados reais posteriormente)
+  const mockTopSalaries = [
+    { id: '1', playerName: 'Josh Allen', position: 'QB', teamName: 'Buffalo Bills', salary: 43000000, yearsRemaining: 3 },
+    { id: '2', playerName: 'Christian McCaffrey', position: 'RB', teamName: 'San Francisco 49ers', salary: 38000000, yearsRemaining: 2 },
+    { id: '3', playerName: 'Cooper Kupp', position: 'WR', teamName: 'Los Angeles Rams', salary: 35000000, yearsRemaining: 4 },
+    { id: '4', playerName: 'Travis Kelce', position: 'TE', teamName: 'Kansas City Chiefs', salary: 32000000, yearsRemaining: 1 },
+    { id: '5', playerName: 'Aaron Donald', position: 'DT', teamName: 'Los Angeles Rams', salary: 31000000, yearsRemaining: 2 },
+  ];
+
+  const mockPositionSalaries = [
+    {
+      position: 'QB',
+      players: [
+        { id: '1', playerName: 'Josh Allen', teamName: 'Buffalo Bills', salary: 43000000, yearsRemaining: 3 },
+        { id: '2', playerName: 'Patrick Mahomes', teamName: 'Kansas City Chiefs', salary: 41000000, yearsRemaining: 4 },
+        { id: '3', playerName: 'Lamar Jackson', teamName: 'Baltimore Ravens', salary: 40000000, yearsRemaining: 2 },
+      ]
+    },
+    {
+      position: 'RB',
+      players: [
+        { id: '4', playerName: 'Christian McCaffrey', teamName: 'San Francisco 49ers', salary: 38000000, yearsRemaining: 2 },
+        { id: '5', playerName: 'Derrick Henry', teamName: 'Tennessee Titans', salary: 25000000, yearsRemaining: 1 },
+        { id: '6', playerName: 'Dalvin Cook', teamName: 'Minnesota Vikings', salary: 24000000, yearsRemaining: 3 },
+      ]
+    },
+    {
+      position: 'WR',
+      players: [
+        { id: '7', playerName: 'Cooper Kupp', teamName: 'Los Angeles Rams', salary: 35000000, yearsRemaining: 4 },
+        { id: '8', playerName: 'Davante Adams', teamName: 'Las Vegas Raiders', salary: 34000000, yearsRemaining: 2 },
+        { id: '9', playerName: 'Tyreek Hill', teamName: 'Miami Dolphins', salary: 33000000, yearsRemaining: 3 },
+      ]
+    },
+  ];
+
+  const mockTopSpendingTeams = [
+    { id: '1', teamName: 'Team Alpha', ownerName: 'João Silva', totalSalary: 250000000, activeContracts: 15, salaryCap: 279000000, usedPercentage: 89.6 },
+    { id: '2', teamName: 'Team Beta', ownerName: 'Maria Santos', totalSalary: 240000000, activeContracts: 14, salaryCap: 279000000, usedPercentage: 86.0 },
+    { id: '3', teamName: 'Team Gamma', ownerName: 'Pedro Costa', totalSalary: 235000000, activeContracts: 16, salaryCap: 279000000, usedPercentage: 84.2 },
+    { id: '4', teamName: 'Team Delta', ownerName: 'Ana Oliveira', totalSalary: 230000000, activeContracts: 13, salaryCap: 279000000, usedPercentage: 82.4 },
+    { id: '5', teamName: 'Team Epsilon', ownerName: 'Carlos Lima', totalSalary: 225000000, activeContracts: 12, salaryCap: 279000000, usedPercentage: 80.6 },
+  ];
+
+  const mockTopCapSpaceTeams = [
+    { id: '1', teamName: 'Team Zeta', ownerName: 'Lucas Ferreira', availableCapSpace: 80000000, salaryCap: 279000000, usedPercentage: 71.3, totalSalary: 199000000 },
+    { id: '2', teamName: 'Team Eta', ownerName: 'Fernanda Rocha', availableCapSpace: 75000000, salaryCap: 279000000, usedPercentage: 73.1, totalSalary: 204000000 },
+    { id: '3', teamName: 'Team Theta', ownerName: 'Roberto Alves', availableCapSpace: 70000000, salaryCap: 279000000, usedPercentage: 74.9, totalSalary: 209000000 },
+    { id: '4', teamName: 'Team Iota', ownerName: 'Juliana Mendes', availableCapSpace: 65000000, salaryCap: 279000000, usedPercentage: 76.7, totalSalary: 214000000 },
+    { id: '5', teamName: 'Team Kappa', ownerName: 'Ricardo Souza', availableCapSpace: 60000000, salaryCap: 279000000, usedPercentage: 78.5, totalSalary: 219000000 },
+  ];
+
+  const mockFranchiseTagValues = [
+    { position: 'QB', tagValue: 45000000, averageTop10: 45000000, calculationMethod: 'average' as const, playerCount: 12 },
+    { position: 'RB', tagValue: 28000000, averageTop10: 28000000, calculationMethod: 'average' as const, playerCount: 15 },
+    { position: 'WR', tagValue: 32000000, averageTop10: 32000000, calculationMethod: 'average' as const, playerCount: 18 },
+    { position: 'TE', tagValue: 22000000, averageTop10: 22000000, calculationMethod: 'average' as const, playerCount: 10 },
+    { position: 'K', tagValue: 5000000, averageTop10: 5000000, calculationMethod: 'average' as const, playerCount: 8 },
+    { position: 'DEF', tagValue: 18000000, averageTop10: 18000000, calculationMethod: 'average' as const, playerCount: 12 },
+  ];
+
   // Handlers para navegação
   const handleActiveContractsClick = () => {
     router.push('/contracts?status=active');
@@ -243,38 +329,51 @@ function DashboardContent() {
             />
           </div>
 
-          {/* Grid principal com gráfico e lista de ligas */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
-            {/* Gráfico de distribuição do salary cap */}
-            <div className="xl:col-span-2 order-2 xl:order-1">
-              <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-4 sm:p-6 h-full">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Distribuição do Salary Cap por Time
-                  </h2>
-                  <div className="text-xs text-slate-400 hidden sm:block">
-                    Clique nas barras para mais detalhes
-                  </div>
-                </div>
-                <div className="min-h-[300px] sm:min-h-[400px]">
-                  <SalaryCapChart leagues={leagues} />
-                </div>
-              </div>
+          {/* Seletor de Liga */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-foreground">Análise Financeira da Liga</h2>
+              <LeagueSelector 
+                leagues={userManagedLeagues}
+                selectedLeagueId={selectedLeagueId}
+                onLeagueChange={setSelectedLeagueId}
+                loading={isLoading}
+              />
+            </div>
+          </div>
+
+          {/* Grid principal com as novas seções analíticas */}
+          <div className="space-y-6">
+            {/* Primeira linha: Top 5 Salários e Maiores Salários por Posição */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TopSalaries 
+                topSalaries={mockTopSalaries}
+                loading={isLoading}
+              />
+              <TopSalariesByPosition 
+                positionSalaries={mockPositionSalaries}
+                loading={isLoading}
+              />
             </div>
 
-            {/* Lista de ligas */}
-            <div className="xl:col-span-1 order-1 xl:order-2">
-              <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-4 sm:p-6 h-full">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-foreground">Suas Ligas</h2>
-                  <div className="text-xs text-slate-400">
-                    {leagues.length} {leagues.length === 1 ? 'liga' : 'ligas'}
-                  </div>
-                </div>
-                <div className="overflow-hidden">
-                  <LeaguesList leagues={leagues} />
-                </div>
-              </div>
+            {/* Segunda linha: Times com Mais Salário e Times com Mais Cap Space */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TopSpendingTeams 
+                topSpendingTeams={mockTopSpendingTeams}
+                loading={isLoading}
+              />
+              <TopCapSpaceTeams 
+                topCapSpaceTeams={mockTopCapSpaceTeams}
+                loading={isLoading}
+              />
+            </div>
+
+            {/* Terceira linha: Valores de Franchise Tag */}
+            <div className="grid grid-cols-1 gap-6">
+              <FranchiseTagValues 
+                franchiseTagValues={mockFranchiseTagValues}
+                loading={isLoading}
+              />
             </div>
           </div>
         </div>
