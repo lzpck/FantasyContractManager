@@ -21,10 +21,8 @@ export default function TeamHeaderExample({
   onBack,
 }: TeamHeaderExampleProps) {
   // Busca dados financeiros em tempo real
-  const { contracts, deadMoneyRecords, isLoading, error, revalidateFinancials } = useTeamFinancials(
-    team.id,
-    league.id,
-  );
+  const { contracts, deadMoneyRecords, isLoading, error, revalidateFinancials } =
+    useTeamFinancials(team.id);
 
   // Loading state
   if (isLoading) {
@@ -70,7 +68,6 @@ export default function TeamHeaderExample({
       players={players}
       contracts={contracts}
       deadMoneyRecords={deadMoneyRecords}
-      onBack={onBack}
     />
   );
 }
@@ -80,7 +77,7 @@ export default function TeamHeaderExample({
  * Use este hook em componentes que fazem cortes, contratações, etc.
  */
 export function useRevalidateTeamFinancials(teamId: string) {
-  const { revalidateFinancials } = useTeamFinancials(teamId, '');
+  const { revalidateFinancials } = useTeamFinancials(teamId);
 
   return {
     /**

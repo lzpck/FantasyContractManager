@@ -13,7 +13,6 @@ export default withAuth(
     // Rotas que requerem autenticação de comissário
     const commissionerRoutes = [
       '/admin',
-      '/dashboard',
       '/settings',
       '/leagues/import',
       '/api/leagues/import',

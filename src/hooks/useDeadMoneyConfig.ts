@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DeadMoneyConfig, DEFAULT_DEAD_MONEY_CONFIG } from '@/types';
 
 interface DeadMoneyConfigResponse {
@@ -35,7 +35,7 @@ export function useDeadMoneyConfig(leagueId: string): UseDeadMoneyConfigReturn {
   const [error, setError] = useState<string | null>(null);
 
   // Carregar configuração da API
-  const loadConfig = async () => {
+  const loadConfig = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -64,7 +64,7 @@ export function useDeadMoneyConfig(leagueId: string): UseDeadMoneyConfigReturn {
     } finally {
       setLoading(false);
     }
-  };
+  }, [leagueId]);
 
   // Atualizar configuração na API
   const updateConfig = async (newConfig: DeadMoneyConfig): Promise<boolean> => {
@@ -104,7 +104,7 @@ export function useDeadMoneyConfig(leagueId: string): UseDeadMoneyConfigReturn {
     if (leagueId) {
       loadConfig();
     }
-  }, [leagueId]);
+  }, [leagueId, loadConfig]);
 
   return {
     config,

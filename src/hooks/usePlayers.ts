@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { Player } from '@/types';
 
 export function usePlayers() {

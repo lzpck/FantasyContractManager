@@ -3,7 +3,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { PlayerWithContract, ContractStatus } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
-import { POSITION_COLORS, getPositionColor } from '@/utils/positionColors';
+import { getPositionColor } from '@/utils/positionColors';
 
 interface PositionDistributionChartProps {
   players: PlayerWithContract[];

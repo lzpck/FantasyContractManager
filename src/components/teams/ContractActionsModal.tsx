@@ -197,7 +197,6 @@ export default function ContractActionsModal({
       player.contract,
       parseInt(formData.extensionYears),
       parseFloat(formData.extensionSalary),
-      0,
     );
 
     if (result.success) {

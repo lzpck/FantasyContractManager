@@ -10,7 +10,6 @@ export function useAuth() {
   const isLoading = status === 'loading';
   const isAuthenticated = !!session;
   const user = session?.user;
-  const isDemo = false; // Removido sistema demo
 
   // Verificações de permissão
   const isCommissioner = user?.role === UserRole.COMMISSIONER;

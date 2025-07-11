@@ -21,7 +21,7 @@ interface TopCapSpaceTeamsProps {
 
 /**
  * Componente que exibe os times com mais cap space livre
- * 
+ *
  * Mostra os times com maior espaço disponível no salary cap,
  * útil para identificar quais times têm mais flexibilidade financeira.
  */
@@ -59,7 +59,7 @@ export function TopCapSpaceTeams({ topCapSpaceTeams, loading = false }: TopCapSp
         <BanknotesIcon className="h-6 w-6 text-emerald-500 mr-2" />
         <h3 className="text-lg font-semibold text-slate-100">Times com Mais Cap Space</h3>
       </div>
-      
+
       {topCapSpaceTeams.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-slate-400">Nenhum time encontrado</p>
@@ -68,7 +68,7 @@ export function TopCapSpaceTeams({ topCapSpaceTeams, loading = false }: TopCapSp
         <div className="space-y-3">
           {topCapSpaceTeams.map((team, index) => {
             const availablePercentage = 100 - team.usedPercentage;
-            
+
             // Determinar cor baseada no cap space disponível
             const getCapSpaceColor = (percentage: number) => {
               if (percentage >= 50) return 'text-emerald-400';
@@ -85,8 +85,8 @@ export function TopCapSpaceTeams({ topCapSpaceTeams, loading = false }: TopCapSp
             };
 
             return (
-              <div 
-                key={team.id} 
+              <div
+                key={team.id}
                 className="flex justify-between items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-650 transition-colors"
               >
                 <div className="flex-1">
@@ -94,10 +94,8 @@ export function TopCapSpaceTeams({ topCapSpaceTeams, loading = false }: TopCapSp
                     <span className="text-sm font-medium text-slate-300">#{index + 1}</span>
                     <span className="font-semibold text-slate-100">{team.teamName}</span>
                   </div>
-                  <div className="text-sm text-slate-400 mt-1">
-                    {team.ownerName}
-                  </div>
-                  
+                  <div className="text-sm text-slate-400 mt-1">{team.ownerName}</div>
+
                   {/* Barra de progresso do cap space disponível */}
                   <div className="mt-2">
                     <div className="flex justify-between text-xs text-slate-400 mb-1">
@@ -107,26 +105,25 @@ export function TopCapSpaceTeams({ topCapSpaceTeams, loading = false }: TopCapSp
                       </span>
                     </div>
                     <div className="w-full bg-slate-600 rounded-full h-2">
-                      <div 
+                      <div
                         className={`h-2 rounded-full transition-all duration-300 ${getCapSpaceBgColor(availablePercentage)}`}
                         style={{ width: `${Math.min(availablePercentage, 100)}%` }}
                       ></div>
                     </div>
                   </div>
-                  
+
                   {/* Informação adicional sobre salário usado */}
                   <div className="text-xs text-slate-500 mt-1">
-                    Usado: ${(team.totalSalary / 1000000).toFixed(1)}M de ${(team.salaryCap / 1000000).toFixed(0)}M
+                    Usado: ${(team.totalSalary / 1000000).toFixed(1)}M de $
+                    {(team.salaryCap / 1000000).toFixed(0)}M
                   </div>
                 </div>
-                
+
                 <div className="text-right ml-4">
                   <div className="font-bold text-emerald-400">
                     ${(team.availableCapSpace / 1000000).toFixed(1)}M
                   </div>
-                  <div className="text-xs text-slate-400">
-                    disponível
-                  </div>
+                  <div className="text-xs text-slate-400">disponível</div>
                 </div>
               </div>
             );

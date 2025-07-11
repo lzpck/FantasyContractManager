@@ -16,15 +16,15 @@ interface LeagueSelectorProps {
 
 /**
  * Componente seletor de liga para o dashboard analítico
- * 
+ *
  * Permite ao usuário escolher qual liga visualizar nos dados analíticos.
  * Mostra apenas ligas onde o usuário é GM ou comissário.
  */
-export function LeagueSelector({ 
-  leagues, 
-  selectedLeagueId, 
-  onLeagueChange, 
-  loading = false 
+export function LeagueSelector({
+  leagues,
+  selectedLeagueId,
+  onLeagueChange,
+  loading = false,
 }: LeagueSelectorProps) {
   const selectedLeague = leagues.find(league => league.id === selectedLeagueId);
 
@@ -43,10 +43,10 @@ export function LeagueSelector({
     <div className="relative">
       <select
         value={selectedLeagueId}
-        onChange={(e) => onLeagueChange(e.target.value)}
+        onChange={e => onLeagueChange(e.target.value)}
         className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 pr-10 text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none cursor-pointer min-w-[200px]"
       >
-        {leagues.map((league) => (
+        {leagues.map(league => (
           <option key={league.id} value={league.id} className="bg-slate-800">
             {league.name}
           </option>

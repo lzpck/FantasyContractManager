@@ -15,7 +15,6 @@ import {
   League,
   ContractStatus,
   AcquisitionType,
-  DeadMoneyConfig,
   DEFAULT_DEAD_MONEY_CONFIG,
 } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
@@ -24,7 +23,7 @@ import { calculateDeadMoney } from '@/utils/contractUtils';
 interface ContractOperationResult {
   success: boolean;
   message: string;
-  data?: any;
+  data?: Contract | null;
 }
 
 interface UseContractOperationsProps {
@@ -78,7 +77,7 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
 
       return errors;
     },
-    [league?.salaryCap],
+    [league],
   );
 
   // Calcular valores do contrato
@@ -210,7 +209,7 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
         setIsLoading(false);
       }
     },
-    [team.id, league?.id, league?.season, validateContract, calculateContractValues, onUpdate],
+    [team.id, league, validateContract, calculateContractValues, onUpdate],
   );
 
   // Editar contrato existente
@@ -311,7 +310,6 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
       contract: Contract,
       extensionYears: number,
       extensionValue: number,
-      additionalGuaranteed: number = 0,
     ): Promise<ContractOperationResult> => {
       setIsLoading(true);
       setError(null);
@@ -377,7 +375,7 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
         setIsLoading(false);
       }
     },
-    [calculateContractValues, onUpdate],
+    [onUpdate],
   );
 
   // Aplicar Franchise Tag
@@ -451,7 +449,7 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
         setIsLoading(false);
       }
     },
-    [team.id, league?.id, league?.season, onUpdate],
+    [team.id, league, onUpdate],
   );
 
   // Cortar jogador
@@ -515,7 +513,7 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
         return {
           success: true,
           message: `${player.name} foi cortado. Dead money: ${formatCurrency(deadMoney)}`,
-          data: { contract: cutContract, deadMoney },
+          data: cutContract,
         };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -529,7 +527,7 @@ export function useContractOperations({ team, league, onUpdate }: UseContractOpe
         setIsLoading(false);
       }
     },
-    [onUpdate],
+    [league.deadMoneyConfig, league.season, onUpdate],
   );
 
   return {

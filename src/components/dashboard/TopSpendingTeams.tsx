@@ -21,7 +21,7 @@ interface TopSpendingTeamsProps {
 
 /**
  * Componente que exibe os times com mais salário total alocado
- * 
+ *
  * Mostra os times que mais gastaram em salários na liga selecionada,
  * incluindo percentual do salary cap utilizado e número de contratos ativos.
  */
@@ -59,7 +59,7 @@ export function TopSpendingTeams({ topSpendingTeams, loading = false }: TopSpend
         <TrophyIcon className="h-6 w-6 text-yellow-500 mr-2" />
         <h3 className="text-lg font-semibold text-slate-100">Times com Mais Salário Alocado</h3>
       </div>
-      
+
       {topSpendingTeams.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-slate-400">Nenhum time encontrado</p>
@@ -83,8 +83,8 @@ export function TopSpendingTeams({ topSpendingTeams, loading = false }: TopSpend
             };
 
             return (
-              <div 
-                key={team.id} 
+              <div
+                key={team.id}
                 className="flex justify-between items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-650 transition-colors"
               >
                 <div className="flex-1">
@@ -95,7 +95,7 @@ export function TopSpendingTeams({ topSpendingTeams, loading = false }: TopSpend
                   <div className="text-sm text-slate-400 mt-1">
                     {team.ownerName} • {team.activeContracts} contratos ativos
                   </div>
-                  
+
                   {/* Barra de progresso do salary cap */}
                   <div className="mt-2">
                     <div className="flex justify-between text-xs text-slate-400 mb-1">
@@ -105,14 +105,14 @@ export function TopSpendingTeams({ topSpendingTeams, loading = false }: TopSpend
                       </span>
                     </div>
                     <div className="w-full bg-slate-600 rounded-full h-2">
-                      <div 
+                      <div
                         className={`h-2 rounded-full transition-all duration-300 ${getUsageBgColor(team.usedPercentage)}`}
                         style={{ width: `${Math.min(team.usedPercentage, 100)}%` }}
                       ></div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="text-right ml-4">
                   <div className="font-bold text-green-400">
                     ${(team.totalSalary / 1000000).toFixed(1)}M

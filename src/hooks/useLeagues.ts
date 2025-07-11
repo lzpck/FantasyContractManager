@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { useAppContext } from '@/contexts/AppContext';
 import { League, LeagueSettings } from '@/types';
 
@@ -80,7 +79,7 @@ export function useLeagues() {
     }
 
     loadLeagues();
-  }, []);
+  }, [setGlobalLeagues]);
 
   const refreshLeagues = async () => {
     // Recarrega dados da API

@@ -97,7 +97,7 @@ export function useStandings(leagueId: string, league: League | null) {
                 .filter((dm: any) => dm.teamId === team.id && dm.year === nextYear)
                 .reduce((sum: number, dm: any) => sum + dm.amount, 0);
             }
-          } catch (error) {
+          } catch {
             // Fallback para valores agregados do team
             currentDeadMoney = team.currentDeadMoney || 0;
             nextSeasonDeadMoney = team.nextSeasonDeadMoney || 0;
@@ -310,7 +310,7 @@ export function useStandings(leagueId: string, league: League | null) {
     } finally {
       setLoading(false);
     }
-  }, [league, fetchSleeperStandings, fetchTeamFinancials, combineStandingsData]);
+  }, [leagueId, league, fetchSleeperStandings, fetchTeamFinancials, combineStandingsData]);
 
   /**
    * Ordena classificação por critério específico

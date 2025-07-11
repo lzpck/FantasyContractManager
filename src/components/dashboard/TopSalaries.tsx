@@ -20,7 +20,7 @@ interface TopSalariesProps {
 
 /**
  * Componente que exibe os Top 5 maiores salários da liga selecionada
- * 
+ *
  * Mostra os contratos com maiores valores, incluindo informações do jogador,
  * posição, time e anos restantes de contrato.
  */
@@ -55,7 +55,7 @@ export function TopSalaries({ topSalaries, loading = false }: TopSalariesProps) 
         <CurrencyDollarIcon className="h-6 w-6 text-green-500 mr-2" />
         <h3 className="text-lg font-semibold text-slate-100">Top 5 Maiores Salários</h3>
       </div>
-      
+
       {topSalaries.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-slate-400">Nenhum contrato encontrado</p>
@@ -63,8 +63,8 @@ export function TopSalaries({ topSalaries, loading = false }: TopSalariesProps) 
       ) : (
         <div className="space-y-3">
           {topSalaries.map((player, index) => (
-            <div 
-              key={player.id} 
+            <div
+              key={player.id}
               className="flex justify-between items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-650 transition-colors"
             >
               <div className="flex-1">
@@ -76,7 +76,9 @@ export function TopSalaries({ topSalaries, loading = false }: TopSalariesProps) 
                   </span>
                 </div>
                 <div className="text-sm text-slate-400 mt-1">
-                  {player.teamName} • {player.yearsRemaining} {player.yearsRemaining === 1 ? 'ano' : 'anos'} restante{player.yearsRemaining !== 1 ? 's' : ''}
+                  {player.teamName} • {player.yearsRemaining}{' '}
+                  {player.yearsRemaining === 1 ? 'ano' : 'anos'} restante
+                  {player.yearsRemaining !== 1 ? 's' : ''}
                 </div>
               </div>
               <div className="text-right">

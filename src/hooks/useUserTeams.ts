@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { Team } from '@/types';
 
@@ -19,7 +19,7 @@ export function useUserTeams(): UseUserTeamsReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTeams = async () => {
+  const fetchTeams = useCallback(async () => {
     if (!user) {
       setTeams([]);
       setLoading(false);
@@ -47,11 +47,11 @@ export function useUserTeams(): UseUserTeamsReturn {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchTeams();
-  }, [user]);
+  }, [fetchTeams]);
 
   return {
     teams,

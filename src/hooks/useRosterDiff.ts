@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { fetchSleeperRosters, SleeperRoster } from '@/services/sleeperService';
+import { fetchSleeperRosters } from '@/services/sleeperService';
 import { TradeProcessed } from '@/components/leagues/RosterTransactions';
 
 /**
@@ -115,15 +115,6 @@ export function useRosterDiff() {
 
           // Jogadores atuais do time no banco
           const currentTeamPlayers = currentRosters.filter(player => player.teamId === team.id);
-
-          // Criar mapa de jogadores atuais por status
-          const currentPlayersByStatus = {
-            active: currentTeamPlayers
-              .filter(p => p.status === 'active')
-              .map(p => p.sleeperPlayerId),
-            ir: currentTeamPlayers.filter(p => p.status === 'ir').map(p => p.sleeperPlayerId),
-            taxi: currentTeamPlayers.filter(p => p.status === 'taxi').map(p => p.sleeperPlayerId),
-          };
 
           // Jogadores do Sleeper por status
           const sleeperPlayersByStatus = {

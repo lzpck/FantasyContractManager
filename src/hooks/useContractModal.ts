@@ -37,8 +37,6 @@ interface UseContractModalReturn {
  * - Integração com API ou dados demo
  */
 export function useContractModal(): UseContractModalReturn {
-  const { user } = useAuth();
-
   const [isOpen, setIsOpen] = useState(false);
   const [player, setPlayer] = useState<Player | null>(null);
   const [team, setTeam] = useState<Team | null>(null);
@@ -189,7 +187,7 @@ export function useContractModal(): UseContractModalReturn {
         setIsLoading(false);
       }
     },
-    [player, team, league, contract, closeModal],
+    [player, team, league, contract],
   );
 
   return {

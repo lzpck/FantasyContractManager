@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { useContracts } from './useContracts';
 import { useLeagues } from './useLeagues';
-import { Team, League, ContractStatus } from '@/types';
+import { Team, ContractStatus } from '@/types';
 
 /**
  * Interface para dados de salary cap de um time

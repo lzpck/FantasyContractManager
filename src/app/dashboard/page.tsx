@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useLeagues } from '@/hooks/useLeagues';
-import { useUserTeams } from '@/hooks/useUserTeams';
+import { useTeams } from '@/hooks/useTeams';
 import { useContracts } from '@/hooks/useContracts';
 import { useSalaryCap } from '@/hooks/useSalaryCap';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -26,6 +26,7 @@ import {
   CurrencyDollarIcon,
   ClockIcon,
   ExclamationTriangleIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline';
 
 /**
@@ -38,20 +39,290 @@ function DashboardContent() {
   const router = useRouter();
   const { state, setUser } = useAppContext();
   const { user: authUser, isAuthenticated, isCommissioner } = useAuth();
+  const [selectedLeagueId, setSelectedLeagueId] = useState<string>('');
+  const [nflState, setNflState] = useState<{ season: string; week: number } | null>(null);
+
   const { leagues, loading: leaguesLoading, error: leaguesError, hasLeagues } = useLeagues();
-  const { teams, loading: teamsLoading, error: teamsError } = useUserTeams();
+  const { teams, loading: teamsLoading, error: teamsError } = useTeams(selectedLeagueId);
   const { contracts, loading: contractsLoading } = useContracts();
   const { salaryCapData, loading: salaryCapLoading } = useSalaryCap();
-  const [nflState, setNflState] = useState<{ season: string; week: number } | null>(null);
-  const [selectedLeagueId, setSelectedLeagueId] = useState<string>('');
+
+  // Definir liga selecionada baseada no ID
+  const selectedLeague = selectedLeagueId
+    ? leagues.find(league => league.id === selectedLeagueId)
+    : null;
+
+  // Estados de carregamento
+  const isLoading = leaguesLoading || teamsLoading || contractsLoading || salaryCapLoading;
+  const error = leaguesError || teamsError;
+
+  // Cálculos dinâmicos baseados em dados reais da liga
+  const totalLeagues = leagues.length;
+
+  // Filtrar contratos pela liga selecionada (todos os times da liga)
+  const selectedLeagueContracts = selectedLeagueId
+    ? contracts.filter(contract => {
+        // Usar leagueId diretamente para pegar todos os contratos da liga
+        return contract.leagueId === selectedLeagueId;
+      })
+    : [];
+
+  // Contratos ativos: todos os contratos ACTIVE da liga selecionada
+  const activeContracts = selectedLeagueContracts.filter(
+    contract => contract.status === ContractStatus.ACTIVE,
+  ).length;
+
+  // Contratos vencendo: todos os contratos ACTIVE com 1 ano restante da liga selecionada
+  const expiringContracts = selectedLeagueContracts.filter(
+    contract => contract.status === ContractStatus.ACTIVE && contract.yearsRemaining === 1,
+  ).length;
+
+  // Total de times na liga selecionada
+  const totalTeamsInLeague = selectedLeagueId
+    ? teams.filter(team => team.leagueId === selectedLeagueId).length
+    : 0;
+
+  // Verificar alertas
+  const hasExpiringAlert = expiringContracts > 0;
+
+  // Filtrar ligas onde o usuário é GM ou comissário
+  const userManagedLeagues = leagues.filter(league => {
+    // Verificar se é comissário da liga
+    const isCommissioner = league.commissionerId === authUser?.id;
+
+    // Para agora, mostrar todas as ligas (pode ser refinado depois)
+    return isCommissioner || true;
+  });
+
+  // Top 5 maiores salários da liga selecionada
+  const topSalaries = selectedLeagueId
+    ? selectedLeagueContracts
+        .filter(contract => contract.status === ContractStatus.ACTIVE)
+        .sort((a, b) => b.currentSalary - a.currentSalary)
+        .slice(0, 5)
+        .map(contract => {
+          // Processar fantasyPositions (array de posições)
+          let positions = 'N/A';
+          if (contract.player?.fantasyPositions && contract.player.fantasyPositions.length > 0) {
+            positions = contract.player.fantasyPositions.join(', ');
+          }
+
+          return {
+            id: contract.id,
+            playerName: contract.player?.name || 'Jogador Desconhecido',
+            position: positions || contract.player?.position || 'N/A',
+            teamName: contract.team?.name || 'Time Desconhecido',
+            salary: contract.currentSalary,
+            yearsRemaining: contract.yearsRemaining,
+          };
+        })
+    : [];
+
+  // Calcular maiores salários por posição da liga selecionada
+  const positionSalaries = selectedLeagueId
+    ? (() => {
+        // Filtrar contratos ativos da liga selecionada
+        const activeContracts = selectedLeagueContracts.filter(
+          contract => contract.status === ContractStatus.ACTIVE,
+        );
+
+        // Agrupar por posição
+        const positionGroups: Record<string, any[]> = {};
+
+        activeContracts.forEach(contract => {
+          if (!contract.player) return;
+
+          // Processar fantasyPositions para agrupamento
+          let positions: string[] = [];
+          if (contract.player.fantasyPositions && contract.player.fantasyPositions.length > 0) {
+            positions = contract.player.fantasyPositions;
+          } else if (contract.player.position) {
+            positions = [contract.player.position];
+          }
+
+          // Se não tiver posições válidas, usar 'FLEX'
+          if (positions.length === 0) {
+            positions = ['FLEX'];
+          }
+
+          // Adicionar o jogador a cada posição que ele pode jogar
+          positions.forEach(position => {
+            if (!positionGroups[position]) {
+              positionGroups[position] = [];
+            }
+
+            positionGroups[position].push({
+              id: contract.id,
+              playerName: contract.player?.name || 'Jogador Desconhecido',
+              teamName: contract.team?.name || 'Time Desconhecido',
+              salary: contract.currentSalary,
+              yearsRemaining: contract.yearsRemaining,
+            });
+          });
+        });
+
+        // Ordenar cada grupo por salário e pegar os top 3
+        return Object.entries(positionGroups)
+          .map(([position, players]) => ({
+            position,
+            players: players.sort((a, b) => b.salary - a.salary).slice(0, 3),
+          }))
+          .filter(group => group.players.length > 0)
+          .sort((a, b) => {
+            // Ordenar posições por prioridade (QB, RB, WR, TE, K, DEF, outras)
+            const positionOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'];
+            const aIndex = positionOrder.indexOf(a.position);
+            const bIndex = positionOrder.indexOf(b.position);
+
+            if (aIndex !== -1 && bIndex !== -1) {
+              return aIndex - bIndex;
+            } else if (aIndex !== -1) {
+              return -1;
+            } else if (bIndex !== -1) {
+              return 1;
+            } else {
+              return a.position.localeCompare(b.position);
+            }
+          });
+      })()
+    : [];
+
+  // Calcular dados reais dos times com mais salário alocado
+  const topSpendingTeams = useMemo(() => {
+    if (!selectedLeague) return [];
+
+    // Filtrar contratos ativos da liga selecionada
+    const activeContracts = contracts.filter(
+      contract =>
+        contract.leagueId === selectedLeague.id && contract.status === ContractStatus.ACTIVE,
+    );
+
+    // Agrupar contratos por time
+    const teamSalaries = new Map<
+      string,
+      {
+        team: any;
+        totalSalary: number;
+        activeContracts: number;
+      }
+    >();
+
+    activeContracts.forEach(contract => {
+      const teamId = contract.teamId;
+      const team = teams.find(t => t.id === teamId);
+
+      if (team) {
+        const current = teamSalaries.get(teamId) || {
+          team,
+          totalSalary: 0,
+          activeContracts: 0,
+        };
+
+        current.totalSalary += contract.currentSalary || 0;
+        current.activeContracts += 1;
+        teamSalaries.set(teamId, current);
+      }
+    });
+
+    // Converter para array e ordenar por salário total (maior para menor)
+    const sortedTeams = Array.from(teamSalaries.values())
+      .map(({ team, totalSalary, activeContracts }) => {
+        const salaryCap = selectedLeague.salaryCap || 279000000; // Default NFL salary cap
+        const usedPercentage = (totalSalary / salaryCap) * 100;
+
+        return {
+          id: team.id,
+          teamName: team.name,
+          ownerName: team.ownerDisplayName || 'Manager não definido',
+          totalSalary,
+          activeContracts,
+          salaryCap,
+          usedPercentage,
+        };
+      })
+      .sort((a, b) => b.totalSalary - a.totalSalary)
+      .slice(0, 5); // Top 5
+
+    return sortedTeams;
+  }, [selectedLeague, contracts, teams]);
+
+  // Calcular dados reais dos times com mais cap space disponível
+  const topCapSpaceTeams = useMemo(() => {
+    if (!selectedLeague) return [];
+
+    // Filtrar contratos ativos da liga selecionada
+    const activeContracts = contracts.filter(
+      contract =>
+        contract.leagueId === selectedLeague.id && contract.status === ContractStatus.ACTIVE,
+    );
+
+    // Agrupar contratos por time
+    const teamSalaries = new Map<
+      string,
+      {
+        team: any;
+        totalSalary: number;
+        activeContracts: number;
+      }
+    >();
+
+    activeContracts.forEach(contract => {
+      const teamId = contract.teamId;
+      const team = teams.find(t => t.id === teamId);
+
+      if (team) {
+        const current = teamSalaries.get(teamId) || {
+          team,
+          totalSalary: 0,
+          activeContracts: 0,
+        };
+
+        current.totalSalary += contract.currentSalary || 0;
+        current.activeContracts += 1;
+        teamSalaries.set(teamId, current);
+      }
+    });
+
+    // Incluir times sem contratos
+    const leagueTeams = teams.filter(team => team.leagueId === selectedLeague.id);
+
+    leagueTeams.forEach(team => {
+      if (!teamSalaries.has(team.id)) {
+        teamSalaries.set(team.id, {
+          team,
+          totalSalary: 0,
+          activeContracts: 0,
+        });
+      }
+    });
+
+    // Converter para array e ordenar por cap space disponível (maior para menor)
+    const sortedTeams = Array.from(teamSalaries.values())
+      .map(({ team, totalSalary, activeContracts }) => {
+        const salaryCap = selectedLeague.salaryCap || 279000000; // Default NFL salary cap
+        const availableCapSpace = salaryCap - totalSalary;
+        const usedPercentage = (totalSalary / salaryCap) * 100;
+
+        return {
+          id: team.id,
+          teamName: team.name,
+          ownerName: team.ownerDisplayName || 'Manager não definido',
+          totalSalary,
+          activeContracts,
+          salaryCap,
+          availableCapSpace,
+          usedPercentage,
+        };
+      })
+      .sort((a, b) => b.availableCapSpace - a.availableCapSpace)
+      .slice(0, 5); // Top 5
+
+    return sortedTeams;
+  }, [selectedLeague, contracts, teams]);
 
   // Verificar se o usuário é comissário
-  useEffect(() => {
-    if (isAuthenticated && !isCommissioner) {
-      router.replace('/unauthorized?reason=not-commissioner');
-      return;
-    }
-  }, [isAuthenticated, isCommissioner, router]);
+  // Removido: verificação de acesso restrito a comissionários
+  // Dashboard agora está disponível para todos os usuários autenticados
 
   // Inicializar dados do usuário autenticado
   useEffect(() => {
@@ -71,12 +342,16 @@ function DashboardContent() {
 
   // Definir liga selecionada automaticamente
   useEffect(() => {
-    if (leagues.length > 0 && !selectedLeagueId) {
-      // Filtrar apenas ligas onde o usuário é GM ou comissário
-      const userLeagues = leagues.filter(league => 
-        league.ownerId === authUser?.id || 
-        league.commissioners?.includes(authUser?.id || '')
-      );
+    if (leagues.length > 0 && !selectedLeagueId && authUser?.id) {
+      // Filtrar apenas ligas onde o usuário é comissário (por enquanto)
+      const userLeagues = leagues.filter(league => {
+        // Verificar se é comissário da liga
+        const isCommissioner = league.commissionerId === authUser.id;
+
+        // Para agora, mostrar todas as ligas (pode ser refinado depois)
+        return isCommissioner || true;
+      });
+
       if (userLeagues.length > 0) {
         setSelectedLeagueId(userLeagues[0].id);
       }
@@ -102,9 +377,107 @@ function DashboardContent() {
     fetchNFLState();
   }, []);
 
-  // Estados de carregamento
-  const isLoading = leaguesLoading || teamsLoading || contractsLoading || salaryCapLoading;
-  const error = leaguesError || teamsError;
+  // Calcular valores reais de Franchise Tag baseado nos contratos da liga selecionada
+  const franchiseTagValues = useMemo(() => {
+    if (!selectedLeague) return [];
+
+    // Filtrar contratos ativos da liga selecionada
+    const activeContracts = contracts.filter(
+      contract =>
+        contract.leagueId === selectedLeague.id &&
+        contract.status === ContractStatus.ACTIVE &&
+        contract.player?.fantasyPositions,
+    );
+
+    // Agrupar contratos por posição
+    const contractsByPosition = new Map<string, number[]>();
+
+    activeContracts.forEach(contract => {
+      if (!contract.player?.fantasyPositions) return;
+
+      // Processar posições (array de PlayerPosition)
+      let positions: string[] = [];
+      if (contract.player.fantasyPositions && contract.player.fantasyPositions.length > 0) {
+        positions = contract.player.fantasyPositions;
+      }
+
+      // Adicionar salário para cada posição do jogador
+      positions.forEach(position => {
+        if (!contractsByPosition.has(position)) {
+          contractsByPosition.set(position, []);
+        }
+        contractsByPosition.get(position)!.push(contract.currentSalary || 0);
+      });
+    });
+
+    // Calcular valores de franchise tag para cada posição
+    const tagValues = [];
+
+    // Ordem específica das posições
+    const positionOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
+
+    // Obter todas as posições que existem nos contratos + posições principais
+    const mainPositions = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
+    const allPositions = new Set([...mainPositions, ...contractsByPosition.keys()]);
+
+    // Ordenar posições pela ordem específica
+    const sortedPositions = Array.from(allPositions).sort((a, b) => {
+      const indexA = positionOrder.indexOf(a);
+      const indexB = positionOrder.indexOf(b);
+
+      // Se ambas estão na ordem específica, usar a ordem
+      if (indexA !== -1 && indexB !== -1) {
+        return indexA - indexB;
+      }
+
+      // Se apenas uma está na ordem específica, ela vem primeiro
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+
+      // Se nenhuma está na ordem específica, ordenar alfabeticamente
+      return a.localeCompare(b);
+    });
+
+    for (const position of sortedPositions) {
+      const salaries = contractsByPosition.get(position) || [];
+
+      if (salaries.length === 0) {
+        // Se não há jogadores na posição, usar valor mínimo
+        tagValues.push({
+          position,
+          tagValue: 1000000, // $1M mínimo
+          averageTop10: 1000000,
+          calculationMethod: 'average' as const,
+          playerCount: 0,
+        });
+        continue;
+      }
+
+      // Ordenar salários do maior para o menor
+      const sortedSalaries = salaries.sort((a, b) => b - a);
+
+      // Pegar os top 10 (ou todos se houver menos de 10)
+      const top10Salaries = sortedSalaries.slice(0, Math.min(10, sortedSalaries.length));
+
+      // Calcular média dos top 10
+      const averageTop10 =
+        top10Salaries.reduce((sum, salary) => sum + salary, 0) / top10Salaries.length;
+
+      // Valor da franchise tag é a média dos top 10
+      // (A regra de salário + 15% seria aplicada individualmente para cada jogador)
+      const tagValue = Math.round(averageTop10);
+
+      tagValues.push({
+        position,
+        tagValue,
+        averageTop10: Math.round(averageTop10),
+        calculationMethod: 'average' as const,
+        playerCount: salaries.length,
+      });
+    }
+
+    return tagValues;
+  }, [selectedLeague, contracts]);
 
   // Renderização condicional baseada no tipo de usuário
   if (isLoading) {
@@ -155,98 +528,6 @@ function DashboardContent() {
     );
   }
 
-  // Cálculos dinâmicos baseados em dados reais
-  const totalLeagues = leagues.length;
-
-  // Filtrar contratos pela liga selecionada
-  const selectedLeagueContracts = selectedLeagueId 
-    ? contracts.filter(contract => {
-        // Buscar o time do contrato e verificar se pertence à liga selecionada
-        const contractTeam = teams.find(team => team.id === contract.teamId);
-        return contractTeam?.leagueId === selectedLeagueId;
-      })
-    : [];
-
-  // Contratos ativos: filtrar apenas contratos com status ACTIVE da liga selecionada
-  const activeContracts = selectedLeagueContracts.filter(
-    contract => contract.status === ContractStatus.ACTIVE,
-  ).length;
-
-  // Contratos vencendo: filtrar contratos com yearsRemaining = 1 da liga selecionada
-  const expiringContracts = selectedLeagueContracts.filter(
-    contract => contract.status === ContractStatus.ACTIVE && contract.yearsRemaining === 1,
-  ).length;
-
-  // Verificar alertas
-  const hasExpiringAlert = expiringContracts > 0;
-
-  // Filtrar ligas onde o usuário é GM ou comissário
-  const userManagedLeagues = leagues.filter(league => 
-    league.ownerId === authUser?.id || 
-    league.commissioners?.includes(authUser?.id || '')
-  );
-
-  // Dados fictícios para as novas seções (serão substituídos por dados reais posteriormente)
-  const mockTopSalaries = [
-    { id: '1', playerName: 'Josh Allen', position: 'QB', teamName: 'Buffalo Bills', salary: 43000000, yearsRemaining: 3 },
-    { id: '2', playerName: 'Christian McCaffrey', position: 'RB', teamName: 'San Francisco 49ers', salary: 38000000, yearsRemaining: 2 },
-    { id: '3', playerName: 'Cooper Kupp', position: 'WR', teamName: 'Los Angeles Rams', salary: 35000000, yearsRemaining: 4 },
-    { id: '4', playerName: 'Travis Kelce', position: 'TE', teamName: 'Kansas City Chiefs', salary: 32000000, yearsRemaining: 1 },
-    { id: '5', playerName: 'Aaron Donald', position: 'DT', teamName: 'Los Angeles Rams', salary: 31000000, yearsRemaining: 2 },
-  ];
-
-  const mockPositionSalaries = [
-    {
-      position: 'QB',
-      players: [
-        { id: '1', playerName: 'Josh Allen', teamName: 'Buffalo Bills', salary: 43000000, yearsRemaining: 3 },
-        { id: '2', playerName: 'Patrick Mahomes', teamName: 'Kansas City Chiefs', salary: 41000000, yearsRemaining: 4 },
-        { id: '3', playerName: 'Lamar Jackson', teamName: 'Baltimore Ravens', salary: 40000000, yearsRemaining: 2 },
-      ]
-    },
-    {
-      position: 'RB',
-      players: [
-        { id: '4', playerName: 'Christian McCaffrey', teamName: 'San Francisco 49ers', salary: 38000000, yearsRemaining: 2 },
-        { id: '5', playerName: 'Derrick Henry', teamName: 'Tennessee Titans', salary: 25000000, yearsRemaining: 1 },
-        { id: '6', playerName: 'Dalvin Cook', teamName: 'Minnesota Vikings', salary: 24000000, yearsRemaining: 3 },
-      ]
-    },
-    {
-      position: 'WR',
-      players: [
-        { id: '7', playerName: 'Cooper Kupp', teamName: 'Los Angeles Rams', salary: 35000000, yearsRemaining: 4 },
-        { id: '8', playerName: 'Davante Adams', teamName: 'Las Vegas Raiders', salary: 34000000, yearsRemaining: 2 },
-        { id: '9', playerName: 'Tyreek Hill', teamName: 'Miami Dolphins', salary: 33000000, yearsRemaining: 3 },
-      ]
-    },
-  ];
-
-  const mockTopSpendingTeams = [
-    { id: '1', teamName: 'Team Alpha', ownerName: 'João Silva', totalSalary: 250000000, activeContracts: 15, salaryCap: 279000000, usedPercentage: 89.6 },
-    { id: '2', teamName: 'Team Beta', ownerName: 'Maria Santos', totalSalary: 240000000, activeContracts: 14, salaryCap: 279000000, usedPercentage: 86.0 },
-    { id: '3', teamName: 'Team Gamma', ownerName: 'Pedro Costa', totalSalary: 235000000, activeContracts: 16, salaryCap: 279000000, usedPercentage: 84.2 },
-    { id: '4', teamName: 'Team Delta', ownerName: 'Ana Oliveira', totalSalary: 230000000, activeContracts: 13, salaryCap: 279000000, usedPercentage: 82.4 },
-    { id: '5', teamName: 'Team Epsilon', ownerName: 'Carlos Lima', totalSalary: 225000000, activeContracts: 12, salaryCap: 279000000, usedPercentage: 80.6 },
-  ];
-
-  const mockTopCapSpaceTeams = [
-    { id: '1', teamName: 'Team Zeta', ownerName: 'Lucas Ferreira', availableCapSpace: 80000000, salaryCap: 279000000, usedPercentage: 71.3, totalSalary: 199000000 },
-    { id: '2', teamName: 'Team Eta', ownerName: 'Fernanda Rocha', availableCapSpace: 75000000, salaryCap: 279000000, usedPercentage: 73.1, totalSalary: 204000000 },
-    { id: '3', teamName: 'Team Theta', ownerName: 'Roberto Alves', availableCapSpace: 70000000, salaryCap: 279000000, usedPercentage: 74.9, totalSalary: 209000000 },
-    { id: '4', teamName: 'Team Iota', ownerName: 'Juliana Mendes', availableCapSpace: 65000000, salaryCap: 279000000, usedPercentage: 76.7, totalSalary: 214000000 },
-    { id: '5', teamName: 'Team Kappa', ownerName: 'Ricardo Souza', availableCapSpace: 60000000, salaryCap: 279000000, usedPercentage: 78.5, totalSalary: 219000000 },
-  ];
-
-  const mockFranchiseTagValues = [
-    { position: 'QB', tagValue: 45000000, averageTop10: 45000000, calculationMethod: 'average' as const, playerCount: 12 },
-    { position: 'RB', tagValue: 28000000, averageTop10: 28000000, calculationMethod: 'average' as const, playerCount: 15 },
-    { position: 'WR', tagValue: 32000000, averageTop10: 32000000, calculationMethod: 'average' as const, playerCount: 18 },
-    { position: 'TE', tagValue: 22000000, averageTop10: 22000000, calculationMethod: 'average' as const, playerCount: 10 },
-    { position: 'K', tagValue: 5000000, averageTop10: 5000000, calculationMethod: 'average' as const, playerCount: 8 },
-    { position: 'DEF', tagValue: 18000000, averageTop10: 18000000, calculationMethod: 'average' as const, playerCount: 12 },
-  ];
-
   // Handlers para navegação
   const handleActiveContractsClick = () => {
     router.push('/contracts?status=active');
@@ -286,7 +567,7 @@ function DashboardContent() {
             <SummaryCard
               title="Contratos Ativos"
               value={selectedLeagueId ? activeContracts.toString() : '-'}
-              subtitle={selectedLeagueId ? undefined : 'Selecione uma liga'}
+              subtitle={selectedLeagueId ? 'Total na liga' : 'Selecione uma liga'}
               icon={DocumentTextIcon}
               onClick={selectedLeagueId ? handleActiveContractsClick : undefined}
               hasAlert={false}
@@ -294,10 +575,10 @@ function DashboardContent() {
             <SummaryCard
               title="Contratos Vencendo"
               value={selectedLeagueId ? expiringContracts.toString() : '-'}
-              subtitle={selectedLeagueId ? undefined : 'Selecione uma liga'}
+              subtitle={selectedLeagueId ? 'Total na liga' : 'Selecione uma liga'}
               icon={ClockIcon}
               onClick={selectedLeagueId ? handleExpiringContractsClick : undefined}
-              hasAlert={hasExpiringAlert && selectedLeagueId}
+              hasAlert={hasExpiringAlert && !!selectedLeagueId}
             />
           </div>
 
@@ -305,7 +586,7 @@ function DashboardContent() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-foreground">Análise Financeira da Liga</h2>
-              <LeagueSelector 
+              <LeagueSelector
                 leagues={userManagedLeagues}
                 selectedLeagueId={selectedLeagueId}
                 onLeagueChange={setSelectedLeagueId}
@@ -318,34 +599,19 @@ function DashboardContent() {
           <div className="space-y-6">
             {/* Primeira linha: Top 5 Salários e Maiores Salários por Posição */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TopSalaries 
-                topSalaries={mockTopSalaries}
-                loading={isLoading}
-              />
-              <TopSalariesByPosition 
-                positionSalaries={mockPositionSalaries}
-                loading={isLoading}
-              />
+              <TopSalaries topSalaries={topSalaries} loading={isLoading} />
+              <TopSalariesByPosition positionSalaries={positionSalaries} loading={isLoading} />
             </div>
 
             {/* Segunda linha: Times com Mais Salário e Times com Mais Cap Space */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TopSpendingTeams 
-                topSpendingTeams={mockTopSpendingTeams}
-                loading={isLoading}
-              />
-              <TopCapSpaceTeams 
-                topCapSpaceTeams={mockTopCapSpaceTeams}
-                loading={isLoading}
-              />
+              <TopSpendingTeams topSpendingTeams={topSpendingTeams} loading={isLoading} />
+              <TopCapSpaceTeams topCapSpaceTeams={topCapSpaceTeams} loading={isLoading} />
             </div>
 
             {/* Terceira linha: Valores de Franchise Tag */}
             <div className="grid grid-cols-1 gap-6">
-              <FranchiseTagValues 
-                franchiseTagValues={mockFranchiseTagValues}
-                loading={isLoading}
-              />
+              <FranchiseTagValues franchiseTagValues={franchiseTagValues} loading={isLoading} />
             </div>
           </div>
         </div>

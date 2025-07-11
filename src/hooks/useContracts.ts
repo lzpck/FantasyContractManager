@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
-import { ContractWithPlayer, ContractStatus } from '@/types';
+import { ContractStatus, ContractWithPlayer } from '@/types';
 
 /**
  * Hook para gerenciar contratos

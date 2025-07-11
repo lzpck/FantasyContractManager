@@ -41,7 +41,6 @@ interface TeamHeaderProps {
   players: PlayerWithContract[];
   contracts?: Contract[]; // Contratos ativos do time (opcional para compatibilidade)
   deadMoneyRecords?: DeadMoneyRecord[]; // Registros de dead money (opcional para compatibilidade)
-  onBack?: () => void;
 }
 
 export default function TeamHeader({
@@ -50,7 +49,6 @@ export default function TeamHeader({
   players,
   contracts,
   deadMoneyRecords,
-  onBack,
 }: TeamHeaderProps) {
   const router = useRouter();
 
@@ -122,7 +120,16 @@ export default function TeamHeader({
       contractsExpiring,
       playersTagged,
     };
-  }, [team.id, league.season, league.salaryCap, contracts, deadMoneyRecords, players]);
+  }, [
+    team.id,
+    team.currentDeadMoney,
+    team.nextSeasonDeadMoney,
+    league.season,
+    league.salaryCap,
+    contracts,
+    deadMoneyRecords,
+    players,
+  ]);
 
   // Calcula informações do salary cap com formatação e status
   const capInfo = formatCapUsage(calculations.capUsed, league.salaryCap);
