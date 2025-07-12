@@ -11,8 +11,10 @@ import { useSalaryCap } from '@/hooks/useSalaryCap';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 import { SummaryCard } from '@/components/dashboard/SummaryCard';
-import { SalaryCapChart } from '@/components/dashboard/SalaryCapChart';
-import { LeaguesList } from '@/components/dashboard/LeaguesList';
+import { LeagueSelector } from '@/components/dashboard/LeagueSelector';
+import { TopSalaries } from '@/components/dashboard/TopSalaries';
+import { TopSalariesByPosition } from '@/components/dashboard/TopSalariesByPosition';
+import { FranchiseTagValues } from '@/components/dashboard/FranchiseTagValues';
 
 import { getNFLState } from '@/services/nflStateService';
 import { ContractStatus } from '@/types';
@@ -39,6 +41,12 @@ function DashboardContent() {
   const { contracts, loading: contractsLoading } = useContracts();
   const { salaryCapData, loading: salaryCapLoading } = useSalaryCap();
   const [nflState, setNflState] = useState<{ season: string; week: number } | null>(null);
+  const [selectedLeague, setSelectedLeague] = useState<any>(null);
+
+  // Dados para os novos componentes analytics (estrutura preparada para integração futura)
+  const [topSalariesData, setTopSalariesData] = useState<any[]>([]);
+  const [topSalariesByPositionData, setTopSalariesByPositionData] = useState<any[]>([]);
+  const [franchiseTagData, setFranchiseTagData] = useState<any[]>([]);
 
   // Verificar se o usuário é comissário
   useEffect(() => {
@@ -82,6 +90,33 @@ function DashboardContent() {
 
     fetchNFLState();
   }, []);
+
+  // Filtrar ligas onde o usuário é GM ou comissário
+  const userManagedLeagues = leagues.filter(league => {
+    // TODO: Implementar lógica para verificar se o usuário é GM ou comissário da liga
+    // Por enquanto, retorna todas as ligas (estrutura preparada para integração futura)
+    return true;
+  });
+
+  // Handler para seleção de liga
+  const handleLeagueSelect = (league: any) => {
+    setSelectedLeague(league);
+    // TODO: Carregar dados específicos da liga selecionada
+    // - Top 5 maiores salários da liga
+    // - Top 3 maiores salários por posição
+    // - Valores de Franchise Tag por posição
+  };
+
+  // Efeito para carregar dados quando liga é selecionada
+  useEffect(() => {
+    if (selectedLeague) {
+      // TODO: Implementar carregamento de dados da liga selecionada
+      // Por enquanto, mantém arrays vazios (estrutura preparada para integração futura)
+      setTopSalariesData([]);
+      setTopSalariesByPositionData([]);
+      setFranchiseTagData([]);
+    }
+  }, [selectedLeague]);
 
   // Estados de carregamento
   const isLoading = leaguesLoading || teamsLoading || contractsLoading || salaryCapLoading;
@@ -203,11 +238,17 @@ function DashboardContent() {
 
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="mt-2 text-slate-400">
-              Bem-vindo de volta, {authUser?.name || 'Usuário'}!
-            </p>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard Analytics</h1>
+            <p className="mt-2 text-slate-400">Análise financeira e estratégica das suas ligas</p>
           </div>
+
+          {/* Seletor de Liga */}
+          <LeagueSelector
+            leagues={userManagedLeagues}
+            selectedLeague={selectedLeague}
+            onLeagueSelect={handleLeagueSelect}
+            loading={leaguesLoading}
+          />
 
           {/* Cards de resumo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
@@ -243,38 +284,29 @@ function DashboardContent() {
             />
           </div>
 
-          {/* Grid principal com gráfico e lista de ligas */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
-            {/* Gráfico de distribuição do salary cap */}
-            <div className="xl:col-span-2 order-2 xl:order-1">
-              <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-4 sm:p-6 h-full">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Distribuição do Salary Cap por Time
-                  </h2>
-                  <div className="text-xs text-slate-400 hidden sm:block">
-                    Clique nas barras para mais detalhes
-                  </div>
-                </div>
-                <div className="min-h-[300px] sm:min-h-[400px]">
-                  <SalaryCapChart leagues={leagues} />
-                </div>
-              </div>
+          {/* Grid principal com componentes analytics */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+            {/* Top 5 Maiores Salários */}
+            <div className="lg:col-span-1">
+              <TopSalaries
+                players={topSalariesData}
+                title="Top 5 Maiores Salários"
+                maxPlayers={5}
+              />
             </div>
 
-            {/* Lista de ligas */}
-            <div className="xl:col-span-1 order-1 xl:order-2">
-              <div className="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-4 sm:p-6 h-full">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-foreground">Suas Ligas</h2>
-                  <div className="text-xs text-slate-400">
-                    {leagues.length} {leagues.length === 1 ? 'liga' : 'ligas'}
-                  </div>
-                </div>
-                <div className="overflow-hidden">
-                  <LeaguesList leagues={leagues} />
-                </div>
-              </div>
+            {/* Top 3 por Posição */}
+            <div className="lg:col-span-1">
+              <TopSalariesByPosition
+                positionData={topSalariesByPositionData}
+                title="Top 3 por Posição"
+                maxPlayersPerPosition={3}
+              />
+            </div>
+
+            {/* Valores Franchise Tag */}
+            <div className="lg:col-span-2 xl:col-span-1">
+              <FranchiseTagValues tagData={franchiseTagData} title="Valores Franchise Tag" />
             </div>
           </div>
         </div>
