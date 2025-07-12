@@ -115,7 +115,8 @@ export function LeagueSelector({
                 >
                   <div className="font-medium text-foreground text-sm">{league.name}</div>
                   <div className="text-xs text-slate-400 mt-1">
-                    {league.season} • {league.totalTeams} times • ${(league.salaryCap / 1000000).toFixed(0)}M cap
+                    {league.season} • {league.totalTeams} times • $
+                    {(league.salaryCap / 1000000).toFixed(0)}M cap
                   </div>
                 </button>
               ))}

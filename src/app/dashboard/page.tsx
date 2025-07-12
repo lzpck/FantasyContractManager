@@ -21,16 +21,26 @@ import { ContractStatus } from '@/types';
 import {
   TrophyIcon,
   DocumentTextIcon,
-  CurrencyDollarIcon,
   ClockIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
 /**
- * Conteúdo principal do Dashboard
+ * Dashboard Analytics do FantasyContractManager
  *
- * Exibe uma visão geral das ligas, contratos, salary cap e próximos vencimentos.
- * Para usuário demo, utiliza dados fictícios. Para outros usuários, carrega dados reais.
+ * Funcionalidades:
+ * - Seleção de liga para análise específica
+ * - Estatísticas de contratos ativos e vencendo por liga
+ * - Top 5 maiores salários da liga selecionada
+ * - Top 3 maiores salários por posição
+ * - Valores de Franchise Tag por posição
+ *
+ * Regras de negócio:
+ * - Apenas comissários podem acessar o dashboard
+ * - Dados são calculados dinamicamente baseados na liga selecionada
+ * - Estados vazios são exibidos quando nenhuma liga está selecionada
+ * - Alertas são exibidos apenas para contratos vencendo da liga selecionada
+ * - Redirecionamento automático para páginas específicas ao clicar nos cards (quando aplicável)
  */
 function DashboardContent() {
   const router = useRouter();
@@ -171,52 +181,32 @@ function DashboardContent() {
     );
   }
 
-  // Cálculos dinâmicos baseados em dados reais
-  const totalLeagues = leagues.length;
+  // Cálculos dinâmicos baseados na liga selecionada
+  const totalLeagues = userManagedLeagues.length;
 
-  // Contratos ativos: filtrar apenas contratos com status ACTIVE
-  const activeContracts = contracts.filter(
-    contract => contract.status === ContractStatus.ACTIVE,
-  ).length;
+  // Contratos ativos: filtrar apenas contratos da liga selecionada com status ACTIVE
+  const activeContracts = selectedLeague
+    ? contracts.filter(
+        contract =>
+          contract.status === ContractStatus.ACTIVE &&
+          contract.teamId &&
+          teams.find(team => team.id === contract.teamId)?.leagueId === selectedLeague.id,
+      ).length
+    : 0;
 
-  // Contratos vencendo: filtrar contratos com yearsRemaining = 1
-  const expiringContracts = contracts.filter(
-    contract => contract.status === ContractStatus.ACTIVE && contract.yearsRemaining === 1,
-  ).length;
+  // Contratos vencendo: filtrar contratos da liga selecionada com yearsRemaining = 1
+  const expiringContracts = selectedLeague
+    ? contracts.filter(
+        contract =>
+          contract.status === ContractStatus.ACTIVE &&
+          contract.yearsRemaining === 1 &&
+          contract.teamId &&
+          teams.find(team => team.id === contract.teamId)?.leagueId === selectedLeague.id,
+      ).length
+    : 0;
 
-  // Cap médio utilizado: calcular média de utilização do cap dos times do usuário
-  const userTeams = teams.filter(team => team.ownerId === authUser?.id);
-  const averageCapUsed =
-    userTeams.length > 0 && salaryCapData
-      ? userTeams.reduce((acc, team) => {
-          const teamCapData = salaryCapData.find(data => data.teamId === team.id);
-          return acc + (teamCapData?.usedPercentage || 0);
-        }, 0) / userTeams.length
-      : 0;
-
-  // Calcular valor médio em milhões
-  const averageCapUsedInMillions =
-    userTeams.length > 0 && salaryCapData
-      ? userTeams.reduce((acc, team) => {
-          const teamCapData = salaryCapData.find(data => data.teamId === team.id);
-          const league = leagues.find(l => l.id === team.leagueId);
-          const salaryCap = league?.salaryCap || 279000000; // Default $279M
-          const usedAmount = ((teamCapData?.usedPercentage || 0) * salaryCap) / 100;
-          return acc + usedAmount;
-        }, 0) /
-        userTeams.length /
-        1000000 // Converter para milhões
-      : 0;
-
-  // Verificar alertas
-  const hasCapAlert =
-    salaryCapData &&
-    userTeams.some(team => {
-      const teamCapData = salaryCapData.find(data => data.teamId === team.id);
-      return (teamCapData?.usedPercentage || 0) > 90;
-    });
-
-  const hasExpiringAlert = expiringContracts > 0;
+  // Verificar alertas apenas para a liga selecionada
+  const hasExpiringAlert = selectedLeague && expiringContracts > 0;
 
   // Handlers para navegação
   const handleActiveContractsClick = () => {
@@ -251,7 +241,7 @@ function DashboardContent() {
           />
 
           {/* Cards de resumo */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <SummaryCard
               title="Total de Ligas"
               value={totalLeagues.toString()}
@@ -262,24 +252,22 @@ function DashboardContent() {
             />
             <SummaryCard
               title="Contratos Ativos"
-              value={activeContracts.toString()}
+              value={selectedLeague ? activeContracts.toString() : '—'}
+              subtitle={selectedLeague ? undefined : 'Selecione uma liga'}
               icon={DocumentTextIcon}
-              onClick={handleActiveContractsClick}
+              onClick={
+                selectedLeague && activeContracts > 0 ? handleActiveContractsClick : undefined
+              }
               hasAlert={false}
             />
             <SummaryCard
-              title="Cap Médio Utilizado"
-              value={`$${averageCapUsedInMillions.toFixed(1)}M`}
-              icon={CurrencyDollarIcon}
-              progressPercentage={averageCapUsed}
-              subtitle={`${averageCapUsed.toFixed(1)}% do cap total`}
-              hasAlert={hasCapAlert}
-            />
-            <SummaryCard
               title="Contratos Vencendo"
-              value={expiringContracts.toString()}
+              value={selectedLeague ? expiringContracts.toString() : '—'}
+              subtitle={selectedLeague ? undefined : 'Selecione uma liga'}
               icon={ClockIcon}
-              onClick={handleExpiringContractsClick}
+              onClick={
+                selectedLeague && expiringContracts > 0 ? handleExpiringContractsClick : undefined
+              }
               hasAlert={hasExpiringAlert}
             />
           </div>
