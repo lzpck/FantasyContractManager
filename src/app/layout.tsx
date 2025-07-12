@@ -19,6 +19,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Fantasy Contract Manager',
   description: 'Sistema de gerenciamento de contratos e salary cap para ligas de fantasy football',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
