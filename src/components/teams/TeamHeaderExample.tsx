@@ -22,7 +22,7 @@ export default function TeamHeaderExample({
 }: TeamHeaderExampleProps) {
   // Busca dados financeiros em tempo real
   const { contracts, deadMoneyRecords, isLoading, error, revalidateFinancials } = useTeamFinancials(
-    team.id
+    team.id,
   );
 
   // Loading state
