@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
 import useSWR from 'swr';
-import { Contract, DeadMoney } from '@/types';
+import { Contract } from '@/types';
 
 // Interface para registros de dead money da API
 interface DeadMoneyRecord {
@@ -55,7 +54,7 @@ const fetcher = async (url: string) => {
  * Hook personalizado para buscar dados financeiros do time em tempo real
  * Busca contratos ativos e registros de dead money do banco de dados
  */
-export function useTeamFinancials(teamId: string, leagueId: string) {
+export function useTeamFinancials(teamId: string) {
   // Busca contratos do time
   const {
     data: contractsResponse,

@@ -40,12 +40,12 @@ export function TopSalaries({
 }: TopSalariesProps) {
   // Ordem padrão das posições
   const positionOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
-  
+
   // Ordenar jogadores por posição e depois por salário
   const sortedPlayers = [...players].sort((a, b) => {
     const posA = positionOrder.indexOf(a.position);
     const posB = positionOrder.indexOf(b.position);
-    
+
     // Se ambas as posições estão na lista, ordenar por posição
     if (posA !== -1 && posB !== -1) {
       if (posA !== posB) return posA - posB;
@@ -53,7 +53,7 @@ export function TopSalaries({
     // Se apenas uma está na lista, ela vem primeiro
     else if (posA !== -1) return -1;
     else if (posB !== -1) return 1;
-    
+
     // Se nenhuma está na lista ou são da mesma posição, ordenar por salário
     return b.salary - a.salary;
   });
@@ -105,7 +105,7 @@ export function TopSalaries({
                 </div>
               </div>
             ))}
-            
+
             {/* Espaço decorativo se houver poucos jogadores */}
             {displayPlayers.length < maxPlayers && (
               <div className="flex-1 flex items-end justify-center pb-4">
@@ -132,7 +132,7 @@ export function TopSalaries({
           </div>
         )}
       </div>
-      
+
       {/* Rodapé com dica */}
       <div className="mt-4 pt-3 border-t border-slate-700 flex-shrink-0">
         <div className="flex items-center gap-2 text-xs text-slate-500">

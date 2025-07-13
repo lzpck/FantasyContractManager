@@ -48,12 +48,12 @@ export function TopSalariesByPosition({
 }: TopSalariesByPositionProps) {
   // Ordem padrão das posições
   const positionOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
-  
+
   // Ordenar dados por posição
   const sortedPositionData = [...positionData].sort((a, b) => {
     const posA = positionOrder.indexOf(a.position);
     const posB = positionOrder.indexOf(b.position);
-    
+
     // Se ambas as posições estão na lista, ordenar por posição
     if (posA !== -1 && posB !== -1) {
       return posA - posB;
@@ -61,7 +61,7 @@ export function TopSalariesByPosition({
     // Se apenas uma está na lista, ela vem primeiro
     else if (posA !== -1) return -1;
     else if (posB !== -1) return 1;
-    
+
     // Se nenhuma está na lista, ordenar alfabeticamente
     return a.position.localeCompare(b.position);
   });
@@ -134,7 +134,7 @@ export function TopSalariesByPosition({
                 {displayPlayers.map((player, index) => {
                   const maxSalary = activePositionData?.players[0]?.salary || 1;
                   const percentage = (player.salary / maxSalary) * 100;
-                  
+
                   return (
                     <div
                       key={player.id}
@@ -142,12 +142,17 @@ export function TopSalariesByPosition({
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-3">
-                          <div className={`flex items-center justify-center w-7 h-7 rounded-full text-sm font-bold ${
-                            index === 0 ? 'bg-yellow-500 text-slate-900' :
-                            index === 1 ? 'bg-slate-400 text-slate-900' :
-                            index === 2 ? 'bg-amber-600 text-white' :
-                            'bg-slate-600 text-slate-300'
-                          }`}>
+                          <div
+                            className={`flex items-center justify-center w-7 h-7 rounded-full text-sm font-bold ${
+                              index === 0
+                                ? 'bg-yellow-500 text-slate-900'
+                                : index === 1
+                                  ? 'bg-slate-400 text-slate-900'
+                                  : index === 2
+                                    ? 'bg-amber-600 text-white'
+                                    : 'bg-slate-600 text-slate-300'
+                            }`}
+                          >
                             {index + 1}
                           </div>
                           <div>
@@ -168,19 +173,24 @@ export function TopSalariesByPosition({
                           <div className="text-lg font-bold text-green-400">
                             ${(player.salary / 1000000).toFixed(1)}M
                           </div>
-                          <div className="text-xs text-slate-500">${player.salary.toLocaleString()}</div>
+                          <div className="text-xs text-slate-500">
+                            ${player.salary.toLocaleString()}
+                          </div>
                         </div>
                       </div>
-                      
+
                       {/* Mini gráfico de barra comparativa */}
                       <div className="mt-2">
                         <div className="w-full bg-slate-600 rounded-full h-1.5">
-                          <div 
+                          <div
                             className={`h-1.5 rounded-full transition-all duration-500 ${
-                              index === 0 ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' :
-                              index === 1 ? 'bg-gradient-to-r from-slate-400 to-slate-300' :
-                              index === 2 ? 'bg-gradient-to-r from-amber-600 to-amber-500' :
-                              'bg-gradient-to-r from-slate-500 to-slate-400'
+                              index === 0
+                                ? 'bg-gradient-to-r from-yellow-500 to-yellow-400'
+                                : index === 1
+                                  ? 'bg-gradient-to-r from-slate-400 to-slate-300'
+                                  : index === 2
+                                    ? 'bg-gradient-to-r from-amber-600 to-amber-500'
+                                    : 'bg-gradient-to-r from-slate-500 to-slate-400'
                             }`}
                             style={{ width: `${percentage}%` }}
                           ></div>
@@ -189,7 +199,7 @@ export function TopSalariesByPosition({
                     </div>
                   );
                 })}
-                
+
                 {/* Espaço decorativo se houver poucos jogadores */}
                 {displayPlayers.length < maxPlayersPerPosition && (
                   <div className="flex-1 flex items-end justify-center pb-4">
@@ -214,7 +224,7 @@ export function TopSalariesByPosition({
               </div>
             )}
           </div>
-          
+
           {/* Rodapé com estatísticas - fixo */}
           {activePositionData && activePositionData.players.length > 0 && (
             <div className="mt-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600 flex-shrink-0">
@@ -222,11 +232,21 @@ export function TopSalariesByPosition({
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-                    <span>Maior: ${(activePositionData.players[0]?.salary / 1000000 || 0).toFixed(1)}M</span>
+                    <span>
+                      Maior: ${(activePositionData.players[0]?.salary / 1000000 || 0).toFixed(1)}M
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>
-                    <span>Média: ${(activePositionData.players.reduce((sum, p) => sum + p.salary, 0) / activePositionData.players.length / 1000000).toFixed(1)}M</span>
+                    <span>
+                      Média: $
+                      {(
+                        activePositionData.players.reduce((sum, p) => sum + p.salary, 0) /
+                        activePositionData.players.length /
+                        1000000
+                      ).toFixed(1)}
+                      M
+                    </span>
                   </div>
                 </div>
                 <span className="text-blue-400 font-medium">{activeTab}</span>

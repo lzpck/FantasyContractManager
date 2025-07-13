@@ -55,8 +55,8 @@ export function useLeagues() {
                 typeof l.deadMoneyConfig === 'string'
                   ? JSON.parse(l.deadMoneyConfig)
                   : l.deadMoneyConfig;
-            } catch (error) {
-              console.warn('Erro ao fazer parse do deadMoneyConfig:', error);
+            } catch (parseError) {
+              console.warn('Erro ao fazer parse do deadMoneyConfig:', parseError);
               deadMoneyConfig = undefined;
             }
           }
@@ -80,7 +80,7 @@ export function useLeagues() {
     }
 
     loadLeagues();
-  }, []);
+  }, [setGlobalLeagues]);
 
   const refreshLeagues = async () => {
     // Recarrega dados da API

@@ -40,12 +40,12 @@ export function FranchiseTagValues({
 }: FranchiseTagValuesProps) {
   // Ordem padrão das posições
   const positionOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
-  
+
   // Ordenar dados por posição
   const sortedTagData = [...tagData].sort((a, b) => {
     const posA = positionOrder.indexOf(a.position);
     const posB = positionOrder.indexOf(b.position);
-    
+
     // Se ambas as posições estão na lista, ordenar por posição
     if (posA !== -1 && posB !== -1) {
       return posA - posB;
@@ -53,7 +53,7 @@ export function FranchiseTagValues({
     // Se apenas uma está na lista, ela vem primeiro
     else if (posA !== -1) return -1;
     else if (posB !== -1) return 1;
-    
+
     // Se nenhuma está na lista, ordenar alfabeticamente
     return a.position.localeCompare(b.position);
   });
@@ -83,9 +83,10 @@ export function FranchiseTagValues({
             {sortedTagData.map((data, index) => {
               const colorClasses = getPositionTailwindClasses(data.position);
               const tagValue = isNaN(data.tagValue) || data.tagValue === 0 ? 0 : data.tagValue;
-              const avgValue = isNaN(data.averageTop10) || data.averageTop10 === 0 ? 0 : data.averageTop10;
+              const avgValue =
+                isNaN(data.averageTop10) || data.averageTop10 === 0 ? 0 : data.averageTop10;
               const percentage = tagValue > 0 ? Math.min((tagValue / 50000000) * 100, 100) : 0; // Normalizado para 50M max
-              
+
               return (
                 <div
                   key={data.position}
@@ -99,37 +100,33 @@ export function FranchiseTagValues({
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-purple-400 text-lg">
-                        $
-                        {tagValue === 0 ? '0.0' : (tagValue / 1000000).toFixed(1)}
-                        M
+                        ${tagValue === 0 ? '0.0' : (tagValue / 1000000).toFixed(1)}M
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Mini gráfico de barra */}
                   <div className="mb-2">
                     <div className="w-full bg-slate-600 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-gradient-to-r from-purple-500 to-purple-400 h-2 rounded-full transition-all duration-500"
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between text-xs text-slate-400">
                     <span>
-                      {data.isBasedOnAverage ? 'Baseado na média top 10' : 'Baseado em salário + 15%'}
+                      {data.isBasedOnAverage
+                        ? 'Baseado na média top 10'
+                        : 'Baseado em salário + 15%'}
                     </span>
-                    <span>
-                      Média: $
-                      {avgValue === 0 ? '0.0' : (avgValue / 1000000).toFixed(1)}
-                      M
-                    </span>
+                    <span>Média: ${avgValue === 0 ? '0.0' : (avgValue / 1000000).toFixed(1)}M</span>
                   </div>
                 </div>
               );
             })}
-            
+
             {/* Espaço decorativo se houver poucas posições */}
             {tagData.length < 6 && (
               <div className="flex-1 flex items-end justify-center pb-4">

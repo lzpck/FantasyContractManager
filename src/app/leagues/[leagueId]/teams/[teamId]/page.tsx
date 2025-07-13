@@ -40,7 +40,7 @@ export default function TeamDetailsPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
 
   // Hook para buscar dados financeiros em tempo real
-  const { contracts, deadMoneyRecords, revalidateFinancials } = useTeamFinancials(teamId, leagueId);
+  const { contracts, deadMoneyRecords, revalidateFinancials } = useTeamFinancials(teamId);
 
   // Hook para gerenciar o ContractModal
   const contractModal = useContractModal();
