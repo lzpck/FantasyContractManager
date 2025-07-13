@@ -36,11 +36,12 @@ import {
  * - Valores de Franchise Tag por posição
  *
  * Regras de negócio:
- * - Apenas comissários podem acessar o dashboard
+ * - Todos os membros autenticados da liga podem visualizar o dashboard
  * - Dados são calculados dinamicamente baseados na liga selecionada
  * - Estados vazios são exibidos quando nenhuma liga está selecionada
  * - Alertas são exibidos apenas para contratos vencendo da liga selecionada
  * - Redirecionamento automático para páginas específicas ao clicar nos cards (quando aplicável)
+ * - Ações administrativas (editar, configurar, aplicar tags) continuam restritas ao comissário
  */
 function DashboardContent() {
   const router = useRouter();
@@ -58,13 +59,8 @@ function DashboardContent() {
   const [topSalariesByPositionData, setTopSalariesByPositionData] = useState<any[]>([]);
   const [franchiseTagData, setFranchiseTagData] = useState<any[]>([]);
 
-  // Verificar se o usuário é comissário
-  useEffect(() => {
-    if (isAuthenticated && !isCommissioner) {
-      router.replace('/unauthorized?reason=not-commissioner');
-      return;
-    }
-  }, [isAuthenticated, isCommissioner, router]);
+  // Dashboard agora é acessível para todos os membros autenticados da liga
+  // Ações administrativas específicas continuam restritas ao comissário nos componentes individuais
 
   // Inicializar dados do usuário autenticado
   useEffect(() => {
