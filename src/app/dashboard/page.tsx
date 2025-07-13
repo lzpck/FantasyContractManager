@@ -110,6 +110,13 @@ function DashboardContent() {
 
   // Handler para seleção de liga
   const handleLeagueSelect = (league: any) => {
+    console.log('🔍 DEBUG Liga Selecionada:', {
+      league,
+      leagueId: league?.id,
+      leagueName: league?.name,
+      previousSelectedLeague: selectedLeague,
+    });
+
     setSelectedLeague(league);
     // TODO: Carregar dados específicos da liga selecionada
     // - Top 5 maiores salários da liga
@@ -184,25 +191,100 @@ function DashboardContent() {
   // Cálculos dinâmicos baseados na liga selecionada
   const totalLeagues = userManagedLeagues.length;
 
+  // Debug logs para investigar o problema
+  console.log('🔍 DEBUG Dashboard:', {
+    selectedLeague,
+    contractsTotal: contracts.length,
+    teamsTotal: teams.length,
+    userManagedLeagues: userManagedLeagues.length,
+  });
+
   // Contratos ativos: filtrar apenas contratos da liga selecionada com status ACTIVE
   const activeContracts = selectedLeague
-    ? contracts.filter(
-        contract =>
-          contract.status === ContractStatus.ACTIVE &&
-          contract.teamId &&
-          teams.find(team => team.id === contract.teamId)?.leagueId === selectedLeague.id,
-      ).length
+    ? (() => {
+        // Primeiro, vamos tentar usar o leagueId diretamente do contrato
+        const filteredContractsDirectly = contracts.filter(
+          contract =>
+            contract.status === ContractStatus.ACTIVE && contract.leagueId === selectedLeague.id,
+        );
+
+        // Método alternativo: via teamId -> team -> leagueId
+        const filteredContractsViaTeam = contracts.filter(
+          contract =>
+            contract.status === ContractStatus.ACTIVE &&
+            contract.teamId &&
+            teams.find(team => team.id === contract.teamId)?.leagueId === selectedLeague.id,
+        );
+
+        const filteredContracts =
+          filteredContractsDirectly.length > 0
+            ? filteredContractsDirectly
+            : filteredContractsViaTeam;
+
+        console.log('🔍 DEBUG Contratos Ativos:', {
+          selectedLeagueId: selectedLeague.id,
+          selectedLeagueIdType: typeof selectedLeague.id,
+          allContracts: contracts.length,
+          activeContracts: contracts.filter(c => c.status === ContractStatus.ACTIVE).length,
+          contractsWithTeamId: contracts.filter(c => c.teamId).length,
+          teamsInSelectedLeague: teams.filter(t => t.leagueId === selectedLeague.id).length,
+          filteredContractsDirectly: filteredContractsDirectly.length,
+          filteredContractsViaTeam: filteredContractsViaTeam.length,
+          finalFilteredContracts: filteredContracts.length,
+          contractsData: contracts.slice(0, 3).map(c => ({
+            id: c.id,
+            teamId: c.teamId,
+            teamIdType: typeof c.teamId,
+            status: c.status,
+            leagueId: c.leagueId || 'NO_LEAGUE_ID',
+            leagueIdType: typeof c.leagueId,
+          })),
+          teamsData: teams.slice(0, 3).map(t => ({
+            id: t.id,
+            idType: typeof t.id,
+            leagueId: t.leagueId,
+            leagueIdType: typeof t.leagueId,
+            name: t.name,
+          })),
+        });
+
+        return filteredContracts.length;
+      })()
     : 0;
 
   // Contratos vencendo: filtrar contratos da liga selecionada com yearsRemaining = 1
   const expiringContracts = selectedLeague
-    ? contracts.filter(
-        contract =>
-          contract.status === ContractStatus.ACTIVE &&
-          contract.yearsRemaining === 1 &&
-          contract.teamId &&
-          teams.find(team => team.id === contract.teamId)?.leagueId === selectedLeague.id,
-      ).length
+    ? (() => {
+        // Primeiro, vamos tentar usar o leagueId diretamente do contrato
+        const filteredContractsDirectly = contracts.filter(
+          contract =>
+            contract.status === ContractStatus.ACTIVE &&
+            contract.yearsRemaining === 1 &&
+            contract.leagueId === selectedLeague.id,
+        );
+
+        // Método alternativo: via teamId -> team -> leagueId
+        const filteredContractsViaTeam = contracts.filter(
+          contract =>
+            contract.status === ContractStatus.ACTIVE &&
+            contract.yearsRemaining === 1 &&
+            contract.teamId &&
+            teams.find(team => team.id === contract.teamId)?.leagueId === selectedLeague.id,
+        );
+
+        const filteredContracts =
+          filteredContractsDirectly.length > 0
+            ? filteredContractsDirectly
+            : filteredContractsViaTeam;
+
+        console.log('🔍 DEBUG Contratos Vencendo:', {
+          selectedLeagueId: selectedLeague.id,
+          contractsWithYearsRemaining1: contracts.filter(c => c.yearsRemaining === 1).length,
+          filteredContracts: filteredContracts.length,
+        });
+
+        return filteredContracts.length;
+      })()
     : 0;
 
   // Verificar alertas apenas para a liga selecionada
