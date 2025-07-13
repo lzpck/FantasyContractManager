@@ -13,7 +13,6 @@ export default withAuth(
     // Rotas que requerem autenticação de comissário
     const commissionerRoutes = [
       '/admin',
-      '/dashboard',
       '/settings',
       '/leagues/import',
       '/api/leagues/import',
@@ -21,7 +20,7 @@ export default withAuth(
     ];
 
     // Rotas que requerem pelo menos manager ou comissário
-    const managerRoutes = ['/leagues', '/teams'];
+    const managerRoutes = ['/leagues', '/teams', '/dashboard'];
 
     // Verificar se é uma rota de comissário
     if (commissionerRoutes.some(route => pathname.startsWith(route))) {
