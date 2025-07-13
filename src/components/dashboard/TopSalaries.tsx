@@ -24,7 +24,7 @@ interface TopSalariesProps {
  *
  * Regra de negócio:
  * - Exibe os top 5 jogadores com maiores salários da liga
- * - Ordenação decrescente por valor do salário
+ * - Ordenação decrescente APENAS por valor do salário (não por posição)
  * - Formatação em milhões de dólares
  * - Inclui posição e time do jogador
  *
@@ -38,23 +38,8 @@ export function TopSalaries({
   title = 'Top 5 Maiores Salários',
   maxPlayers = 5,
 }: TopSalariesProps) {
-  // Ordem padrão das posições
-  const positionOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
-
-  // Ordenar jogadores por posição e depois por salário
+  // Ordenar jogadores apenas por salário (maior para menor)
   const sortedPlayers = [...players].sort((a, b) => {
-    const posA = positionOrder.indexOf(a.position);
-    const posB = positionOrder.indexOf(b.position);
-
-    // Se ambas as posições estão na lista, ordenar por posição
-    if (posA !== -1 && posB !== -1) {
-      if (posA !== posB) return posA - posB;
-    }
-    // Se apenas uma está na lista, ela vem primeiro
-    else if (posA !== -1) return -1;
-    else if (posB !== -1) return 1;
-
-    // Se nenhuma está na lista ou são da mesma posição, ordenar por salário
     return b.salary - a.salary;
   });
 
