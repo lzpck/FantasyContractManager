@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserGroupIcon } from '@heroicons/react/24/outline';
 
 interface Player {
   id: string;
   name: string;
   position: string;
+  fantasyPositions?: string[];
   team: string;
   salary: number;
 }
@@ -24,25 +25,42 @@ interface TopSalariesByPositionProps {
 }
 
 /**
- * Componente para exibir os maiores salários por posição
+ * Componente para exibir os maiores salários por posição com sistema de abas
  *
  * Regra de negócio:
  * - Exibe os top 3 jogadores com maiores salários por posição (QB, RB, WR, TE, etc.)
- * - Agrupa por posição e ordena por valor do salário dentro de cada posição
+ * - Agrupa por fantasyPositions e ordena por valor do salário dentro de cada posição
  * - Formatação em milhões de dólares
- * - Layout responsivo com grid de posições
+ * - Sistema de abas para organizar múltiplas posições
+ * - Layout responsivo e otimizado
  *
- * Integração futura:
- * - Receber dados via props do contexto da liga selecionada
- * - Filtrar apenas contratos ativos
- * - Considerar todas as posições relevantes (QB, RB, WR, TE, K, DEF)
- * - Aplicar cores específicas por posição usando positionColors.ts
+ * Funcionalidades:
+ * - Abas clicáveis para navegar entre posições
+ * - Cores específicas por posição
+ * - Indicador visual da aba ativa
+ * - Fallback para quando não há dados
  */
 export function TopSalariesByPosition({
   positionData = [],
   title = 'Top 3 por Posição',
   maxPlayersPerPosition = 3,
 }: TopSalariesByPositionProps) {
+  // Estado para controlar a aba ativa
+  const [activeTab, setActiveTab] = useState<string>('');
+
+  // Definir a primeira posição como aba ativa quando os dados mudarem
+  useEffect(() => {
+    if (positionData.length > 0 && !activeTab) {
+      setActiveTab(positionData[0].position);
+    }
+  }, [positionData, activeTab]);
+
+  // Calcular jogadores da aba ativa
+  const activePositionData = positionData.find(pos => pos.position === activeTab);
+  const displayPlayers = activePositionData
+    ? activePositionData.players.slice(0, maxPlayersPerPosition)
+    : [];
+
   // Cores por posição (pode ser movido para utils/positionColors.ts futuramente)
   const getPositionColor = (position: string) => {
     const colors: Record<string, string> = {
@@ -52,6 +70,9 @@ export function TopSalariesByPosition({
       TE: 'text-orange-400 bg-orange-900/20 border-orange-700',
       K: 'text-yellow-400 bg-yellow-900/20 border-yellow-700',
       DEF: 'text-red-400 bg-red-900/20 border-red-700',
+      DL: 'text-red-400 bg-red-900/20 border-red-700',
+      LB: 'text-red-400 bg-red-900/20 border-red-700',
+      DB: 'text-red-400 bg-red-900/20 border-red-700',
     };
     return colors[position] || 'text-slate-400 bg-slate-900/20 border-slate-700';
   };
@@ -72,57 +93,83 @@ export function TopSalariesByPosition({
         </div>
       </div>
 
-      {/* Grid de posições */}
-      <div className="space-y-4">
-        {positionData.length > 0 ? (
-          positionData.map(position => {
-            const displayPlayers = position.players.slice(0, maxPlayersPerPosition);
-            const colorClasses = getPositionColor(position.position);
+      {/* Sistema de Abas */}
+      {positionData.length > 0 ? (
+        <>
+          {/* Navegação das Abas */}
+          <div className="flex flex-wrap gap-1 mb-4 p-1 bg-slate-700 rounded-lg">
+            {positionData.map(position => {
+              const isActive = activeTab === position.position;
+              const colorClasses = getPositionColor(position.position);
 
-            return (
-              <div key={position.position} className="space-y-2">
-                {/* Header da posição */}
-                <div
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${colorClasses}`}
+              return (
+                <button
+                  key={position.position}
+                  onClick={() => setActiveTab(position.position)}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? `${colorClasses} shadow-sm`
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-600'
+                  }`}
                 >
                   {position.position}
-                </div>
+                  <span className="ml-1 text-xs opacity-75">({position.players.length})</span>
+                </button>
+              );
+            })}
+          </div>
 
-                {/* Lista de jogadores da posição */}
-                <div className="space-y-2 ml-2">
-                  {displayPlayers.map((player, index) => (
-                    <div
-                      key={player.id}
-                      className="flex items-center justify-between p-2 bg-slate-700 rounded-lg border border-slate-600 hover:bg-slate-650 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center w-6 h-6 bg-slate-600 rounded-full text-xs font-medium text-slate-200">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <div className="font-medium text-foreground text-sm">{player.name}</div>
-                          <div className="text-xs text-slate-400">{player.team}</div>
-                        </div>
-                      </div>
-                      <div className="text-sm font-semibold text-green-400">
-                        ${(player.salary / 1000000).toFixed(1)}M
+          {/* Conteúdo da Aba Ativa */}
+          <div className="space-y-3">
+            {displayPlayers.length > 0 ? (
+              displayPlayers.map((player, index) => (
+                <div
+                  key={player.id}
+                  className="flex items-center justify-between p-3 bg-slate-700 rounded-lg border border-slate-600 hover:bg-slate-650 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-7 h-7 bg-slate-600 rounded-full text-sm font-medium text-slate-200">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <div className="font-medium text-foreground">{player.name}</div>
+                      <div className="text-sm text-slate-400">
+                        {player.team} • {player.position}
+                        {player.fantasyPositions &&
+                          Array.isArray(player.fantasyPositions) &&
+                          player.fantasyPositions.length > 1 && (
+                            <span className="ml-1 text-xs">
+                              ({player.fantasyPositions.join(', ')})
+                            </span>
+                          )}
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-semibold text-green-400">
+                      ${(player.salary / 1000000).toFixed(1)}M
+                    </div>
+                    <div className="text-xs text-slate-500">${player.salary.toLocaleString()}</div>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-6">
+                <div className="text-slate-400">Nenhum jogador encontrado</div>
+                <div className="text-sm text-slate-500 mt-1">para a posição {activeTab}</div>
               </div>
-            );
-          })
-        ) : (
-          <div className="text-center py-8">
-            <UserGroupIcon className="h-12 w-12 text-slate-500 mx-auto mb-3" />
-            <p className="text-slate-400">Nenhum dado disponível</p>
-            <p className="text-sm text-slate-500 mt-1">
-              Selecione uma liga para visualizar salários por posição
-            </p>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        <div className="text-center py-8">
+          <UserGroupIcon className="h-12 w-12 text-slate-500 mx-auto mb-3" />
+          <p className="text-slate-400">Nenhum dado disponível</p>
+          <p className="text-sm text-slate-500 mt-1">
+            Selecione uma liga para visualizar salários por posição
+          </p>
+        </div>
+      )}
     </div>
   );
 }
