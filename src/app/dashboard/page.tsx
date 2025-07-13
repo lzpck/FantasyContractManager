@@ -17,7 +17,7 @@ import { TopSalariesByPosition } from '@/components/dashboard/TopSalariesByPosit
 import { FranchiseTagValues } from '@/components/dashboard/FranchiseTagValues';
 
 import { getNFLState } from '@/services/nflStateService';
-import { ContractStatus } from '@/types';
+import { ContractStatus, PlayerPosition, ContractWithPlayer } from '@/types';
 import {
   TrophyIcon,
   DocumentTextIcon,
@@ -119,14 +119,86 @@ function DashboardContent() {
 
   // Efeito para carregar dados quando liga é selecionada
   useEffect(() => {
-    if (selectedLeague) {
-      // TODO: Implementar carregamento de dados da liga selecionada
-      // Por enquanto, mantém arrays vazios (estrutura preparada para integração futura)
+    if (selectedLeague && contracts.length > 0) {
+      // Filtrar contratos ativos da liga selecionada
+      const leagueContracts = contracts.filter(
+        contract =>
+          contract.status === ContractStatus.ACTIVE &&
+          contract.leagueId === selectedLeague.id &&
+          contract.player, // Garantir que o contrato tem dados do jogador
+      ) as ContractWithPlayer[];
+
+      // Top 5 Maiores Salários
+      const topSalaries = leagueContracts
+        .sort((a, b) => b.currentSalary - a.currentSalary)
+        .slice(0, 5)
+        .map(contract => ({
+          id: contract.player.id,
+          name: contract.player.name,
+          position: contract.player.position,
+          fantasyPositions: contract.player.fantasyPositions,
+          team: contract.team?.name || 'N/A',
+          salary: contract.currentSalary,
+        }));
+
+      // Top 3 por Posição
+      const positionGroups: Record<string, any[]> = {};
+      leagueContracts.forEach(contract => {
+        // Garantir que positions seja sempre um array
+        const fantasyPositions = contract.player.fantasyPositions;
+        const positions =
+          Array.isArray(fantasyPositions) && fantasyPositions.length > 0
+            ? fantasyPositions
+            : [contract.player.position];
+
+        positions.forEach(position => {
+          if (!positionGroups[position]) {
+            positionGroups[position] = [];
+          }
+          positionGroups[position].push({
+            id: contract.player.id,
+            name: contract.player.name,
+            position: contract.player.position,
+            fantasyPositions: contract.player.fantasyPositions,
+            team: contract.team?.name || 'N/A',
+            salary: contract.currentSalary,
+          });
+        });
+      });
+
+      const topByPosition = Object.entries(positionGroups).map(([position, players]) => ({
+        position,
+        players: players.sort((a, b) => b.salary - a.salary).slice(0, 3),
+      }));
+
+      // Valores Franchise Tag por Posição
+      const franchiseTagValues = Object.entries(positionGroups)
+        .map(([position, players]) => {
+          const sortedPlayers = players.sort((a, b) => b.salary - a.salary);
+          const top10 = sortedPlayers.slice(0, 10);
+          const averageTop10 =
+            top10.length > 0
+              ? top10.reduce((sum, player) => sum + player.salary, 0) / top10.length
+              : 0;
+
+          return {
+            position,
+            averageValue: averageTop10,
+            playersCount: players.length,
+            topPlayer: sortedPlayers[0] || null,
+          };
+        })
+        .filter(tag => tag.playersCount > 0);
+
+      setTopSalariesData(topSalaries);
+      setTopSalariesByPositionData(topByPosition);
+      setFranchiseTagData(franchiseTagValues);
+    } else {
       setTopSalariesData([]);
       setTopSalariesByPositionData([]);
       setFranchiseTagData([]);
     }
-  }, [selectedLeague]);
+  }, [selectedLeague, contracts]);
 
   // Estados de carregamento
   const isLoading = leaguesLoading || teamsLoading || contractsLoading || salaryCapLoading;
