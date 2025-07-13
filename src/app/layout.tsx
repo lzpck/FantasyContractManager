@@ -4,6 +4,7 @@ import './globals.css';
 import { AppProvider } from '@/contexts/AppContext';
 import { ConditionalLayout } from '@/components/layout/ConditionalLayout';
 import { SessionWrapper } from '@/components/providers/SessionWrapper';
+import { SWRProvider } from '@/components/providers/SWRProvider';
 import { Toaster } from 'sonner';
 
 const geistSans = Geist({
@@ -35,9 +36,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0f172a] min-h-screen`}
       >
         <SessionWrapper>
-          <AppProvider>
-            <ConditionalLayout>{children}</ConditionalLayout>
-          </AppProvider>
+          <SWRProvider>
+            <AppProvider>
+              <ConditionalLayout>{children}</ConditionalLayout>
+            </AppProvider>
+          </SWRProvider>
         </SessionWrapper>
 
         {/* Toaster para notificações */}

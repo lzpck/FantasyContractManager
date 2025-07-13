@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, ReactNode } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { User, League } from '../types';
 
@@ -77,34 +77,34 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Funções para manipular o estado
-  const setUser = (user: User | null) => {
+  // Funções para manipular o estado (memoizadas para evitar re-renders desnecessários)
+  const setUser = useCallback((user: User | null) => {
     dispatch({ type: 'SET_USER', payload: user });
-  };
+  }, []);
 
-  const setLeagues = (leagues: League[]) => {
+  const setLeagues = useCallback((leagues: League[]) => {
     dispatch({ type: 'SET_LEAGUES', payload: leagues });
-  };
+  }, []);
 
-  const addLeague = (league: League) => {
+  const addLeague = useCallback((league: League) => {
     dispatch({ type: 'ADD_LEAGUE', payload: league });
-  };
+  }, []);
 
-  const setCurrentLeague = (league: League | null) => {
+  const setCurrentLeague = useCallback((league: League | null) => {
     dispatch({ type: 'SET_CURRENT_LEAGUE', payload: league });
-  };
+  }, []);
 
-  const setLoading = (loading: boolean) => {
+  const setLoading = useCallback((loading: boolean) => {
     dispatch({ type: 'SET_LOADING', payload: loading });
-  };
+  }, []);
 
-  const setError = (error: string | null) => {
+  const setError = useCallback((error: string | null) => {
     dispatch({ type: 'SET_ERROR', payload: error });
-  };
+  }, []);
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     dispatch({ type: 'CLEAR_ERROR' });
-  };
+  }, []);
 
   // Removido setDemoUser
 

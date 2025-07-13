@@ -1,115 +1,90 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
+import { useEffect, useMemo } from 'react';
+import useSWR from 'swr';
 import { useAppContext } from '@/contexts/AppContext';
 import { League, LeagueSettings } from '@/types';
+
+// Fetcher function para SWR
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Erro ao carregar ligas');
+  }
+  const data = await response.json();
+  return data.leagues || [];
+};
 
 /**
  * Hook para gerenciar ligas
  *
- * Para o usuário demo, retorna dados fictícios.
- * Para outros usuários, carrega dados reais da API.
+ * Usa SWR para cache automático e deduplicação de requisições.
  */
 export function useLeagues() {
-  // Removido sistema demo
   const { setLeagues: setGlobalLeagues } = useAppContext();
-  const [leagues, setLeagues] = useState<League[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadLeagues() {
-      try {
-        setLoading(true);
-        setError(null);
+  const {
+    data: apiLeagues = [],
+    error,
+    isLoading,
+    mutate,
+  } = useSWR('/api/leagues', fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000, // 1 minuto de cache
+  });
 
-        // Carrega dados da API
-        const response = await fetch('/api/leagues');
+  // Transformar dados quando disponíveis (memoizado para evitar recriações desnecessárias)
+  const leagues: League[] = useMemo(() => {
+    return apiLeagues.map((l: any) => {
+      // Converter para o formato utilizado no frontend
+      const settings: LeagueSettings = {
+        maxFranchiseTags: l.maxFranchiseTags,
+        annualIncreasePercentage: l.annualIncreasePercentage,
+        minimumSalary: l.minimumSalary,
+        seasonTurnoverDate: l.seasonTurnoverDate,
+        rookieDraft: {
+          rounds: l.settings?.rookieDraft?.rounds ?? 3,
+          firstRoundFourthYearOption: l.settings?.rookieDraft?.firstRoundFourthYearOption ?? true,
+          salaryTable: l.settings?.rookieDraft?.salaryTable ?? [],
+        },
+      };
 
-        if (!response.ok) {
-          throw new Error('Erro ao carregar ligas');
+      // Parse do deadMoneyConfig se existir
+      let deadMoneyConfig;
+      if (l.deadMoneyConfig) {
+        try {
+          deadMoneyConfig =
+            typeof l.deadMoneyConfig === 'string'
+              ? JSON.parse(l.deadMoneyConfig)
+              : l.deadMoneyConfig;
+        } catch (parseError) {
+          console.warn('Erro ao fazer parse do deadMoneyConfig:', parseError);
+          deadMoneyConfig = undefined;
         }
-
-        const data = await response.json();
-        const apiLeagues = data.leagues || [];
-
-        // Converter para o formato utilizado no frontend
-        const transformed: League[] = apiLeagues.map((l: any) => {
-          const settings: LeagueSettings = {
-            maxFranchiseTags: l.maxFranchiseTags,
-            annualIncreasePercentage: l.annualIncreasePercentage,
-            minimumSalary: l.minimumSalary,
-            seasonTurnoverDate: l.seasonTurnoverDate,
-            rookieDraft: {
-              rounds: l.settings?.rookieDraft?.rounds ?? 3,
-              firstRoundFourthYearOption:
-                l.settings?.rookieDraft?.firstRoundFourthYearOption ?? true,
-              salaryTable: l.settings?.rookieDraft?.salaryTable ?? [],
-            },
-          };
-
-          // Parse do deadMoneyConfig se existir
-          let deadMoneyConfig;
-          if (l.deadMoneyConfig) {
-            try {
-              deadMoneyConfig =
-                typeof l.deadMoneyConfig === 'string'
-                  ? JSON.parse(l.deadMoneyConfig)
-                  : l.deadMoneyConfig;
-            } catch (parseError) {
-              console.warn('Erro ao fazer parse do deadMoneyConfig:', parseError);
-              deadMoneyConfig = undefined;
-            }
-          }
-
-          return {
-            ...l,
-            settings,
-            deadMoneyConfig,
-          } as League;
-        });
-
-        setLeagues(transformed);
-        setGlobalLeagues(transformed);
-      } catch (err) {
-        console.error('Erro ao carregar ligas:', err);
-        setError(err instanceof Error ? err.message : 'Erro desconhecido');
-        setLeagues([]);
-      } finally {
-        setLoading(false);
       }
-    }
 
-    loadLeagues();
-  }, [setGlobalLeagues]);
+      return {
+        ...l,
+        settings,
+        deadMoneyConfig,
+      } as League;
+    });
+  }, [apiLeagues]);
+
+  // Atualizar contexto global quando dados mudarem
+  useEffect(() => {
+    if (leagues.length > 0) {
+      setGlobalLeagues(leagues);
+    }
+  }, [leagues, setGlobalLeagues]);
 
   const refreshLeagues = async () => {
-    // Recarrega dados da API
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch('/api/leagues');
-      if (!response.ok) {
-        throw new Error('Erro ao recarregar ligas');
-      }
-
-      const data = await response.json();
-      const apiLeagues = data.leagues || [];
-
-      setLeagues(apiLeagues);
-      setGlobalLeagues(apiLeagues);
-    } catch (err) {
-      console.error('Erro ao recarregar ligas:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
-    } finally {
-      setLoading(false);
-    }
+    // Revalida os dados do SWR
+    await mutate();
   };
 
   return {
     leagues,
-    loading,
-    error,
+    loading: isLoading,
+    error: error?.message || null,
     refreshLeagues,
     hasLeagues: leagues.length > 0,
   };

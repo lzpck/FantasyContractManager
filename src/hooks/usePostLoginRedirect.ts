@@ -16,7 +16,7 @@ export function usePostLoginRedirect() {
   const router = useRouter();
   const { user, isCommissioner, isAuthenticated, isLoading } = useAuth();
   const { teams, loading: teamsLoading } = useUserTeams();
-  const { leagues, loading: leaguesLoading, hasLeagues } = useLeagues();
+  const { loading: leaguesLoading, hasLeagues } = useLeagues();
 
   useEffect(() => {
     // Aguardar carregamento da autenticação

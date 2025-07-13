@@ -250,7 +250,7 @@ export function useStandings(leagueId: string, league: League | null) {
 
       return standings;
     },
-    [],
+    [league?.deadMoneyConfig, league?.season],
   );
 
   /**
@@ -310,7 +310,7 @@ export function useStandings(leagueId: string, league: League | null) {
     } finally {
       setLoading(false);
     }
-  }, [league, fetchSleeperStandings, fetchTeamFinancials, combineStandingsData]);
+  }, [leagueId, league, fetchSleeperStandings, fetchTeamFinancials, combineStandingsData]);
 
   /**
    * Ordena classificação por critério específico

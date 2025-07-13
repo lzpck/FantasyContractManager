@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { useAuth } from './useAuth';
 import { Team } from '@/types';
 
@@ -9,55 +9,41 @@ interface UseUserTeamsReturn {
   refetch: () => void;
 }
 
+// Fetcher function para SWR
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Erro ao buscar times: ${response.status}`);
+  }
+  return response.json();
+};
+
 /**
  * Hook para gerenciar times do usuário
  * Busca todos os times onde o usuário é proprietário
+ * Usa SWR para cache automático e deduplicação de requisições.
  */
 export function useUserTeams(): UseUserTeamsReturn {
   const { user } = useAuth();
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchTeams = async () => {
-    if (!user) {
-      setTeams([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Removido verificação de usuário demo
-
-      // Buscar times reais da API
-      const response = await fetch('/api/teams');
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar times: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setTeams(data);
-    } catch (err) {
-      console.error('Erro ao buscar times:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTeams();
-  }, [user, fetchTeams]);
+  const {
+    data: teams = [],
+    error,
+    isLoading,
+    mutate,
+  } = useSWR(
+    user ? '/api/teams' : null, // Só faz a requisição se o usuário estiver logado
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000, // 1 minuto de cache
+    },
+  );
 
   return {
     teams,
-    loading,
-    error,
-    refetch: fetchTeams,
+    loading: isLoading,
+    error: error?.message || null,
+    refetch: mutate,
   };
 }
 

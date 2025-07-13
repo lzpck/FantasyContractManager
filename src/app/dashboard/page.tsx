@@ -122,7 +122,7 @@ function DashboardContent() {
     if (selectedLeague && contracts.length > 0) {
       // Filtrar contratos ativos da liga selecionada
       const leagueContracts = contracts.filter(
-        contract =>
+        (contract: ContractWithPlayer) =>
           contract.status === ContractStatus.ACTIVE &&
           contract.leagueId === selectedLeague.id &&
           contract.player, // Garantir que o contrato tem dados do jogador
@@ -282,7 +282,7 @@ function DashboardContent() {
   const activeContracts = selectedLeague
     ? (() => {
         const filteredContracts = contracts.filter(
-          contract =>
+          (contract: ContractWithPlayer) =>
             contract.status === ContractStatus.ACTIVE && contract.leagueId === selectedLeague.id,
         );
 
@@ -294,7 +294,7 @@ function DashboardContent() {
   const expiringContracts = selectedLeague
     ? (() => {
         const filteredContracts = contracts.filter(
-          contract =>
+          (contract: ContractWithPlayer) =>
             contract.status === ContractStatus.ACTIVE &&
             contract.yearsRemaining === 1 &&
             contract.leagueId === selectedLeague.id,

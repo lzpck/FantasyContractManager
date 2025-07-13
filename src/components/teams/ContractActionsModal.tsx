@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlayerWithContract, Player, Team, League, Contract } from '@/types';
+import { PlayerWithContract, Player, Team, League, Contract, ContractWithPlayer } from '@/types';
 import { XMarkIcon, PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/formatUtils';
 import { useContractModal } from '@/hooks/useContractModal';
@@ -140,7 +140,7 @@ export default function ContractActionsModal({
     if (!player?.contract || !player.player) return 0;
 
     // Preparar dados dos contratos com jogadores para o cálculo
-    const contractsWithPlayers = leagueContracts.map(contractWithPlayer => ({
+    const contractsWithPlayers = leagueContracts.map((contractWithPlayer: ContractWithPlayer) => ({
       contract: contractWithPlayer,
       player: contractWithPlayer.player,
     }));

@@ -1,68 +1,58 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
+import useSWR from 'swr';
 import { ContractWithPlayer, ContractStatus } from '@/types';
+
+// Fetcher function para SWR
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Erro ao carregar contratos');
+  }
+  const data = await response.json();
+  return data || [];
+};
 
 /**
  * Hook para gerenciar contratos
  *
- * Para o usuário demo, retorna dados fictícios.
- * Para outros usuários, carrega dados reais da API.
+ * Usa SWR para cache automático e deduplicação de requisições.
  */
 export function useContracts() {
-  // Removido sistema demo
-  const [contracts, setContracts] = useState<ContractWithPlayer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function loadContracts() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Carrega dados da API
-        const response = await fetch('/api/contracts');
-
-        if (!response.ok) {
-          throw new Error('Erro ao carregar contratos');
-        }
-
-        const data = await response.json();
-        setContracts(data || []);
-      } catch (err) {
-        console.error('Erro ao carregar contratos:', err);
-        setError(err instanceof Error ? err.message : 'Erro desconhecido');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadContracts();
-  }, []);
+  const {
+    data: contracts = [],
+    error,
+    isLoading,
+    mutate,
+  } = useSWR('/api/contracts', fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000, // 1 minuto de cache
+  });
 
   // Funções utilitárias para filtrar contratos
   const getActiveContracts = () => {
-    return contracts.filter(contract => contract.status === ContractStatus.ACTIVE);
+    return contracts.filter(
+      (contract: ContractWithPlayer) => contract.status === ContractStatus.ACTIVE,
+    );
   };
 
   const getExpiringContracts = () => {
     return contracts.filter(
-      contract => contract.status === ContractStatus.ACTIVE && contract.yearsRemaining === 1,
+      (contract: ContractWithPlayer) =>
+        contract.status === ContractStatus.ACTIVE && contract.yearsRemaining === 1,
     );
   };
 
   const getContractsByTeam = (teamId: string) => {
-    return contracts.filter(contract => contract.teamId === teamId);
+    return contracts.filter((contract: ContractWithPlayer) => contract.teamId === teamId);
   };
 
   const getContractsByLeague = (leagueId: string) => {
-    return contracts.filter(contract => contract.leagueId === leagueId);
+    return contracts.filter((contract: ContractWithPlayer) => contract.leagueId === leagueId);
   };
 
   return {
     contracts,
-    loading,
-    error,
+    loading: isLoading,
+    error: error?.message || null,
     // Funções utilitárias
     getActiveContracts,
     getExpiringContracts,
@@ -72,6 +62,8 @@ export function useContracts() {
     totalContracts: contracts.length,
     activeContracts: getActiveContracts().length,
     expiringContracts: getExpiringContracts().length,
+    // Função para revalidar dados
+    refreshContracts: mutate,
   };
 }
 
@@ -81,16 +73,20 @@ export function useContracts() {
 export function useLeagueContracts(leagueId: string) {
   const { contracts, loading, error } = useContracts();
 
-  const leagueContracts = contracts.filter(contract => contract.leagueId === leagueId);
+  const leagueContracts = contracts.filter(
+    (contract: ContractWithPlayer) => contract.leagueId === leagueId,
+  );
 
   return {
     contracts: leagueContracts,
     loading,
     error,
     totalContracts: leagueContracts.length,
-    activeContracts: leagueContracts.filter(c => c.status === ContractStatus.ACTIVE).length,
+    activeContracts: leagueContracts.filter(
+      (c: ContractWithPlayer) => c.status === ContractStatus.ACTIVE,
+    ).length,
     expiringContracts: leagueContracts.filter(
-      c => c.status === ContractStatus.ACTIVE && c.yearsRemaining === 1,
+      (c: ContractWithPlayer) => c.status === ContractStatus.ACTIVE && c.yearsRemaining === 1,
     ).length,
   };
 }

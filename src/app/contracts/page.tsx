@@ -106,11 +106,17 @@ function ContractsContent() {
   const totalPages = Math.ceil(filteredContracts.length / contractsPerPage);
 
   // Obter status únicos para o filtro
-  const uniqueStatuses = Array.from(new Set(contracts.map(contract => contract.status))).sort();
+  const uniqueStatuses = (
+    Array.from(
+      new Set(contracts.map((contract: ContractWithPlayer) => contract.status)),
+    ) as string[]
+  ).sort();
 
   // Obter anos restantes únicos para o filtro
-  const uniqueYearsRemaining = Array.from(
-    new Set(contracts.map(contract => contract.yearsRemaining)),
+  const uniqueYearsRemaining = (
+    Array.from(
+      new Set(contracts.map((contract: ContractWithPlayer) => contract.yearsRemaining)),
+    ) as number[]
   ).sort((a, b) => a - b);
 
   // Função para traduzir status

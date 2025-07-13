@@ -1,8 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
+import useSWR from 'swr';
 import { useContracts } from './useContracts';
 import { useLeagues } from './useLeagues';
-import { Team, League, ContractStatus } from '@/types';
+import { Team, ContractStatus, ContractWithPlayer } from '@/types';
+
+// Fetcher para SWR
+const fetcher = async (url: string) => {
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Erro ao carregar times');
+  }
+
+  const data = await response.json();
+  return data.teams || [];
+};
 
 /**
  * Interface para dados de salary cap de um time
@@ -24,40 +39,20 @@ export interface TeamSalaryCapData {
  * Hook para gerenciar dados de salary cap
  */
 export function useSalaryCap() {
-  // Removido sistema demo
   const { contracts, loading: contractsLoading } = useContracts();
   const { leagues, loading: leaguesLoading } = useLeagues();
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadTeams() {
-      try {
-        setLoading(true);
-        setError(null);
+  const {
+    data: teams = [],
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<Team[]>('/api/teams', fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000, // 1 minuto de cache
+  });
 
-        // Buscar times da API
-        const response = await fetch('/api/teams');
-
-        if (!response.ok) {
-          throw new Error('Erro ao carregar times');
-        }
-
-        const data = await response.json();
-        setTeams(data.teams || []);
-      } catch (err) {
-        console.error('Erro ao carregar times:', err);
-        setError(err instanceof Error ? err.message : 'Erro desconhecido');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (!contractsLoading && !leaguesLoading) {
-      loadTeams();
-    }
-  }, [contractsLoading, leaguesLoading, leagues]);
+  const loading = isLoading || contractsLoading || leaguesLoading;
 
   /**
    * Calcula dados de salary cap para todos os times
@@ -66,14 +61,19 @@ export function useSalaryCap() {
     return teams.map(team => {
       const league = leagues.find(l => l.id === team.leagueId);
       const teamContracts = contracts.filter(
-        c => c.teamId === team.id && c.status === ContractStatus.ACTIVE,
+        (c: ContractWithPlayer) => c.teamId === team.id && c.status === ContractStatus.ACTIVE,
       );
 
       const totalCap = league?.salaryCap || 279000000; // Default $279M
-      const usedCap = teamContracts.reduce((sum, contract) => sum + contract.currentSalary, 0);
+      const usedCap = teamContracts.reduce(
+        (sum: number, contract: ContractWithPlayer) => sum + contract.currentSalary,
+        0,
+      );
       const availableCap = totalCap - usedCap - team.currentDeadMoney;
       const usedPercentage = (usedCap / totalCap) * 100;
-      const expiringContracts = teamContracts.filter(c => c.yearsRemaining === 1).length;
+      const expiringContracts = teamContracts.filter(
+        (c: ContractWithPlayer) => c.yearsRemaining === 1,
+      ).length;
 
       return {
         teamId: team.id,
@@ -116,12 +116,11 @@ export function useSalaryCap() {
     return calculateSalaryCapData().filter(data => data.usedPercentage > 90);
   };
 
-  const isLoading = loading || contractsLoading || leaguesLoading;
-
   return {
     teams,
-    loading: isLoading,
-    error,
+    loading,
+    error: error?.message || null,
+    refreshTeams: mutate,
     // Funções de cálculo
     calculateSalaryCapData,
     calculateAverageCapUsed,
