@@ -51,7 +51,7 @@ export function useUserTeams(): UseUserTeamsReturn {
 
   useEffect(() => {
     fetchTeams();
-  }, [user]);
+  }, [user, fetchTeams]);
 
   return {
     teams,

@@ -1,0 +1,17 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bola de futebol americano -->
+  <ellipse cx="16" cy="16" rx="12" ry="8" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+  
+  <!-- Costuras da bola -->
+  <path d="M8 16 L24 16" stroke="white" stroke-width="1.5" fill="none"/>
+  
+  <!-- Linhas das costuras -->
+  <path d="M12 14 L12 18" stroke="white" stroke-width="1" fill="none"/>
+  <path d="M14 13 L14 19" stroke="white" stroke-width="1" fill="none"/>
+  <path d="M16 12.5 L16 19.5" stroke="white" stroke-width="1" fill="none"/>
+  <path d="M18 13 L18 19" stroke="white" stroke-width="1" fill="none"/>
+  <path d="M20 14 L20 18" stroke="white" stroke-width="1" fill="none"/>
+  
+  <!-- Sombra para dar profundidade -->
+  <ellipse cx="16" cy="16" rx="11" ry="7" fill="none" stroke="#5D2F0A" stroke-width="0.5" opacity="0.3"/>
+</svg>

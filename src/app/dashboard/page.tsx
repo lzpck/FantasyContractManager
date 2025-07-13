@@ -127,7 +127,7 @@ function DashboardContent() {
           contract.leagueId === selectedLeague.id &&
           contract.player, // Garantir que o contrato tem dados do jogador
       ) as ContractWithPlayer[];
-      
+
       // Verificar se há contratos válidos
       if (leagueContracts.length === 0) {
         console.warn('Nenhum contrato ativo encontrado para a liga selecionada');
@@ -180,13 +180,14 @@ function DashboardContent() {
       const franchiseTagValues = Object.entries(positionGroups)
         .map(([position, players]) => {
           // Filtrar jogadores com salários válidos
-          const validPlayers = players.filter(player => 
-            player.salary && 
-            typeof player.salary === 'number' && 
-            player.salary > 0 && 
-            !isNaN(player.salary)
+          const validPlayers = players.filter(
+            player =>
+              player.salary &&
+              typeof player.salary === 'number' &&
+              player.salary > 0 &&
+              !isNaN(player.salary),
           );
-          
+
           if (validPlayers.length === 0) {
             return null; // Pular posições sem jogadores válidos
           }
@@ -371,7 +372,10 @@ function DashboardContent() {
           </div>
 
           {/* Grid principal com altura fixa */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8" style={{gridTemplateRows: 'repeat(auto-fit, 600px)'}}>
+          <div
+            className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8"
+            style={{ gridTemplateRows: 'repeat(auto-fit, 600px)' }}
+          >
             {/* Top 5 Maiores Salários */}
             <div className="h-[600px]">
               <TopSalaries
