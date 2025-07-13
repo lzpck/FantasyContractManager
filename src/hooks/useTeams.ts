@@ -1,6 +1,21 @@
-import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { Team } from '@/types';
-import { useAuth } from './useAuth';
+
+// Fetcher para SWR
+const fetcher = async (url: string) => {
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Erro ao carregar times');
+  }
+
+  const data = await response.json();
+  return data.teams || [];
+};
 
 /**
  * Hook para gerenciar times
@@ -9,130 +24,73 @@ import { useAuth } from './useAuth';
  * Não utiliza mais dados demo ou mock.
  */
 export function useTeams(leagueId?: string) {
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const url = leagueId ? `/api/leagues/${leagueId}/teams` : '/api/teams';
 
-  useEffect(() => {
-    async function loadTeams() {
-      try {
-        setLoading(true);
-        setError(null);
+  const {
+    data: teams = [],
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<Team[]>(url, fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000, // 1 minuto de cache
+  });
 
-        // Sempre carrega dados reais da API
-        const url = leagueId ? `/api/leagues/${leagueId}/teams` : '/api/teams';
-        const response = await fetch(url);
-
-        if (!response.ok) {
-          throw new Error('Erro ao carregar times');
-        }
-
-        const data = await response.json();
-        setTeams(data.teams || []);
-      } catch (err) {
-        console.error('Erro ao carregar times:', err);
-        setError(err instanceof Error ? err.message : 'Erro desconhecido');
-        setTeams([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadTeams();
-  }, [leagueId]);
-
-  const refreshTeams = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Sempre recarrega dados reais da API
-      const url = leagueId ? `/api/leagues/${leagueId}/teams` : '/api/teams';
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error('Erro ao carregar times');
-      }
-
-      const data = await response.json();
-      setTeams(data.teams || []);
-    } catch (err) {
-      console.error('Erro ao recarregar times:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
-    } finally {
-      setLoading(false);
-    }
+  const refreshTeams = () => {
+    mutate();
   };
 
   return {
     teams,
-    loading,
-    error,
+    loading: isLoading,
+    error: error?.message || null,
     refreshTeams,
     hasTeams: teams.length > 0,
   };
 }
+
+// Fetcher específico para um time
+const teamFetcher = async (url: string) => {
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Erro ao carregar time');
+  }
+
+  const data = await response.json();
+  return data.team || null;
+};
 
 /**
  * Hook para obter um time específico por ID
  * Carrega dados reais da API exclusivamente.
  */
 export function useTeam(teamId: string) {
-  const [team, setTeam] = useState<Team | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: team,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<Team | null>(teamId ? `/api/teams/${teamId}` : null, teamFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000, // 1 minuto de cache
+  });
 
-  useEffect(() => {
-    async function loadTeam() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Sempre carrega dados reais da API
-        const response = await fetch(`/api/teams/${teamId}`);
-
-        if (!response.ok) {
-          throw new Error('Erro ao carregar time');
-        }
-
-        const data = await response.json();
-        setTeam(data.team || null);
-      } catch (err) {
-        console.error('Erro ao carregar time:', err);
-        setError(err instanceof Error ? err.message : 'Erro desconhecido');
-        setTeam(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (teamId) {
-      loadTeam();
-    }
-  }, [teamId]);
+  const refreshTeam = () => {
+    mutate();
+  };
 
   return {
-    team,
-    loading,
-    error,
-    found: !!team,
+    team: team || null,
+    loading: isLoading,
+    error: error?.message || null,
+    refreshTeam,
   };
 }
 
-/**
- * Hook para obter times do usuário atual
- */
-export function useUserTeams() {
-  const { user } = useAuth();
-  const { teams, loading, error } = useTeams();
-
-  // Filtra times do usuário atual
-  const userTeams = teams.filter(team => team.ownerId === user?.id);
-
-  return {
-    teams: userTeams,
-    loading,
-    error,
-    hasTeams: userTeams.length > 0,
-  };
-}
+// Hook useUserTeams foi movido para src/hooks/useUserTeams.ts
+// para evitar duplicação e usar SWR para otimização de cache

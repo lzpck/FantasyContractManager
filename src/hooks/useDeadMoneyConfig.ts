@@ -104,7 +104,7 @@ export function useDeadMoneyConfig(leagueId: string): UseDeadMoneyConfigReturn {
     if (leagueId) {
       loadConfig();
     }
-  }, [leagueId]);
+  }, [leagueId, loadConfig]);
 
   return {
     config,
