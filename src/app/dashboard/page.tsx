@@ -127,6 +127,11 @@ function DashboardContent() {
           contract.leagueId === selectedLeague.id &&
           contract.player, // Garantir que o contrato tem dados do jogador
       ) as ContractWithPlayer[];
+      
+      // Verificar se há contratos válidos
+      if (leagueContracts.length === 0) {
+        console.warn('Nenhum contrato ativo encontrado para a liga selecionada');
+      }
 
       // Top 5 Maiores Salários
       const topSalaries = leagueContracts
@@ -161,7 +166,7 @@ function DashboardContent() {
             position: contract.player.position,
             fantasyPositions: contract.player.fantasyPositions,
             team: contract.team?.name || 'N/A',
-            salary: contract.currentSalary,
+            salary: contract.currentSalary || 0,
           });
         });
       });
@@ -174,21 +179,37 @@ function DashboardContent() {
       // Valores Franchise Tag por Posição
       const franchiseTagValues = Object.entries(positionGroups)
         .map(([position, players]) => {
-          const sortedPlayers = players.sort((a, b) => b.salary - a.salary);
+          // Filtrar jogadores com salários válidos
+          const validPlayers = players.filter(player => 
+            player.salary && 
+            typeof player.salary === 'number' && 
+            player.salary > 0 && 
+            !isNaN(player.salary)
+          );
+          
+          if (validPlayers.length === 0) {
+            return null; // Pular posições sem jogadores válidos
+          }
+
+          const sortedPlayers = validPlayers.sort((a, b) => b.salary - a.salary);
           const top10 = sortedPlayers.slice(0, 10);
-          const averageTop10 =
-            top10.length > 0
-              ? top10.reduce((sum, player) => sum + player.salary, 0) / top10.length
-              : 0;
+          const averageTop10 = top10.reduce((sum, player) => sum + player.salary, 0) / top10.length;
+
+          // Para o cálculo da franchise tag, usamos o maior valor entre:
+          // 1. Média dos top 10 da posição
+          // 2. Salário atual + 15% (simulado aqui como a média + 15% para demonstração)
+          const salaryWith15Percent = averageTop10 * 1.15;
+          const tagValue = Math.max(averageTop10, salaryWith15Percent);
+          const isBasedOnAverage = averageTop10 >= salaryWith15Percent;
 
           return {
             position,
-            averageValue: averageTop10,
-            playersCount: players.length,
-            topPlayer: sortedPlayers[0] || null,
+            tagValue: Math.round(tagValue), // Arredondar para evitar decimais longos
+            averageTop10: Math.round(averageTop10), // Arredondar para evitar decimais longos
+            isBasedOnAverage,
           };
         })
-        .filter(tag => tag.playersCount > 0);
+        .filter(tag => tag !== null && tag.tagValue > 0); // Filtrar apenas posições válidas
 
       setTopSalariesData(topSalaries);
       setTopSalariesByPositionData(topByPosition);
@@ -349,10 +370,10 @@ function DashboardContent() {
             />
           </div>
 
-          {/* Grid principal com componentes analytics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+          {/* Grid principal com altura fixa */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8" style={{gridTemplateRows: 'repeat(auto-fit, 600px)'}}>
             {/* Top 5 Maiores Salários */}
-            <div className="lg:col-span-1">
+            <div className="h-[600px]">
               <TopSalaries
                 players={topSalariesData}
                 title="Top 5 Maiores Salários"
@@ -361,7 +382,7 @@ function DashboardContent() {
             </div>
 
             {/* Top 3 por Posição */}
-            <div className="lg:col-span-1">
+            <div className="h-[600px]">
               <TopSalariesByPosition
                 positionData={topSalariesByPositionData}
                 title="Top 3 por Posição"
@@ -370,7 +391,7 @@ function DashboardContent() {
             </div>
 
             {/* Valores Franchise Tag */}
-            <div className="lg:col-span-2 xl:col-span-1">
+            <div className="lg:col-span-2 xl:col-span-1 h-[600px]">
               <FranchiseTagValues tagData={franchiseTagData} title="Valores Franchise Tag" />
             </div>
           </div>
