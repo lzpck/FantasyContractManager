@@ -128,7 +128,15 @@ function DashboardContent() {
       console.log(`📈 Contratos ativos: ${leagueContracts.length}`);
       console.log(`🏈 Times únicos: ${uniqueTeams.size}`, Array.from(uniqueTeams));
       console.log(`👥 Jogadores únicos: ${uniquePlayers.size}`);
-      console.log(`🔍 IDs dos contratos:`, leagueContracts.map(c => ({ id: c.id, teamId: c.teamId, playerId: c.player.id, playerName: c.player.name })));
+      console.log(
+        `🔍 IDs dos contratos:`,
+        leagueContracts.map(c => ({
+          id: c.id,
+          teamId: c.teamId,
+          playerId: c.player.id,
+          playerName: c.player.name,
+        })),
+      );
 
       // Verificar se há contratos válidos
       if (leagueContracts.length === 0) {
@@ -330,7 +338,9 @@ function DashboardContent() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">Analytics da Liga</h1>
-            <p className="mt-2 text-slate-400">Visão geral financeira e estatísticas agregadas da liga selecionada</p>
+            <p className="mt-2 text-slate-400">
+              Visão geral financeira e estatísticas agregadas da liga selecionada
+            </p>
           </div>
 
           {/* Seletor de Liga */}
