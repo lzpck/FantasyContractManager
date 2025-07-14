@@ -28,6 +28,7 @@ model User {
   sessions      Session[]
   teams         Team[]       @relation("TeamOwner")
   team          Team?        @relation("UserTeam", fields: [teamId], references: [id])
+  createdEvents Event[]      @relation("EventCreator")
 
   @@map("users")
 }
@@ -98,6 +99,7 @@ model League {
   leagueUsers              LeagueUser[]
   commissioner             User         @relation("LeagueCommissioner", fields: [commissionerId], references: [id])
   teams                    Team[]
+  events                   Event[]
 
   @@map("leagues")
 }
@@ -229,6 +231,26 @@ model DeadMoney {
   team       Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@map("dead_money")
+}
+
+/// *
+/// * Modelo de evento da liga
+model Event {
+  id          String  @id @default(cuid())
+  leagueId    String
+  name        String
+  description String?
+  startDate   String
+  endDate     String?
+  createdBy   String
+  createdAt   String  @default("")
+  updatedAt   String  @default("")
+  league      League  @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  creator     User    @relation("EventCreator", fields: [createdBy], references: [id])
+
+  @@index([leagueId])
+  @@index([startDate])
+  @@map("events")
 }
 
 /// *
