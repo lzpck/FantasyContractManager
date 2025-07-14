@@ -27,23 +27,31 @@ export async function GET() {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
     }
 
-    // Buscar contratos baseado no papel do usuário
-    // Se for comissário: ver todos os contratos das ligas que comissiona
-    // Se for usuário comum: ver apenas contratos dos seus times
-    const whereClause =
-      user.role === 'COMMISSIONER'
-        ? {
-            team: {
-              league: {
-                commissionerId: user.id,
-              },
-            },
-          }
-        : {
-            team: {
-              ownerId: user.id,
-            },
-          };
+    // Para o dashboard analytics, retornar todos os contratos das ligas acessíveis
+    // Dashboard precisa de dados agregados da liga, não filtrados por usuário
+    // Buscar todas as ligas onde o usuário tem acesso (como membro ou comissário)
+    const userLeagues = await prisma.leagueUser.findMany({
+      where: { userId: user.id },
+      select: { leagueId: true },
+    });
+
+    const commissionedLeagues = await prisma.league.findMany({
+      where: { commissionerId: user.id },
+      select: { id: true },
+    });
+
+    const allAccessibleLeagueIds = [
+      ...userLeagues.map(ul => ul.leagueId),
+      ...commissionedLeagues.map(cl => cl.id),
+    ];
+
+    const whereClause = {
+      team: {
+        leagueId: {
+          in: allAccessibleLeagueIds,
+        },
+      },
+    };
 
     const contracts = await prisma.contract.findMany({
       where: whereClause,

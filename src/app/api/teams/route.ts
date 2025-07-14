@@ -20,33 +20,55 @@ export async function GET() {
 
     const userEmail = session.user.email;
 
-    // Usuários reais: buscar times do banco de dados
+    // Buscar usuário
     const user = await prisma.user.findUnique({
       where: { email: userEmail! },
-      include: {
-        teams: {
-          include: {
-            league: true,
-            contracts: {
-              where: {
-                status: 'ACTIVE',
-              },
-              include: {
-                player: true,
-              },
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
     }
 
+    // Para o dashboard analytics, buscar todos os times das ligas acessíveis
+    // Buscar todas as ligas onde o usuário tem acesso (como membro ou comissário)
+    const userLeagues = await prisma.leagueUser.findMany({
+      where: { userId: user.id },
+      select: { leagueId: true },
+    });
+
+    const commissionedLeagues = await prisma.league.findMany({
+      where: { commissionerId: user.id },
+      select: { id: true },
+    });
+
+    const allAccessibleLeagueIds = [
+      ...userLeagues.map(ul => ul.leagueId),
+      ...commissionedLeagues.map(cl => cl.id),
+    ];
+
+    // Buscar todos os times das ligas acessíveis
+    const teams = await prisma.team.findMany({
+      where: {
+        leagueId: {
+          in: allAccessibleLeagueIds,
+        },
+      },
+      include: {
+        league: true,
+        contracts: {
+          where: {
+            status: 'ACTIVE',
+          },
+          include: {
+            player: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
     // Calcular dados de salary cap para cada time
-    const teamsWithSalaryCap = user.teams.map(team => {
+    const teamsWithSalaryCap = teams.map(team => {
       const totalUsedCap = team.contracts.reduce((sum, contract) => {
         return sum + contract.currentSalary;
       }, 0);

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useLeagues } from '@/hooks/useLeagues';
-import { useUserTeams } from '@/hooks/useUserTeams';
+// Removido useUserTeams - dashboard deve mostrar dados agregados da liga, não do usuário
 import { useContracts } from '@/hooks/useContracts';
 import { useSalaryCap } from '@/hooks/useSalaryCap';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -48,7 +48,7 @@ function DashboardContent() {
   const { state, setUser } = useAppContext();
   const { user: authUser, isAuthenticated, isCommissioner } = useAuth();
   const { leagues, loading: leaguesLoading, error: leaguesError, hasLeagues } = useLeagues();
-  const { teams, loading: teamsLoading, error: teamsError } = useUserTeams();
+  // Removido useUserTeams - dashboard mostra dados agregados da liga
   const { contracts, loading: contractsLoading } = useContracts();
   const { salaryCapData, loading: salaryCapLoading } = useSalaryCap();
   const [nflState, setNflState] = useState<{ season: string; week: number } | null>(null);
@@ -97,12 +97,9 @@ function DashboardContent() {
     fetchNFLState();
   }, []);
 
-  // Filtrar ligas onde o usuário é GM ou comissário
-  const userManagedLeagues = leagues.filter(league => {
-    // TODO: Implementar lógica para verificar se o usuário é GM ou comissário da liga
-    // Por enquanto, retorna todas as ligas (estrutura preparada para integração futura)
-    return true;
-  });
+  // Dashboard mostra dados agregados de qualquer liga selecionada
+  // Não filtra por usuário específico - todos podem ver analytics de qualquer liga
+  const availableLeagues = leagues;
 
   // Handler para seleção de liga
   const handleLeagueSelect = useCallback((league: any) => {
@@ -123,6 +120,15 @@ function DashboardContent() {
           contract.leagueId === selectedLeague.id &&
           contract.player, // Garantir que o contrato tem dados do jogador
       ) as ContractWithPlayer[];
+
+      // Log para verificar dados agregados da liga (múltiplos times)
+      const uniqueTeams = new Set(leagueContracts.map(contract => contract.teamId));
+      const uniquePlayers = new Set(leagueContracts.map(contract => contract.player.id));
+      console.log(`📊 Dashboard Analytics - Liga: ${selectedLeague.name}`);
+      console.log(`📈 Contratos ativos: ${leagueContracts.length}`);
+      console.log(`🏈 Times únicos: ${uniqueTeams.size}`, Array.from(uniqueTeams));
+      console.log(`👥 Jogadores únicos: ${uniquePlayers.size}`);
+      console.log(`🔍 IDs dos contratos:`, leagueContracts.map(c => ({ id: c.id, teamId: c.teamId, playerId: c.player.id, playerName: c.player.name })));
 
       // Verificar se há contratos válidos
       if (leagueContracts.length === 0) {
@@ -219,8 +225,8 @@ function DashboardContent() {
   }, [selectedLeague, contracts]);
 
   // Estados de carregamento
-  const isLoading = leaguesLoading || teamsLoading || contractsLoading || salaryCapLoading;
-  const error = leaguesError || teamsError;
+  const isLoading = leaguesLoading || contractsLoading || salaryCapLoading;
+  const error = leaguesError;
 
   // Renderização condicional baseada no tipo de usuário
   if (isLoading) {
@@ -272,7 +278,7 @@ function DashboardContent() {
   }
 
   // Cálculos dinâmicos baseados na liga selecionada
-  const totalLeagues = userManagedLeagues.length;
+  const totalLeagues = availableLeagues.length;
 
   // Contratos ativos: filtrar apenas contratos da liga selecionada com status ACTIVE
   const activeContracts = selectedLeague
@@ -329,7 +335,7 @@ function DashboardContent() {
 
           {/* Seletor de Liga */}
           <LeagueSelector
-            leagues={userManagedLeagues}
+            leagues={availableLeagues}
             selectedLeague={selectedLeague}
             onLeagueSelect={handleLeagueSelect}
             loading={leaguesLoading}
