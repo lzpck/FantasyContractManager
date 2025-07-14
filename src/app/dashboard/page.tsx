@@ -323,8 +323,8 @@ function DashboardContent() {
 
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Dashboard Analytics</h1>
-            <p className="mt-2 text-slate-400">Análise financeira e estratégica das suas ligas</p>
+            <h1 className="text-3xl font-bold text-foreground">Analytics da Liga</h1>
+            <p className="mt-2 text-slate-400">Visão geral financeira e estatísticas agregadas da liga selecionada</p>
           </div>
 
           {/* Seletor de Liga */}
