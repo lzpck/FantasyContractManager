@@ -16,8 +16,14 @@ export function Sidebar() {
   const pathname = usePathname();
   const { isCommissioner } = useAuth();
 
-  // Itens de navegação base
-  const baseNavigationItems = [
+  // Itens de navegação - Dashboard agora disponível para todos os usuários autenticados
+  const navigationItems = [
+    {
+      name: 'Dashboard',
+      href: '/dashboard',
+      icon: '📊',
+      description: 'Analytics da Liga',
+    },
     {
       name: 'Ligas',
       href: '/leagues',
@@ -37,19 +43,6 @@ export function Sidebar() {
       description: 'Regras, contato e suporte',
     },
   ];
-
-  // Adicionar Dashboard apenas para comissários
-  const navigationItems = isCommissioner
-    ? [
-        {
-          name: 'Dashboard',
-          href: '/dashboard',
-          icon: '📊',
-          description: 'Visão geral',
-        },
-        ...baseNavigationItems,
-      ]
-    : baseNavigationItems;
 
   // Verificar se o item está ativo
   const isActiveItem = (href: string) => {
