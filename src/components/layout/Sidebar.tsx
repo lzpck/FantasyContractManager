@@ -31,6 +31,12 @@ export function Sidebar() {
       description: 'Gerenciar ligas',
     },
     {
+      name: 'Eventos',
+      href: '/events',
+      icon: '📅',
+      description: 'Eventos das ligas',
+    },
+    {
       name: 'Jogadores',
       href: '/players',
       icon: '🏃‍♂️',

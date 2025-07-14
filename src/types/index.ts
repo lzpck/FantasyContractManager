@@ -743,12 +743,89 @@ export type StandingsSortBy =
   | 'availableCap'
   | 'totalSalaries';
 
+// ============================================================================
+// TIPOS PARA EVENTOS
+// ============================================================================
+
+/**
+ * Status de um evento baseado nas datas
+ */
+export enum EventStatus {
+  /** Evento ainda não iniciado */
+  UPCOMING = 'upcoming',
+  /** Evento em andamento */
+  ONGOING = 'ongoing',
+  /** Evento finalizado */
+  COMPLETED = 'completed',
+}
+
+/**
+ * Interface para um evento da liga
+ */
+export interface Event {
+  /** ID único do evento */
+  id: string;
+  /** ID da liga à qual o evento pertence */
+  leagueId: string;
+  /** Nome do evento */
+  name: string;
+  /** Descrição detalhada do evento (opcional) */
+  description?: string;
+  /** Data e hora de início do evento */
+  startDate: string; // ISO 8601 format
+  /** Data e hora de fim do evento (opcional) */
+  endDate?: string; // ISO 8601 format
+  /** ID do usuário que criou o evento */
+  createdBy: string;
+  /** Data de criação do evento */
+  createdAt: string; // ISO 8601 format
+  /** Data da última atualização */
+  updatedAt: string; // ISO 8601 format
+  /** Dados do criador do evento */
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  /** Status calculado do evento */
+  status?: EventStatus;
+}
+
+/**
+ * Dados para criação de um novo evento
+ */
+export interface CreateEventData {
+  /** Nome do evento */
+  name: string;
+  /** Descrição do evento (opcional) */
+  description?: string;
+  /** Data e hora de início */
+  startDate: string;
+  /** Data e hora de fim (opcional) */
+  endDate?: string;
+}
+
+/**
+ * Dados para atualização de um evento
+ */
+export interface UpdateEventData {
+  /** Nome do evento */
+  name: string;
+  /** Descrição do evento (opcional) */
+  description?: string;
+  /** Data e hora de início */
+  startDate: string;
+  /** Data e hora de fim (opcional) */
+  endDate?: string;
+}
+
 const types = {
   ContractStatus,
   PlayerPosition,
   AcquisitionType,
   LeagueStatus,
   CapMovementType,
+  EventStatus,
 };
 
 export default types;
