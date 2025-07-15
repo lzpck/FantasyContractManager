@@ -206,21 +206,12 @@ function DashboardContent() {
           const top10 = sortedPlayers.slice(0, 10);
           const averageTop10 = top10.reduce((sum, player) => sum + player.salary, 0) / top10.length;
 
-          // Para o cálculo da franchise tag, usamos o maior valor entre:
-          // 1. Média dos top 10 da posição
-          // 2. Salário atual + 15% (simulado aqui como a média + 15% para demonstração)
-          const salaryWith15Percent = averageTop10 * 1.15;
-          const tagValue = Math.max(averageTop10, salaryWith15Percent);
-          const isBasedOnAverage = averageTop10 >= salaryWith15Percent;
-
           return {
             position,
-            tagValue: Math.round(tagValue), // Arredondar para evitar decimais longos
             averageTop10: Math.round(averageTop10), // Arredondar para evitar decimais longos
-            isBasedOnAverage,
           };
         })
-        .filter(tag => tag !== null && tag.tagValue > 0); // Filtrar apenas posições válidas
+        .filter(tag => tag !== null && tag.averageTop10 > 0); // Filtrar apenas posições válidas
 
       setTopSalariesData(topSalaries);
       setTopSalariesByPositionData(topByPosition);
