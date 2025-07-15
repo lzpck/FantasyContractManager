@@ -4,9 +4,7 @@ import { getPositionTailwindClasses } from '@/utils/positionColors';
 
 interface FranchiseTagData {
   position: string;
-  tagValue: number;
   averageTop10: number;
-  isBasedOnAverage: boolean; // true se baseado na média, false se baseado em salário atual + 15%
 }
 
 interface FranchiseTagValuesProps {
@@ -19,10 +17,11 @@ interface FranchiseTagValuesProps {
 /**
  * Componente para exibir valores de Franchise Tag por posição
  *
- * Regra de negócio:
- * - Franchise Tag = maior valor entre:
- *   1. Média dos 10 maiores salários da posição
- *   2. Salário atual do jogador + 15%
+ * Exibe apenas a média dos 10 maiores salários da posição.
+ * A explicação completa sobre o cálculo (maior valor entre a média e salário + 15%)
+ * aparece apenas quando o usuário aplicar a tag.
+ *
+ * Regras da Franchise Tag:
  * - Só pode ser aplicada após semana 17 até 1º de abril
  * - Jogador não pode ter sido tagueado antes
  * - Máximo de 1 tag por temporada (configurável)
@@ -31,8 +30,6 @@ interface FranchiseTagValuesProps {
  * Integração futura:
  * - Calcular média dos top 10 por posição da liga selecionada
  * - Considerar apenas contratos ativos
- * - Aplicar regra de maior valor (média vs salário + 15%)
- * - Verificar elegibilidade do jogador (nunca foi tagueado)
  */
 export function FranchiseTagValues({
   tagData = [],
@@ -82,10 +79,9 @@ export function FranchiseTagValues({
           <div className="space-y-3 flex-1 overflow-y-auto pr-2">
             {sortedTagData.map((data, index) => {
               const colorClasses = getPositionTailwindClasses(data.position);
-              const tagValue = isNaN(data.tagValue) || data.tagValue === 0 ? 0 : data.tagValue;
               const avgValue =
                 isNaN(data.averageTop10) || data.averageTop10 === 0 ? 0 : data.averageTop10;
-              const percentage = tagValue > 0 ? Math.min((tagValue / 50000000) * 100, 100) : 0; // Normalizado para 50M max
+              const percentage = avgValue > 0 ? Math.min((avgValue / 50000000) * 100, 100) : 0; // Normalizado para 50M max
 
               return (
                 <div
@@ -100,7 +96,7 @@ export function FranchiseTagValues({
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-purple-400 text-lg">
-                        ${tagValue === 0 ? '0.0' : (tagValue / 1000000).toFixed(1)}M
+                        ${avgValue === 0 ? '0.0' : (avgValue / 1000000).toFixed(1)}M
                       </div>
                     </div>
                   </div>
@@ -115,13 +111,8 @@ export function FranchiseTagValues({
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span>
-                      {data.isBasedOnAverage
-                        ? 'Baseado na média top 10'
-                        : 'Baseado em salário + 15%'}
-                    </span>
-                    <span>Média: ${avgValue === 0 ? '0.0' : (avgValue / 1000000).toFixed(1)}M</span>
+                  <div className="flex items-center justify-center text-xs text-slate-400">
+                    <span>Média dos 10 maiores salários</span>
                   </div>
                 </div>
               );
@@ -175,7 +166,7 @@ export function FranchiseTagValues({
           </div>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-purple-400 rounded-full"></div>
-            <span>Maior: média top 10 ou +15%</span>
+            <span>Valor baseado na posição</span>
           </div>
         </div>
       </div>
