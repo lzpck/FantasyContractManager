@@ -35,7 +35,8 @@ function ContractsContent() {
     const league = searchParams.get('league');
 
     if (status) {
-      setStatusFilter(status);
+      // Converter status para maiúsculo para corresponder aos valores do enum ContractStatus
+      setStatusFilter(status.toUpperCase());
     }
 
     if (yearsRemaining) {
