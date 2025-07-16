@@ -5,6 +5,7 @@
 Este guia fornece instruções completas para aplicar as migrations do sistema de eventos em produção de forma segura e eficiente.
 
 ### ✨ Funcionalidades Adicionadas
+
 - ✅ Sistema completo de gerenciamento de eventos
 - ✅ Modal de criação/edição de eventos
 - ✅ Modal de confirmação de exclusão
@@ -14,6 +15,7 @@ Este guia fornece instruções completas para aplicar as migrations do sistema d
 - ✅ Integração com `@headlessui/react`
 
 ### 🗄️ Mudanças no Banco de Dados
+
 - **Nova tabela**: `events`
 - **Operação**: Apenas adição (sem modificação de dados existentes)
 - **Segurança**: ✅ Zero risco de perda de dados
@@ -26,6 +28,7 @@ Este guia fornece instruções completas para aplicar as migrations do sistema d
 ### Opção 1: Script Automatizado (Recomendado)
 
 #### Para Windows (PowerShell):
+
 ```powershell
 # 1. Definir variável de ambiente
 $env:DATABASE_URL = "postgresql://neondb_owner:npg_ZjAw8GoclDS5@ep-old-violet-acwdosej-pooler.sa-east-1.aws.neon.tech/fantasy_contract_manager?sslmode=require&channel_binding=require"
@@ -35,6 +38,7 @@ $env:DATABASE_URL = "postgresql://neondb_owner:npg_ZjAw8GoclDS5@ep-old-violet-ac
 ```
 
 #### Para Linux/Mac (Bash):
+
 ```bash
 # 1. Definir variável de ambiente
 export DATABASE_URL="postgresql://neondb_owner:npg_ZjAw8GoclDS5@ep-old-violet-acwdosej-pooler.sa-east-1.aws.neon.tech/fantasy_contract_manager?sslmode=require&channel_binding=require"
@@ -68,24 +72,27 @@ npx prisma migrate status
 ## 🔍 Verificações Pós-Deploy
 
 ### 1. Verificar Tabela Criada
+
 ```sql
-SELECT table_name 
-FROM information_schema.tables 
+SELECT table_name
+FROM information_schema.tables
 WHERE table_schema = 'public' AND table_name = 'events';
 ```
 
 ### 2. Verificar Estrutura
+
 ```sql
-SELECT column_name, data_type, is_nullable 
-FROM information_schema.columns 
-WHERE table_name = 'events' 
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'events'
 ORDER BY ordinal_position;
 ```
 
 ### 3. Verificar Índices
+
 ```sql
-SELECT indexname, indexdef 
-FROM pg_indexes 
+SELECT indexname, indexdef
+FROM pg_indexes
 WHERE tablename = 'events';
 ```
 
@@ -113,10 +120,10 @@ CREATE INDEX "events_leagueId_idx" ON "events"("leagueId");
 CREATE INDEX "events_startDate_idx" ON "events"("startDate");
 
 -- Chaves estrangeiras
-ALTER TABLE "events" ADD CONSTRAINT "events_leagueId_fkey" 
+ALTER TABLE "events" ADD CONSTRAINT "events_leagueId_fkey"
 FOREIGN KEY ("leagueId") REFERENCES "leagues"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "events" ADD CONSTRAINT "events_createdBy_fkey" 
+ALTER TABLE "events" ADD CONSTRAINT "events_createdBy_fkey"
 FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ```
 
@@ -125,6 +132,7 @@ FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE 
 ## 🧪 Teste de Funcionalidade
 
 ### 1. Teste de Inserção
+
 ```javascript
 // Exemplo de uso da API
 const response = await fetch('/api/leagues/[leagueId]/events', {
@@ -134,12 +142,13 @@ const response = await fetch('/api/leagues/[leagueId]/events', {
     name: 'Evento Teste',
     description: 'Descrição do evento',
     startDate: new Date().toISOString(),
-    endDate: new Date(Date.now() + 86400000).toISOString() // +1 dia
-  })
+    endDate: new Date(Date.now() + 86400000).toISOString(), // +1 dia
+  }),
 });
 ```
 
 ### 2. Teste de Listagem
+
 ```javascript
 // Listar eventos da liga
 const events = await fetch('/api/leagues/[leagueId]/events');
@@ -151,24 +160,28 @@ const eventsData = await events.json();
 ## 🔧 Troubleshooting
 
 ### Problema: Migration já aplicada
+
 ```bash
 # Solução: Apenas regenerar cliente
 npx prisma generate
 ```
 
 ### Problema: Erro de conexão
+
 ```bash
 # Verificar conectividade
 npx prisma db execute --stdin <<< "SELECT 1;"
 ```
 
 ### Problema: Permissões insuficientes
+
 ```bash
 # Verificar usuário atual
 npx prisma db execute --stdin <<< "SELECT current_user, session_user;"
 ```
 
 ### Problema: Tabela não encontrada
+
 ```bash
 # Verificar se migration foi aplicada
 npx prisma migrate status
@@ -188,7 +201,7 @@ npx prisma migrate deploy
 DROP TABLE IF EXISTS "events" CASCADE;
 
 -- Remover entrada da migration (se necessário)
-DELETE FROM "_prisma_migrations" 
+DELETE FROM "_prisma_migrations"
 WHERE migration_name = '20250714170754_adiciona_tabela_events';
 ```
 
@@ -197,14 +210,17 @@ WHERE migration_name = '20250714170754_adiciona_tabela_events';
 ## 📈 Monitoramento Pós-Deploy
 
 ### 1. Logs da Aplicação
+
 - Verificar se não há erros relacionados à tabela `events`
 - Monitorar performance das consultas
 
 ### 2. Métricas do Banco
+
 - Verificar uso de espaço em disco
 - Monitorar performance dos índices
 
 ### 3. Funcionalidades
+
 - Testar criação de eventos
 - Testar edição de eventos
 - Testar exclusão de eventos

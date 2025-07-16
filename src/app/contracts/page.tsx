@@ -162,7 +162,7 @@ function ContractsContent() {
 
   // Obter ligas únicas para o filtro (apenas ligas acessíveis ao usuário)
   const uniqueLeagues = leagues.filter(league =>
-    contracts.some(contract => contract.leagueId === league.id),
+    contracts.some((contract: ContractWithPlayer) => contract.leagueId === league.id),
   );
 
   // Função para traduzir status

@@ -5,6 +5,7 @@
 A migration `20250714170754_adiciona_tabela_events` adiciona uma nova tabela `events` ao banco de dados sem modificar ou remover dados existentes. Esta é uma operação **SEGURA** que não causará perda de dados.
 
 ### O que será criado:
+
 - Tabela `events` com campos para gerenciamento de eventos da liga
 - Índices para otimização de consultas
 - Chaves estrangeiras para integridade referencial
@@ -78,7 +79,7 @@ npx prisma db execute --stdin <<< "\d events"
 
 ```sql
 -- Teste básico de inserção (substitua os IDs por valores reais)
-INSERT INTO events (id, "leagueId", name, description, "startDate", "endDate", "createdBy") 
+INSERT INTO events (id, "leagueId", name, description, "startDate", "endDate", "createdBy")
 VALUES ('test-event-id', 'sua-league-id', 'Evento Teste', 'Descrição do teste', NOW(), NOW() + INTERVAL '1 day', 'seu-user-id');
 
 -- Verificar se foi inserido
@@ -100,34 +101,40 @@ DROP TABLE IF EXISTS events CASCADE;
 ## Considerações Importantes
 
 ### ✅ Segurança da Migration
+
 - **Sem perda de dados**: Apenas adiciona nova tabela
 - **Sem downtime**: Operação não bloqueia tabelas existentes
 - **Reversível**: Pode ser desfeita removendo a tabela
 
 ### 🔧 Monitoramento
+
 - Monitore logs da aplicação após deploy
 - Verifique se as funcionalidades de eventos estão funcionando
 - Confirme que não há erros relacionados ao banco de dados
 
 ### 📊 Performance
+
 - A nova tabela não afeta performance de consultas existentes
 - Índices foram criados para otimizar consultas de eventos
 
 ## Troubleshooting
 
 ### Erro: "Migration already applied"
+
 ```bash
 # Se a migration já foi aplicada, apenas regenere o cliente
 npx prisma generate
 ```
 
 ### Erro de Conexão
+
 ```bash
 # Verifique se a URL está correta e acessível
 npx prisma db execute --stdin <<< "SELECT 1;"
 ```
 
 ### Erro de Permissões
+
 ```bash
 # Verifique se o usuário tem permissões para criar tabelas
 npx prisma db execute --stdin <<< "SELECT current_user, session_user;"
