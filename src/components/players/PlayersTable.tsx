@@ -73,7 +73,7 @@ export function PlayersTable({ players }: PlayersTableProps) {
       <div className="text-center py-12">
         <div className="text-4xl mb-4">🏈</div>
         <h3 className="text-lg font-medium text-slate-100 mb-2">Nenhum jogador encontrado</h3>
-        <p className="text-slate-400">Não há jogadores que correspondam aos filtros aplicados.</p>
+        <p className="text-slate-400">Nenhum jogador encontrado para o status selecionado.</p>
       </div>
     );
   }
