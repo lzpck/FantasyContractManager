@@ -3,13 +3,15 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useContracts } from '@/hooks/useContracts';
+import { useLeagues } from '@/hooks/useLeagues';
 import { useAuth } from '@/hooks/useAuth';
 import { ContractsTable } from '@/components/contracts/ContractsTable';
 import { toast } from 'sonner';
-import { ContractWithPlayer, ContractStatus } from '@/types';
+import { ContractWithPlayer, ContractStatus, PlayerPosition } from '@/types';
 
 function ContractsContent() {
   const { contracts, loading } = useContracts();
+  const { leagues, loading: leaguesLoading } = useLeagues();
   const { canImportLeague } = useAuth();
   const searchParams = useSearchParams();
 
@@ -18,6 +20,8 @@ function ContractsContent() {
   const [filterText, setFilterText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [yearsRemainingFilter, setYearsRemainingFilter] = useState<string>('all');
+  const [positionFilter, setPositionFilter] = useState<string>('all');
+  const [leagueFilter, setLeagueFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [contractsPerPage] = useState(25);
   const [sortBy, setSortBy] = useState<'name' | 'position' | 'salary' | 'yearsRemaining'>('name');
@@ -27,6 +31,8 @@ function ContractsContent() {
   useEffect(() => {
     const status = searchParams.get('status');
     const yearsRemaining = searchParams.get('yearsRemaining');
+    const position = searchParams.get('position');
+    const league = searchParams.get('league');
 
     if (status) {
       setStatusFilter(status);
@@ -34,6 +40,14 @@ function ContractsContent() {
 
     if (yearsRemaining) {
       setYearsRemainingFilter(yearsRemaining);
+    }
+
+    if (position) {
+      setPositionFilter(position);
+    }
+
+    if (league) {
+      setLeagueFilter(league);
     }
   }, [searchParams]);
 
@@ -59,6 +73,16 @@ function ContractsContent() {
     if (yearsRemainingFilter !== 'all') {
       const years = parseInt(yearsRemainingFilter);
       filtered = filtered.filter(contract => contract.yearsRemaining === years);
+    }
+
+    // Aplicar filtro de posição
+    if (positionFilter !== 'all') {
+      filtered = filtered.filter(contract => contract.player.position === positionFilter);
+    }
+
+    // Aplicar filtro de liga
+    if (leagueFilter !== 'all') {
+      filtered = filtered.filter(contract => contract.leagueId === leagueFilter);
     }
 
     // Aplicar ordenação
@@ -97,7 +121,16 @@ function ContractsContent() {
 
     setFilteredContracts(filtered);
     setCurrentPage(1); // Reset para primeira página quando filtros mudam
-  }, [contracts, filterText, statusFilter, yearsRemainingFilter, sortBy, sortOrder]);
+  }, [
+    contracts,
+    filterText,
+    statusFilter,
+    yearsRemainingFilter,
+    positionFilter,
+    leagueFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
   // Calcular contratos da página atual
   const indexOfLastContract = currentPage * contractsPerPage;
@@ -118,6 +151,18 @@ function ContractsContent() {
       new Set(contracts.map((contract: ContractWithPlayer) => contract.yearsRemaining)),
     ) as number[]
   ).sort((a, b) => a - b);
+
+  // Obter posições únicas para o filtro
+  const uniquePositions = (
+    Array.from(
+      new Set(contracts.map((contract: ContractWithPlayer) => contract.player.position)),
+    ) as string[]
+  ).sort();
+
+  // Obter ligas únicas para o filtro (apenas ligas acessíveis ao usuário)
+  const uniqueLeagues = leagues.filter(league =>
+    contracts.some(contract => contract.leagueId === league.id),
+  );
 
   // Função para traduzir status
   const translateStatus = (status: string) => {
@@ -141,7 +186,7 @@ function ContractsContent() {
 
           {/* Barra de Filtros */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
               {/* Busca por texto */}
               <div>
                 <label
@@ -224,6 +269,71 @@ function ContractsContent() {
                 </select>
               </div>
 
+              {/* Filtro por posição */}
+              <div>
+                <label
+                  htmlFor="position"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+                >
+                  Posição
+                </label>
+                <select
+                  id="position"
+                  value={positionFilter}
+                  onChange={e => setPositionFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                >
+                  <option
+                    value="all"
+                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
+                    Todas
+                  </option>
+                  {uniquePositions.map(position => (
+                    <option
+                      key={position}
+                      value={position}
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
+                      {position}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por liga */}
+              <div>
+                <label
+                  htmlFor="league"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+                >
+                  Liga
+                </label>
+                <select
+                  id="league"
+                  value={leagueFilter}
+                  onChange={e => setLeagueFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  disabled={leaguesLoading}
+                >
+                  <option
+                    value="all"
+                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  >
+                    Todas as ligas
+                  </option>
+                  {uniqueLeagues.map(league => (
+                    <option
+                      key={league.id}
+                      value={league.id}
+                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    >
+                      {league.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Ordenação */}
               <div>
                 <label
@@ -283,6 +393,8 @@ function ContractsContent() {
                   setFilterText('');
                   setStatusFilter('all');
                   setYearsRemainingFilter('all');
+                  setPositionFilter('all');
+                  setLeagueFilter('all');
                   setSortBy('name');
                   setSortOrder('asc');
                   setCurrentPage(1);
@@ -298,6 +410,30 @@ function ContractsContent() {
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-gray-600 dark:text-gray-300">Carregando contratos...</p>
+            </div>
+          ) : filteredContracts.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-400 dark:text-gray-500 mb-4">
+                <svg
+                  className="mx-auto h-12 w-12"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                Nenhum contrato encontrado
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Nenhum contrato encontrado para os filtros selecionados.
+              </p>
             </div>
           ) : (
             <>
