@@ -41,3 +41,34 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+/* Classes utilitárias para scrollbar customizada */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-track-slate-800 {
+  scrollbar-color: #475569 #1e293b;
+}
+
+.scrollbar-thumb-slate-600::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thumb-slate-600::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 3px;
+}
+
+.scrollbar-thumb-slate-600::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 3px;
+}
+
+.scrollbar-thumb-slate-600::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+.scrollbar-thumb-rounded-md::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+}
