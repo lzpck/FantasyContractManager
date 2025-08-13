@@ -26,15 +26,21 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
   const getStatusColor = (status: string, yearsRemaining?: number) => {
     // Priorizar anos restantes para contratos ativos
     if (status === 'ACTIVE' && yearsRemaining !== undefined) {
+      if (yearsRemaining === 0) return 'bg-orange-600 text-orange-100'; // Expirado - laranja
       if (yearsRemaining <= 1) return 'bg-red-600 text-red-100'; // Último ano - vermelho
       if (yearsRemaining <= 2) return 'bg-yellow-600 text-yellow-100'; // Expira em breve - amarelo
+    }
+
+    // Se o contrato tem 0 anos restantes, independente do status
+    if (yearsRemaining === 0) {
+      return 'bg-orange-600 text-orange-100';
     }
 
     switch (status) {
       case 'ACTIVE':
         return 'bg-green-600 text-green-100';
       case 'EXPIRED':
-        return 'bg-red-600 text-red-100';
+        return 'bg-orange-600 text-orange-100';
       case 'TAGGED':
         return 'bg-purple-600 text-purple-100';
       case 'EXTENDED':

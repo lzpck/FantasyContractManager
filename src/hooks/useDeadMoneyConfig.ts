@@ -104,7 +104,7 @@ export function useDeadMoneyConfig(leagueId: string): UseDeadMoneyConfigReturn {
     if (leagueId) {
       loadConfig();
     }
-  }, [leagueId, loadConfig]);
+  }, [leagueId]); // Removida a dependência loadConfig que causava loop infinito
 
   return {
     config,

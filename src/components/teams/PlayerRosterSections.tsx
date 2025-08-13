@@ -47,6 +47,10 @@ export function PlayerRosterSections({
       if (yearsRemaining <= 2) return 'bg-yellow-100 text-yellow-800'; // Expira em breve - amarelo
       return 'bg-green-100 text-green-800';
     }
+    // Se o contrato tem 0 anos restantes, usa cor específica para expirado
+    if (yearsRemaining === 0) {
+      return 'bg-orange-100 text-orange-800';
+    }
     return 'bg-gray-100 text-gray-800';
   };
 
@@ -57,7 +61,11 @@ export function PlayerRosterSections({
       if (yearsRemaining <= 2) return 'Expira em breve';
       return 'Ativo';
     }
-    return 'Inativo';
+    // Se o contrato tem 0 anos restantes, mostra como "Expirado"
+    if (yearsRemaining === 0) {
+      return 'Expirado';
+    }
+    return 'Expirado';
   };
 
   /**

@@ -1,8 +1,10 @@
 'use client';
 
 import { League } from '@/types';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { formatCurrency, getStatusColor, getStatusText } from '@/utils/formatUtils';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 interface LeagueHeaderProps {
   league: League;
@@ -11,22 +13,43 @@ interface LeagueHeaderProps {
 }
 
 export default function LeagueHeader({ league, onBack, totalTeams }: LeagueHeaderProps) {
+  const { isCommissioner } = useAuth();
+  const router = useRouter();
+
+  const handleSettingsClick = () => {
+    router.push(`/leagues/${league.id}/settings`);
+  };
+
   return (
     <div className="mb-8">
       {/* Header/Topbar da página */}
       <div className="sticky top-0 bg-slate-900 z-10 shadow-md border-b border-slate-800 px-6 py-4 mb-6">
-        <div className="flex items-center">
-          <button
-            onClick={onBack}
-            className="flex items-center text-slate-400 hover:text-slate-200 transition-colors mr-4"
-          >
-            <ArrowLeftIcon className="h-5 w-5 mr-1" />
-            <span className="text-slate-400 hover:text-slate-200">Voltar ao Dashboard</span>
-          </button>
+        <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <h1 className="text-slate-100 font-semibold text-xl">{league.name}</h1>
-            <span className="text-slate-400 ml-2">• Temporada {league.season}</span>
+            <button
+              onClick={onBack}
+              className="flex items-center text-slate-400 hover:text-slate-200 transition-colors mr-4"
+            >
+              <ArrowLeftIcon className="h-5 w-5 mr-1" />
+              <span className="text-slate-400 hover:text-slate-200">Voltar ao Dashboard</span>
+            </button>
+            <div className="flex items-center">
+              <h1 className="text-slate-100 font-semibold text-xl">{league.name}</h1>
+              <span className="text-slate-400 ml-2">• Temporada {league.season}</span>
+            </div>
           </div>
+
+          {/* Botão de Configurações - apenas para comissários */}
+          {isCommissioner && (
+            <button
+              onClick={handleSettingsClick}
+              className="flex items-center px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
+              title="Configurações da Liga"
+            >
+              <Cog6ToothIcon className="h-5 w-5 mr-2" />
+              <span className="hidden sm:inline">Configurações</span>
+            </button>
+          )}
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { useLeagues } from '@/hooks/useLeagues';
 import { useDeadMoneyConfig } from '@/hooks/useDeadMoneyConfig';
 import { DeadMoneyConfigForm } from '@/components/leagues/DeadMoneyConfigForm';
+import { SeasonTurnoverManager } from '@/components/leagues/SeasonTurnoverManager';
 import { useToast } from '@/components/ui/Toast';
 import { DeadMoneyConfig } from '@/types';
 
@@ -22,7 +23,9 @@ export default function LeagueSettingsPage() {
   const { config, canEdit, loading, error, updateConfig } = useDeadMoneyConfig(leagueId);
 
   const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dead-money' | 'general'>('dead-money');
+  const [activeTab, setActiveTab] = useState<'dead-money' | 'general' | 'season-turnover'>(
+    'dead-money',
+  );
 
   // Encontrar a liga atual
   const league = leagues.find(l => l.id === leagueId);
@@ -171,6 +174,16 @@ export default function LeagueSettingsPage() {
             >
               Configurações Gerais
             </button>
+            <button
+              onClick={() => setActiveTab('season-turnover')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'season-turnover'
+                  ? 'border-blue-500 text-blue-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300'
+              }`}
+            >
+              Virada de Temporada
+            </button>
           </nav>
         </div>
 
@@ -275,6 +288,22 @@ export default function LeagueSettingsPage() {
                 principal das ligas.
               </p>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'season-turnover' && (
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
+            <h3 className="text-lg font-semibold text-slate-100 mb-6">Virada de Temporada</h3>
+            <SeasonTurnoverManager
+              league={league}
+              canEdit={canEdit}
+              onSuccess={() => {
+                addToast({
+                  message: 'Dados atualizados após virada de temporada',
+                  type: 'success',
+                });
+              }}
+            />
           </div>
         )}
       </div>
