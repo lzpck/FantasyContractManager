@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useReducer, useCallback, ReactNode } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { User, League } from '../types';
+import { SidebarProvider } from './SidebarContext';
 
 export interface AppState {
   user: User | null;
@@ -121,7 +122,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <SessionProvider>
-      <AppContext.Provider value={value}>{children}</AppContext.Provider>
+      <AppContext.Provider value={value}>
+        <SidebarProvider>{children}</SidebarProvider>
+      </AppContext.Provider>
     </SessionProvider>
   );
 }
