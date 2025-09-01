@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { AuthNavigation } from './AuthNavigation';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 /**
  * Componente que renderiza condicionalmente o layout baseado na rota atual
@@ -11,6 +12,7 @@ import { AuthNavigation } from './AuthNavigation';
  */
 export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { isExpanded } = useSidebar();
 
   // Rotas onde o sidebar não deve aparecer
   const authRoutes = ['/auth/signin', '/auth/signup', '/unauthorized'];
@@ -27,8 +29,8 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar de navegação */}
       <Sidebar />
 
-      {/* Layout principal com sidebar */}
-      <div className="lg:pl-64">
+      {/* Layout principal com sidebar - padding dinâmico baseado no estado do sidebar */}
+      <div className={`transition-all duration-300 ${isExpanded ? 'lg:pl-64' : 'lg:pl-16'}`}>
         {/* Barra de navegação superior */}
         <nav className="bg-slate-900 shadow-md border-b border-slate-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

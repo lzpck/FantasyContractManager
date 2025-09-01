@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 /**
  * Componente de navegação lateral (sidebar)
@@ -12,9 +12,12 @@ import { useAuth } from '@/hooks/useAuth';
  * Adapta o menu conforme o perfil do usuário (comissário vs usuário comum).
  */
 export function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isExpanded, toggleSidebar } = useSidebar();
   const pathname = usePathname();
   const { isCommissioner } = useAuth();
+
+  // Para manter compatibilidade com o código existente
+  const isCollapsed = !isExpanded;
 
   // Itens de navegação - Dashboard agora disponível para todos os usuários autenticados
   const navigationItems = [
@@ -78,7 +81,7 @@ export function Sidebar() {
 
             {/* Botão de colapsar */}
             <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
+              onClick={toggleSidebar}
               className={`ml-auto p-1 rounded-md hover:bg-slate-700 transition-colors ${
                 isCollapsed ? 'ml-0' : ''
               }`}
