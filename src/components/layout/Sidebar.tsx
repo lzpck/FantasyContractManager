@@ -97,19 +97,24 @@ export function Sidebar() {
 
           {/* Navegação */}
           <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-2">
+            <ul
+              role="list"
+              className={`flex flex-1 flex-col gap-y-2 ${isCollapsed ? 'items-center' : ''}`}
+            >
               {navigationItems.map(item => (
-                <li key={item.name}>
+                <li key={item.name} className={isCollapsed ? 'w-full' : ''}>
                   <Link
                     href={item.href}
-                    className={`group flex gap-x-3 rounded-xl p-2 text-sm leading-6 font-semibold transition-colors ${
+                    className={`group flex rounded-xl p-2 text-sm leading-6 font-semibold transition-colors ${
                       isActiveItem(item.href)
                         ? 'bg-blue-600 text-white'
                         : 'text-slate-100 hover:text-blue-400 hover:bg-slate-800'
-                    }`}
+                    } ${isCollapsed ? 'justify-center items-center min-h-[44px]' : 'gap-x-3'}`}
                     title={isCollapsed ? item.name : undefined}
                   >
-                    <span className="text-lg flex-shrink-0">{item.icon}</span>
+                    <span className={`text-lg flex-shrink-0 ${isCollapsed ? 'text-xl' : ''}`}>
+                      {item.icon}
+                    </span>
                     {!isCollapsed && (
                       <div className="flex-1 min-w-0">
                         <div className="truncate">{item.name}</div>
