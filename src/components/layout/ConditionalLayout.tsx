@@ -30,7 +30,7 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
 
       {/* Layout principal com sidebar - padding dinâmico baseado no estado do sidebar */}
-      <div className={`transition-all duration-300 ${isExpanded ? 'lg:pl-64' : 'lg:pl-16'}`}>
+      <div className={`transition-all duration-300 ${isExpanded ? 'lg:pl-64' : 'lg:pl-20'}`}>
         {/* Barra de navegação superior */}
         <nav className="bg-slate-900 shadow-md border-b border-slate-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

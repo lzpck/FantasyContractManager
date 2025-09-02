@@ -63,12 +63,16 @@ export function Sidebar() {
       {/* Sidebar para desktop */}
       <div
         className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300 ${
-          isCollapsed ? 'lg:w-16' : 'lg:w-64'
+          isCollapsed ? 'lg:w-20' : 'lg:w-64'
         }`}
       >
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-slate-900 border-r border-slate-700 px-4 py-6">
+        <div
+          className={`flex grow flex-col gap-y-5 overflow-y-auto bg-slate-900 border-r border-slate-700 py-6 ${
+            isCollapsed ? 'px-2' : 'px-4'
+          }`}
+        >
           {/* Logo/Header */}
-          <div className="flex items-center">
+          <div className={`flex items-center ${isCollapsed ? 'flex-col space-y-2' : ''}`}>
             <div className="flex-shrink-0">
               <span className="text-2xl">🏈</span>
             </div>
@@ -82,11 +86,12 @@ export function Sidebar() {
             {/* Botão de colapsar */}
             <button
               onClick={toggleSidebar}
-              className={`ml-auto p-1 rounded-md hover:bg-slate-700 transition-colors ${
-                isCollapsed ? 'ml-0' : ''
+              className={`p-2 rounded-md hover:bg-slate-700 transition-colors ${
+                isCollapsed ? 'w-full flex justify-center' : 'ml-auto'
               }`}
+              title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
             >
-              <span className="text-slate-400">{isCollapsed ? '→' : '←'}</span>
+              <span className="text-slate-400 text-lg">{isCollapsed ? '→' : '←'}</span>
             </button>
           </div>
 
