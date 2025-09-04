@@ -76,12 +76,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
       return;
     }
 
-    // Validar seleção de time para usuários
-    if (formData.role === UserRole.USER && !formData.teamId) {
-      setError('Seleção de time é obrigatória para usuários');
-      setIsLoading(false);
-      return;
-    }
+    // Nota: teamId é opcional para usuários - eles podem ser criados sem time associado
 
     try {
       const response = await fetch('/api/auth/register', {
@@ -216,22 +211,21 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
           </p>
         </div>
 
-        {/* Seleção de time - obrigatório apenas para usuários */}
+        {/* Seleção de time - opcional para usuários */}
         {formData.role === UserRole.USER && (
           <div>
             <label htmlFor="teamId" className="block text-sm font-medium text-slate-100">
-              Selecionar Time *
+              Selecionar Time (opcional)
             </label>
             <select
               id="teamId"
               name="teamId"
-              required={formData.role === UserRole.USER}
               className="mt-1 block w-full px-3 py-2 border border-slate-700 bg-slate-800 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-slate-100"
               value={formData.teamId}
               onChange={handleChange}
               disabled={loadingTeams}
             >
-              <option value="">Selecione um time...</option>
+              <option value="">Nenhum time selecionado</option>
               {availableTeams.map(team => (
                 <option key={team.id} value={team.id}>
                   {team.name} - {team.league?.name} ({team.league?.season})
@@ -245,7 +239,8 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
               <p className="mt-1 text-xs text-red-400">Nenhum time disponível no momento.</p>
             )}
             <p className="mt-1 text-xs text-slate-400">
-              Escolha o time que o usuário irá gerenciar.
+              Escolha o time que o usuário irá gerenciar ou deixe vazio para criar sem time
+              associado.
             </p>
           </div>
         )}
