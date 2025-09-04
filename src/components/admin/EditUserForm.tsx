@@ -326,39 +326,38 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
           <p className="ml-2 text-xs text-slate-400">Desmarque para desativar o usuário</p>
         </div>
 
-        {/* Seleção de time - obrigatório apenas para usuários */}
-        {formData.role === UserRole.USER && (
-          <div>
-            <label htmlFor="teamId" className="block text-sm font-medium text-slate-100">
-              Selecionar Time *
-            </label>
-            <select
-              id="teamId"
-              name="teamId"
-              required={formData.role === UserRole.USER}
-              className="mt-1 block w-full px-3 py-2 border border-slate-700 bg-slate-800 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-slate-100"
-              value={formData.teamId}
-              onChange={handleChange}
-              disabled={loadingTeams}
-            >
-              <option value="">Nenhum time selecionado</option>
-              {availableTeams.map(team => (
-                <option key={team.id} value={team.id}>
-                  {team.name} - {team.league?.name} ({team.league?.season})
-                </option>
-              ))}
-            </select>
-            {loadingTeams && (
-              <p className="mt-1 text-xs text-slate-400">Carregando times disponíveis...</p>
-            )}
-            {!loadingTeams && availableTeams.length === 0 && (
-              <p className="mt-1 text-xs text-red-400">Nenhum time disponível no momento.</p>
-            )}
-            <p className="mt-1 text-xs text-slate-400">
-              Escolha o time que o usuário irá gerenciar ou deixe vazio para desassociar.
-            </p>
-          </div>
-        )}
+        {/* Seleção de time - opcional para todos os usuários */}
+        <div>
+          <label htmlFor="teamId" className="block text-sm font-medium text-slate-100">
+            Selecionar Time (opcional)
+          </label>
+          <select
+            id="teamId"
+            name="teamId"
+            className="mt-1 block w-full px-3 py-2 border border-slate-700 bg-slate-800 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-slate-100"
+            value={formData.teamId}
+            onChange={handleChange}
+            disabled={loadingTeams}
+          >
+            <option value="">Nenhum time selecionado</option>
+            {availableTeams.map(team => (
+              <option key={team.id} value={team.id}>
+                {team.name} - {team.league?.name} ({team.league?.season})
+              </option>
+            ))}
+          </select>
+          {loadingTeams && (
+            <p className="mt-1 text-xs text-slate-400">Carregando times disponíveis...</p>
+          )}
+          {!loadingTeams && availableTeams.length === 0 && (
+            <p className="mt-1 text-xs text-red-400">Nenhum time disponível no momento.</p>
+          )}
+          <p className="mt-1 text-xs text-slate-400">
+            {formData.role === UserRole.USER
+              ? 'Escolha o time que o usuário irá gerenciar ou deixe vazio para desassociar do time atual.'
+              : 'Comissários podem opcionalmente ter um time associado para participar como jogador.'}
+          </p>
+        </div>
 
         <div className="relative">
           <label htmlFor="password" className="block text-sm font-medium text-slate-100">
