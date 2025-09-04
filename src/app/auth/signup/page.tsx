@@ -104,12 +104,7 @@ function OriginalSignUpForm() {
       return;
     }
 
-    // Validar seleção de time para usuários
-    if (formData.role === UserRole.USER && !formData.teamId) {
-      setError('Seleção de time é obrigatória para usuários');
-      setIsLoading(false);
-      return;
-    }
+    // Nota: Seleção de time é opcional - usuários podem ser criados sem time associado
 
     try {
       const response = await fetch('/api/auth/register', {

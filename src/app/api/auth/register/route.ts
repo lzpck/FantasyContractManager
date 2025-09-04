@@ -35,13 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Para usuários (não comissários), teamId é obrigatório
-    if (role === UserRole.USER && !teamId) {
-      return NextResponse.json(
-        { error: 'Seleção de time é obrigatória para usuários' },
-        { status: 400 },
-      );
-    }
+    // Nota: teamId é opcional - usuários podem ser criados sem time associado
 
     // Verificar se o email já existe
     const existingUserByEmail = await prisma.user.findUnique({

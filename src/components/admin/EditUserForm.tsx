@@ -142,12 +142,7 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
       return;
     }
 
-    // Validar seleção de time para usuários
-    if (formData.role === UserRole.USER && !formData.teamId) {
-      setError('Seleção de time é obrigatória para usuários');
-      setIsLoading(false);
-      return;
-    }
+    // Nota: Seleção de time é opcional - usuários podem ficar sem time associado
 
     try {
       const updateData: any = {
