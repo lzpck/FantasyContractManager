@@ -7,8 +7,6 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function testSyncFix() {
-  console.log('🧪 Iniciando teste da correção de sincronização...');
-
   try {
     // 1. Buscar uma liga para teste
     const league = await prisma.league.findFirst({
@@ -29,38 +27,13 @@ async function testSyncFix() {
     });
 
     if (!league) {
-      console.log('❌ Nenhuma liga encontrada para teste');
       return;
     }
 
-    console.log(`📋 Testando liga: ${league.name} (ID: ${league.sleeperLeagueId})`);
-
     // 2. Verificar status atual dos jogadores
-    console.log('\n📊 Status atual dos jogadores por time:');
-
-    for (const team of league.teams) {
-      const activeCount = team.roster.filter(r => r.status === 'active').length;
-      const irCount = team.roster.filter(r => r.status === 'ir').length;
-      const taxiCount = team.roster.filter(r => r.status === 'taxi').length;
-
-      console.log(`   ${team.name}:`);
-      console.log(`     - Ativos: ${activeCount}`);
-      console.log(`     - IR: ${irCount}`);
-      console.log(`     - Taxi: ${taxiCount}`);
-
-      if (irCount > 0) {
-        const irPlayers = team.roster.filter(r => r.status === 'ir');
-        console.log(`     - Jogadores no IR: ${irPlayers.map(r => r.player.name).join(', ')}`);
-      }
-
-      if (taxiCount > 0) {
-        const taxiPlayers = team.roster.filter(r => r.status === 'taxi');
-        console.log(`     - Jogadores no Taxi: ${taxiPlayers.map(r => r.player.name).join(', ')}`);
-      }
-    }
+    // (logs removidos para manter apenas funcionalidade essencial)
 
     // 3. Simular chamada de sincronização
-    console.log('\n🔄 Executando sincronização de teste...');
 
     const response = await fetch(`http://localhost:3000/api/leagues/sync`, {
       method: 'POST',
@@ -73,15 +46,12 @@ async function testSyncFix() {
     });
 
     if (!response.ok) {
-      console.log('❌ Erro na sincronização:', response.statusText);
       return;
     }
 
     const syncResult = await response.json();
-    console.log('✅ Sincronização concluída:', syncResult.message);
 
     // 4. Verificar status após sincronização
-    console.log('\n📊 Status após sincronização:');
 
     const updatedLeague = await prisma.league.findUnique({
       where: { id: league.id },
@@ -98,20 +68,12 @@ async function testSyncFix() {
       },
     });
 
-    for (const team of updatedLeague.teams) {
-      const activeCount = team.roster.filter(r => r.status === 'active').length;
-      const irCount = team.roster.filter(r => r.status === 'ir').length;
-      const taxiCount = team.roster.filter(r => r.status === 'taxi').length;
+    // Verificação dos status após sincronização
+    // (logs removidos para manter apenas funcionalidade essencial)
 
-      console.log(`   ${team.name}:`);
-      console.log(`     - Ativos: ${activeCount}`);
-      console.log(`     - IR: ${irCount}`);
-      console.log(`     - Taxi: ${taxiCount}`);
-    }
-
-    console.log('\n✅ Teste concluído com sucesso!');
+    return { success: true, league: updatedLeague };
   } catch (error) {
-    console.error('❌ Erro durante o teste:', error);
+    throw error;
   } finally {
     await prisma.$disconnect();
   }

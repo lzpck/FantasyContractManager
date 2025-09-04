@@ -57,13 +57,8 @@ async function detectPlayerTrade(
     });
 
     if (!newTeam) {
-      console.error(`❌ Novo time não encontrado: ${newTeamId}`);
       return { isTraded: false };
     }
-
-    console.log(
-      `🔄 TRADE DETECTADA: ${existingContract.player.name} de ${existingContract.team.name} para ${newTeam.name}`,
-    );
 
     return {
       isTraded: true,
@@ -73,7 +68,6 @@ async function detectPlayerTrade(
       contractId: existingContract.id,
     };
   } catch (error) {
-    console.error('❌ Erro ao detectar trade:', error);
     return { isTraded: false };
   }
 }
@@ -117,7 +111,6 @@ async function syncTeamRosters(
   players: any[],
 ): Promise<SyncStats> {
   const startTime = Date.now();
-  console.log('🔄 Iniciando sincronização otimizada de rosters');
 
   const stats: SyncStats = {
     tradesProcessed: [],
@@ -167,18 +160,6 @@ async function syncTeamRosters(
         ...(sleeperRoster.taxi || []).map((id: string) => ({ id, status: 'taxi' })),
       ];
 
-      // Log para debug do mapeamento de status
-      console.log(`🔍 Time ${team.name} (ID: ${team.id}):`);
-      console.log(`   - Ativos: ${(sleeperRoster.players || []).length}`);
-      console.log(`   - Reserve (IR): ${(sleeperRoster.reserve || []).length}`);
-      console.log(`   - Taxi: ${(sleeperRoster.taxi || []).length}`);
-      if (sleeperRoster.reserve && sleeperRoster.reserve.length > 0) {
-        console.log(`   - Jogadores no IR: ${sleeperRoster.reserve.join(', ')}`);
-      }
-      if (sleeperRoster.taxi && sleeperRoster.taxi.length > 0) {
-        console.log(`   - Jogadores no Taxi: ${sleeperRoster.taxi.join(', ')}`);
-      }
-
       // Processar jogadores do Sleeper
       for (const { id: sleeperPlayerId, status } of allSleeperPlayers) {
         let player = existingPlayersMap.get(sleeperPlayerId);
@@ -187,7 +168,6 @@ async function syncTeamRosters(
           // Buscar dados do jogador nos dados sincronizados
           const playerData = players.find(p => p.sleeperPlayerId === sleeperPlayerId);
           if (!playerData) {
-            console.warn(`⚠️  Jogador ${sleeperPlayerId} não encontrado nos dados sincronizados`);
             continue;
           }
 
@@ -217,7 +197,6 @@ async function syncTeamRosters(
 
         // Garantir que player não é undefined antes de continuar
         if (!player) {
-          console.error(`❌ Erro: jogador ${sleeperPlayerId} não pôde ser processado`);
           continue;
         }
 
@@ -233,9 +212,6 @@ async function syncTeamRosters(
             stats.playersAdded++;
           }
         }
-
-        // Log detalhado do status do jogador
-        console.log(`   📋 Jogador ${player.name || sleeperPlayerId}: status = ${status}`);
 
         // Preparar upsert do roster
         rosterUpserts.push({
@@ -262,10 +238,6 @@ async function syncTeamRosters(
     }
 
     // OTIMIZAÇÃO 4: Executar operações em lote
-    console.log(
-      `📦 Executando operações em lote: ${playersToCreate.length} criações, ${rosterUpserts.length} upserts, ${rosterDeletes.length} remoções`,
-    );
-
     const batchStartTime = Date.now();
 
     // Executar operações em paralelo quando possível
@@ -315,19 +287,12 @@ async function syncTeamRosters(
 
     // Executar upserts de roster em lotes menores para evitar timeout
     const BATCH_SIZE = 100;
-    console.log(
-      `🔄 Executando ${rosterUpserts.length} upserts de roster em lotes de ${BATCH_SIZE}`,
-    );
 
     for (let i = 0; i < rosterUpserts.length; i += BATCH_SIZE) {
       const batch = rosterUpserts.slice(i, i + BATCH_SIZE);
-      console.log(
-        `📦 Processando lote ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(rosterUpserts.length / BATCH_SIZE)} (${batch.length} itens)`,
-      );
 
       await Promise.all(
         batch.map(async upsert => {
-          console.log(`   💾 Upsert: Player ${upsert.sleeperPlayerId} -> Status: ${upsert.status}`);
           return prisma.teamRoster.upsert({
             where: {
               teamId_playerId: {
@@ -346,11 +311,8 @@ async function syncTeamRosters(
     }
 
     const batchEndTime = Date.now();
-    console.log(`⚡ Operações em lote concluídas em ${batchEndTime - batchStartTime}ms`);
 
     // VALIDAÇÃO ADICIONAL: Verificar se os status foram aplicados corretamente
-    console.log(`🔍 Executando validação pós-sincronização...`);
-
     const validationStartTime = Date.now();
     let inconsistenciesFound = 0;
 
@@ -370,9 +332,6 @@ async function syncTeamRosters(
         });
 
         if (irPlayersInDb.length > 0) {
-          console.log(
-            `⚠️  Encontradas ${irPlayersInDb.length} inconsistências no IR do time ${team.name}`,
-          );
           inconsistenciesFound += irPlayersInDb.length;
 
           // Corrigir inconsistências
@@ -383,8 +342,6 @@ async function syncTeamRosters(
             },
             data: { status: 'ir' },
           });
-
-          console.log(`✅ Corrigidas inconsistências no IR do time ${team.name}`);
         }
       }
 
@@ -400,9 +357,6 @@ async function syncTeamRosters(
         });
 
         if (taxiPlayersInDb.length > 0) {
-          console.log(
-            `⚠️  Encontradas ${taxiPlayersInDb.length} inconsistências no Taxi do time ${team.name}`,
-          );
           inconsistenciesFound += taxiPlayersInDb.length;
 
           // Corrigir inconsistências
@@ -413,34 +367,16 @@ async function syncTeamRosters(
             },
             data: { status: 'taxi' },
           });
-
-          console.log(`✅ Corrigidas inconsistências no Taxi do time ${team.name}`);
         }
       }
     }
 
     const validationEndTime = Date.now();
-    console.log(`🔍 Validação concluída em ${validationEndTime - validationStartTime}ms`);
-    console.log(`📊 Total de inconsistências encontradas e corrigidas: ${inconsistenciesFound}`);
-
-    // Log das estatísticas de sincronização
-    if (stats.tradesProcessed.length > 0) {
-      console.log(`🔄 ${stats.tradesProcessed.length} trade(s) processada(s):`);
-      stats.tradesProcessed.forEach(trade => {
-        console.log(`   - ${trade.playerName}: ${trade.fromTeam} → ${trade.toTeam}`);
-      });
-    }
-
     const totalTime = Date.now() - startTime;
-    console.log(`📊 Sincronização de rosters concluída em ${totalTime}ms:`);
-    console.log(`   - Trades processadas: ${stats.tradesProcessed.length}`);
-    console.log(`   - Jogadores adicionados: ${stats.playersAdded}`);
-    console.log(`   - Jogadores removidos: ${stats.playersRemoved}`);
 
     return stats;
   } catch (error) {
     const totalTime = Date.now() - startTime;
-    console.error(`❌ Erro ao sincronizar rosters após ${totalTime}ms:`, error);
     throw error;
   }
 }
@@ -554,7 +490,6 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
     // Liga já foi atualizada na operação paralela acima
 
     // OTIMIZAÇÃO: Paralelizar atualização da liga e times
-    console.log('🔄 Atualizando liga e times em paralelo...');
     const dbStartTime = Date.now();
 
     const [updatedLeagueResult, teamUpdateResults] = await Promise.all([
@@ -610,7 +545,6 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
     const updatedTeams = teamUpdateResults;
 
     const dbEndTime = Date.now();
-    console.log(`⚡ Atualização de banco concluída em ${dbEndTime - dbStartTime}ms`);
 
     // Sincronizar rosters dos times (persistir jogadores em team_rosters)
     const syncStats = await syncTeamRosters(
@@ -691,8 +625,6 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
       syncStats,
     };
   } catch (error) {
-    console.error('Erro durante sincronização:', error);
-
     return {
       success: false,
       message:
@@ -716,7 +648,6 @@ async function syncLeague(leagueId: string): Promise<SyncResult> {
  */
 export async function POST(request: NextRequest) {
   const requestStartTime = Date.now();
-  console.log('🚀 Iniciando requisição de sincronização');
 
   try {
     // OTIMIZAÇÃO: Timeout de segurança para Vercel (25 segundos)
@@ -749,15 +680,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'ID da liga é obrigatório' }, { status: 400 });
     }
 
-    console.log(`📋 Sincronizando liga: ${leagueId}`);
-
     // Sincronizar a liga com timeout
     const result = (await Promise.race([syncLeague(leagueId), timeoutPromise])) as SyncResult;
 
     const requestEndTime = Date.now();
     const totalRequestTime = requestEndTime - requestStartTime;
-
-    console.log(`✅ Requisição de sincronização concluída em ${totalRequestTime}ms`);
 
     if (result.success) {
       return NextResponse.json({
@@ -788,8 +715,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const requestEndTime = Date.now();
     const totalRequestTime = requestEndTime - requestStartTime;
-
-    console.error(`❌ Erro na API de sincronização após ${totalRequestTime}ms:`, error);
 
     // Verificar se foi timeout
     const isTimeout = error instanceof Error && error.message.includes('Timeout');
