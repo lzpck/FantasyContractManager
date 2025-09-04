@@ -167,6 +167,18 @@ async function syncTeamRosters(
         ...(sleeperRoster.taxi || []).map((id: string) => ({ id, status: 'taxi' })),
       ];
 
+      // Log para debug do mapeamento de status
+      console.log(`🔍 Time ${team.name} (ID: ${team.id}):`);
+      console.log(`   - Ativos: ${(sleeperRoster.players || []).length}`);
+      console.log(`   - Reserve (IR): ${(sleeperRoster.reserve || []).length}`);
+      console.log(`   - Taxi: ${(sleeperRoster.taxi || []).length}`);
+      if (sleeperRoster.reserve && sleeperRoster.reserve.length > 0) {
+        console.log(`   - Jogadores no IR: ${sleeperRoster.reserve.join(', ')}`);
+      }
+      if (sleeperRoster.taxi && sleeperRoster.taxi.length > 0) {
+        console.log(`   - Jogadores no Taxi: ${sleeperRoster.taxi.join(', ')}`);
+      }
+
       // Processar jogadores do Sleeper
       for (const { id: sleeperPlayerId, status } of allSleeperPlayers) {
         let player = existingPlayersMap.get(sleeperPlayerId);
@@ -221,6 +233,9 @@ async function syncTeamRosters(
             stats.playersAdded++;
           }
         }
+
+        // Log detalhado do status do jogador
+        console.log(`   📋 Jogador ${player.name || sleeperPlayerId}: status = ${status}`);
 
         // Preparar upsert do roster
         rosterUpserts.push({
@@ -300,11 +315,20 @@ async function syncTeamRosters(
 
     // Executar upserts de roster em lotes menores para evitar timeout
     const BATCH_SIZE = 100;
+    console.log(
+      `🔄 Executando ${rosterUpserts.length} upserts de roster em lotes de ${BATCH_SIZE}`,
+    );
+
     for (let i = 0; i < rosterUpserts.length; i += BATCH_SIZE) {
       const batch = rosterUpserts.slice(i, i + BATCH_SIZE);
+      console.log(
+        `📦 Processando lote ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(rosterUpserts.length / BATCH_SIZE)} (${batch.length} itens)`,
+      );
+
       await Promise.all(
-        batch.map(upsert =>
-          prisma.teamRoster.upsert({
+        batch.map(async upsert => {
+          console.log(`   💾 Upsert: Player ${upsert.sleeperPlayerId} -> Status: ${upsert.status}`);
+          return prisma.teamRoster.upsert({
             where: {
               teamId_playerId: {
                 teamId: upsert.teamId,
@@ -316,13 +340,88 @@ async function syncTeamRosters(
               status: upsert.status,
             },
             create: upsert,
-          }),
-        ),
+          });
+        }),
       );
     }
 
     const batchEndTime = Date.now();
     console.log(`⚡ Operações em lote concluídas em ${batchEndTime - batchStartTime}ms`);
+
+    // VALIDAÇÃO ADICIONAL: Verificar se os status foram aplicados corretamente
+    console.log(`🔍 Executando validação pós-sincronização...`);
+
+    const validationStartTime = Date.now();
+    let inconsistenciesFound = 0;
+
+    for (const sleeperRoster of sleeperRosters) {
+      const team = teams.find(t => t.sleeperTeamId === sleeperRoster.roster_id.toString());
+      if (!team) continue;
+
+      // Verificar jogadores no IR
+      if (sleeperRoster.reserve && sleeperRoster.reserve.length > 0) {
+        const irPlayersInDb = await prisma.teamRoster.findMany({
+          where: {
+            teamId: team.id,
+            sleeperPlayerId: { in: sleeperRoster.reserve },
+            status: { not: 'ir' },
+          },
+          include: { player: true },
+        });
+
+        if (irPlayersInDb.length > 0) {
+          console.log(
+            `⚠️  Encontradas ${irPlayersInDb.length} inconsistências no IR do time ${team.name}`,
+          );
+          inconsistenciesFound += irPlayersInDb.length;
+
+          // Corrigir inconsistências
+          await prisma.teamRoster.updateMany({
+            where: {
+              teamId: team.id,
+              sleeperPlayerId: { in: sleeperRoster.reserve },
+            },
+            data: { status: 'ir' },
+          });
+
+          console.log(`✅ Corrigidas inconsistências no IR do time ${team.name}`);
+        }
+      }
+
+      // Verificar jogadores no Taxi
+      if (sleeperRoster.taxi && sleeperRoster.taxi.length > 0) {
+        const taxiPlayersInDb = await prisma.teamRoster.findMany({
+          where: {
+            teamId: team.id,
+            sleeperPlayerId: { in: sleeperRoster.taxi },
+            status: { not: 'taxi' },
+          },
+          include: { player: true },
+        });
+
+        if (taxiPlayersInDb.length > 0) {
+          console.log(
+            `⚠️  Encontradas ${taxiPlayersInDb.length} inconsistências no Taxi do time ${team.name}`,
+          );
+          inconsistenciesFound += taxiPlayersInDb.length;
+
+          // Corrigir inconsistências
+          await prisma.teamRoster.updateMany({
+            where: {
+              teamId: team.id,
+              sleeperPlayerId: { in: sleeperRoster.taxi },
+            },
+            data: { status: 'taxi' },
+          });
+
+          console.log(`✅ Corrigidas inconsistências no Taxi do time ${team.name}`);
+        }
+      }
+    }
+
+    const validationEndTime = Date.now();
+    console.log(`🔍 Validação concluída em ${validationEndTime - validationStartTime}ms`);
+    console.log(`📊 Total de inconsistências encontradas e corrigidas: ${inconsistenciesFound}`);
 
     // Log das estatísticas de sincronização
     if (stats.tradesProcessed.length > 0) {
