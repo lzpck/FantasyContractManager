@@ -158,12 +158,8 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
       }
 
       // Incluir teamId para associação via Team.ownerId (não User.teamId)
-      if (formData.role === UserRole.USER) {
-        updateData.teamId = formData.teamId || null;
-      } else {
-        // Para comissários, sempre desassociar de times
-        updateData.teamId = null;
-      }
+      // Tanto usuários quanto comissários podem ser associados a times
+      updateData.teamId = formData.teamId || null;
 
       const response = await fetch(`/api/users/${userId}`, {
         method: 'PATCH',
