@@ -18,10 +18,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    // Buscar times disponíveis (sem usuário associado)
+    // Buscar times disponíveis (sem proprietário associado)
     const availableTeams = await prisma.team.findMany({
       where: {
-        user: null, // Times sem usuário associado
+        ownerId: null, // Times sem proprietário associado
       },
       include: {
         league: {
