@@ -157,7 +157,7 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
         updateData.password = formData.password;
       }
 
-      // Incluir teamId (pode ser null para desassociar)
+      // Incluir teamId para associação via Team.ownerId (não User.teamId)
       if (formData.role === UserRole.USER) {
         updateData.teamId = formData.teamId || null;
       } else {

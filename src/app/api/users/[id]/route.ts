@@ -185,8 +185,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           );
         }
 
-        // Atualizar users.teamId para null
-        updateData.teamId = null;
+        // NÃO atualizar users.teamId - usar apenas Team.ownerId
       } else {
         // Associar a novo time
         // Primeiro, desassociar de times atuais
@@ -232,9 +231,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           },
         });
 
-        // Atualizar users.teamId com o novo time
-        updateData.teamId = teamId;
-
+        // NÃO atualizar users.teamId - usar apenas Team.ownerId
         console.log(
           `[AUDIT] Usuário ${userId} (${existingUser.name}) associado ao time ${teamId} (${newTeam!.name}) na liga ${newTeam!.leagueId}`,
         );
