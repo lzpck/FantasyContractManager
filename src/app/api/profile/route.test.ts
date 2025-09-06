@@ -53,18 +53,14 @@ const mockUser = {
   name: 'Test User',
   login: 'testuser',
   email: 'test@example.com',
-  role: 'USER',
+  emailVerified: null,
+  image: null,
+  password: null,
+  role: 'USER' as const,
+  isActive: true,
   teamId: 'team-1',
   createdAt: '2023-01-01T00:00:00.000Z',
   updatedAt: '2023-01-01T00:00:00.000Z',
-  team: {
-    id: 'team-1',
-    name: 'Test Team',
-    league: {
-      id: 'league-1',
-      name: 'Test League',
-    },
-  },
 };
 
 describe('/api/profile', () => {
@@ -143,6 +139,7 @@ describe('/api/profile', () => {
 
       mockGetServerSession.mockResolvedValue(mockSession);
       mockPrisma.user.findFirst.mockResolvedValue({
+        ...mockUser,
         id: 'other-user',
         email: 'email.existente@example.com',
       });
@@ -194,7 +191,7 @@ describe('/api/profile', () => {
       };
 
       const userWithPassword = {
-        id: 'user-1',
+        ...mockUser,
         password: 'hashedCurrentPassword',
       };
 
@@ -226,7 +223,7 @@ describe('/api/profile', () => {
       };
 
       const userWithPassword = {
-        id: 'user-1',
+        ...mockUser,
         password: 'hashedCurrentPassword',
       };
 

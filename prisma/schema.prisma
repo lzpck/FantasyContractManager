@@ -19,7 +19,7 @@ model User {
   password      String?
   role          UserRole     @default(USER)
   isActive      Boolean      @default(true)
-  teamId        String?      @unique
+  teamId        String?
   createdAt     String       @default("")
   updatedAt     String       @default("")
   accounts      Account[]
@@ -27,7 +27,6 @@ model User {
   leagues       League[]     @relation("LeagueCommissioner")
   sessions      Session[]
   teams         Team[]       @relation("TeamOwner")
-  team          Team?        @relation("UserTeam", fields: [teamId], references: [id])
   createdEvents Event[]      @relation("EventCreator")
 
   @@map("users")
@@ -141,7 +140,6 @@ model Team {
   roster              TeamRoster[]
   league              League       @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   owner               User?        @relation("TeamOwner", fields: [ownerId], references: [id])
-  user                User?        @relation("UserTeam")
 
   @@unique([leagueId, sleeperOwnerId])
   @@map("teams")

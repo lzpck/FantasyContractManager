@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { UserRole } from '@/types/database';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { Team, TeamWithLeague } from '@/types';
+import { MultiTeamSelector } from '@/components/ui/MultiTeamSelector';
 
 /**
  * Componente para edição de usuários por comissários
@@ -24,8 +25,8 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
     isActive: true,
     password: '',
     confirmPassword: '',
-    teamId: '',
   });
+  const [selectedTeams, setSelectedTeams] = useState<TeamWithLeague[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,12 +55,11 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
             isActive: userData.isActive,
             password: '',
             confirmPassword: '',
-            teamId: userData.team
-              ? userData.team.id
-              : userData.teams && userData.teams.length > 0
-                ? userData.teams[0].id
-                : '',
           });
+
+          // Configurar equipes selecionadas
+          const userTeams = userData.teams || [];
+          setSelectedTeams(userTeams);
         } else {
           setError('Erro ao carregar dados do usuário');
         }
@@ -157,9 +157,9 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
         updateData.password = formData.password;
       }
 
-      // Incluir teamId para associação via Team.ownerId (não User.teamId)
-      // Tanto usuários quanto comissários podem ser associados a times
-      updateData.teamId = formData.teamId || null;
+      // Incluir IDs das equipes selecionadas para associação via Team.ownerId
+      // Tanto usuários quanto comissários podem ser associados a múltiplas equipes
+      updateData.teamIds = selectedTeams.map(team => team.id);
 
       const response = await fetch(`/api/users/${userId}`, {
         method: 'PATCH',
@@ -317,38 +317,19 @@ export function EditUserForm({ userId, onSuccess, onCancel }: EditUserFormProps)
           <p className="ml-2 text-xs text-slate-400">Desmarque para desativar o usuário</p>
         </div>
 
-        {/* Seleção de time - opcional para todos os usuários */}
-        <div>
-          <label htmlFor="teamId" className="block text-sm font-medium text-slate-100">
-            Selecionar Time (opcional)
-          </label>
-          <select
-            id="teamId"
-            name="teamId"
-            className="mt-1 block w-full px-3 py-2 border border-slate-700 bg-slate-800 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-slate-100"
-            value={formData.teamId}
-            onChange={handleChange}
-            disabled={loadingTeams}
-          >
-            <option value="">Nenhum time selecionado</option>
-            {availableTeams.map(team => (
-              <option key={team.id} value={team.id}>
-                {team.name} - {team.league?.name} ({team.league?.season})
-              </option>
-            ))}
-          </select>
-          {loadingTeams && (
-            <p className="mt-1 text-xs text-slate-400">Carregando times disponíveis...</p>
-          )}
-          {!loadingTeams && availableTeams.length === 0 && (
-            <p className="mt-1 text-xs text-red-400">Nenhum time disponível no momento.</p>
-          )}
-          <p className="mt-1 text-xs text-slate-400">
-            {formData.role === UserRole.USER
-              ? 'Escolha o time que o usuário irá gerenciar ou deixe vazio para desassociar do time atual.'
-              : 'Comissários podem opcionalmente ter um time associado para participar como jogador.'}
-          </p>
-        </div>
+        {/* Seletor de múltiplas equipes */}
+        <MultiTeamSelector
+          availableTeams={availableTeams}
+          selectedTeams={selectedTeams}
+          onTeamsChange={setSelectedTeams}
+          loading={loadingTeams}
+          disabled={isLoading}
+          helpText={
+            formData.role === UserRole.USER
+              ? 'Usuários podem gerenciar múltiplas equipes em diferentes ligas. Adicione ou remova equipes conforme necessário.'
+              : 'Comissários podem opcionalmente ter equipes associadas para participar como jogadores em diferentes ligas.'
+          }
+        />
 
         <div className="relative">
           <label htmlFor="password" className="block text-sm font-medium text-slate-100">

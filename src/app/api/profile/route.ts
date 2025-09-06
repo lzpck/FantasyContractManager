@@ -47,7 +47,8 @@ export async function GET() {
         teamId: true,
         createdAt: true,
         updatedAt: true,
-        team: {
+        // Removido 'team' - não existe relação direta via teamId
+        teams: {
           select: {
             id: true,
             name: true,
@@ -128,7 +129,8 @@ export async function PATCH(request: NextRequest) {
           role: true,
           teamId: true,
           updatedAt: true,
-          team: {
+          // Removido 'team' - não existe relação direta via teamId
+          teams: {
             select: {
               id: true,
               name: true,
