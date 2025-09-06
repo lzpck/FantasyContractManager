@@ -25,6 +25,18 @@ export async function GET() {
         isActive: true,
         createdAt: true,
         updatedAt: true,
+        teams: {
+          select: {
+            id: true,
+            name: true,
+            league: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
         _count: {
           select: {
             teams: true,

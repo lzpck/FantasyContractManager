@@ -34,8 +34,12 @@ export default withAuth(
       if (!token?.role) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
-      // Usuários com role USER podem acessar se tiverem um time associado
-      if (token.role === UserRole.USER && !token.teamId) {
+      // Usuários com role USER podem acessar se tiverem um time associado (via teamId ou como owner de teams)
+      if (
+        token.role === UserRole.USER &&
+        !token.teamId &&
+        (!token.teams || token.teams.length === 0)
+      ) {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
     }

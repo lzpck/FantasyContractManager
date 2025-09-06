@@ -28,18 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         teamId: true,
         createdAt: true,
         updatedAt: true,
-        team: {
-          select: {
-            id: true,
-            name: true,
-            league: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
+        // Removido 'team' - não existe relação direta via teamId
         teams: {
           select: {
             id: true,
@@ -87,7 +76,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const { id: userId } = await params;
-    const { name, email, role, isActive, password, teamId } = await request.json();
+    const { name, email, role, isActive, password, teamIds } = await request.json();
 
     // Verificar se o usuário existe
     const existingUser = await prisma.user.findUnique({
@@ -120,25 +109,30 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
 
-    // Verificar se o time existe e está disponível (se teamId foi fornecido)
-    let newTeam = null;
-    if (teamId) {
-      newTeam = await prisma.team.findUnique({
-        where: { id: teamId },
+    // Verificar se as equipes existem e estão disponíveis (se teamIds foi fornecido)
+    let newTeams: any[] = [];
+    if (teamIds && Array.isArray(teamIds) && teamIds.length > 0) {
+      newTeams = await prisma.team.findMany({
+        where: { id: { in: teamIds } },
         include: {
           owner: true,
           league: true,
         },
       });
 
-      if (!newTeam) {
-        return NextResponse.json({ error: 'Time não encontrado' }, { status: 400 });
+      if (newTeams.length !== teamIds.length) {
+        return NextResponse.json(
+          { error: 'Uma ou mais equipes não foram encontradas' },
+          { status: 400 },
+        );
       }
 
-      // Verificar se o time já tem outro owner (que não seja o usuário atual)
-      if (newTeam.ownerId && newTeam.ownerId !== userId) {
+      // Verificar se alguma equipe já tem outro owner (que não seja o usuário atual)
+      const conflictingTeams = newTeams.filter(team => team.ownerId && team.ownerId !== userId);
+      if (conflictingTeams.length > 0) {
+        const teamNames = conflictingTeams.map(team => team.name).join(', ');
         return NextResponse.json(
-          { error: 'Time já possui outro usuário associado' },
+          { error: `As seguintes equipes já possuem outros usuários associados: ${teamNames}` },
           { status: 400 },
         );
       }
@@ -158,82 +152,63 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       updateData.password = await bcrypt.default.hash(password, 12);
     }
 
-    // Gerenciar associação de times
-    if (teamId !== undefined) {
-      // Se teamId é null, desassociar do time atual
-      if (teamId === null) {
-        // Remover ownerId dos times atuais
-        if (existingUser.teams.length > 0) {
-          await prisma.team.updateMany({
-            where: { ownerId: userId },
-            data: {
-              ownerId: null,
-            },
-          });
+    // Gerenciar associação de equipes
+    if (teamIds !== undefined) {
+      // Primeiro, desassociar de todas as equipes atuais
+      if (existingUser.teams.length > 0) {
+        await prisma.team.updateMany({
+          where: { ownerId: userId },
+          data: {
+            ownerId: null,
+          },
+        });
 
-          // Remover usuário das ligas dos times
-          const teamLeagueIds = existingUser.teams.map(team => team.leagueId);
-          await prisma.leagueUser.deleteMany({
-            where: {
-              userId: userId,
-              leagueId: { in: teamLeagueIds },
-            },
-          });
+        // Remover usuário das ligas dos times antigos
+        const oldTeamLeagueIds = existingUser.teams.map(team => team.leagueId);
+        await prisma.leagueUser.deleteMany({
+          where: {
+            userId: userId,
+            leagueId: { in: oldTeamLeagueIds },
+          },
+        });
 
-          console.log(
-            `[AUDIT] Usuário ${userId} (${existingUser.name}) desassociado de todos os times`,
-          );
-        }
+        console.log(
+          `[AUDIT] Usuário ${userId} (${existingUser.name}) desassociado de todas as equipes anteriores`,
+        );
+      }
 
-        // NÃO atualizar users.teamId - usar apenas Team.ownerId
-      } else {
-        // Associar a novo time
-        // Primeiro, desassociar de times atuais
-        if (existingUser.teams.length > 0) {
-          await prisma.team.updateMany({
-            where: { ownerId: userId },
-            data: {
-              ownerId: null,
-            },
-          });
-
-          // Remover usuário das ligas dos times antigos
-          const oldTeamLeagueIds = existingUser.teams.map(team => team.leagueId);
-          await prisma.leagueUser.deleteMany({
-            where: {
-              userId: userId,
-              leagueId: { in: oldTeamLeagueIds },
-            },
-          });
-        }
-
-        // Associar ao novo time
-        await prisma.team.update({
-          where: { id: teamId },
+      // Se teamIds não é vazio, associar às novas equipes
+      if (teamIds && Array.isArray(teamIds) && teamIds.length > 0) {
+        // Associar às novas equipes
+        await prisma.team.updateMany({
+          where: { id: { in: teamIds } },
           data: {
             ownerId: userId,
           },
         });
 
-        // Garantir que o usuário seja membro da nova liga
-        await prisma.leagueUser.upsert({
-          where: {
-            leagueId_userId: {
-              leagueId: newTeam!.leagueId,
-              userId: userId,
+        // Garantir que o usuário seja membro de todas as novas ligas
+        const leagueIds = [...new Set(newTeams.map(team => team.leagueId))];
+        for (const leagueId of leagueIds) {
+          await prisma.leagueUser.upsert({
+            where: {
+              leagueId_userId: {
+                leagueId: leagueId,
+                userId: userId,
+              },
             },
-          },
-          update: {},
-          create: {
-            leagueId: newTeam!.leagueId,
-            userId: userId,
-            role: 'MEMBER',
-          },
-        });
+            update: {},
+            create: {
+              leagueId: leagueId,
+              userId: userId,
+              role: 'MEMBER',
+            },
+          });
+        }
 
-        // NÃO atualizar users.teamId - usar apenas Team.ownerId
+        const teamNames = newTeams.map(team => `${team.name} (${team.league.name})`).join(', ');
         console.log(
-          `[AUDIT] Usuário ${userId} (${existingUser.name}) associado ao time ${teamId} (${newTeam!.name}) na liga ${newTeam!.leagueId}`,
+          `[AUDIT] Usuário ${userId} (${existingUser.name}) associado às equipes: ${teamNames}`,
         );
       }
     }
@@ -251,18 +226,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         isActive: true,
         teamId: true,
         updatedAt: true,
-        team: {
-          select: {
-            id: true,
-            name: true,
-            league: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
+        // Removido 'team' - não existe relação direta via teamId
         teams: {
           select: {
             id: true,

@@ -28,9 +28,10 @@ export const authOptions: NextAuthOptions = {
             OR: [{ login: credentials.identifier }, { email: credentials.identifier }],
           },
           include: {
-            team: {
+            // Removido 'team' - não existe relação direta via teamId
+            teams: {
               include: {
-                league: true, // Incluir dados da liga associada ao time
+                league: true, // Incluir dados da liga dos times que o usuário possui
               },
             },
           },
@@ -57,7 +58,8 @@ export const authOptions: NextAuthOptions = {
           image: user.image,
           role: user.role as UserRole,
           teamId: user.teamId,
-          team: user.team,
+          // Removido 'team' - não existe relação direta via teamId
+          teams: user.teams, // Incluir todos os teams que o usuário possui
         };
       },
     }),
@@ -72,6 +74,7 @@ export const authOptions: NextAuthOptions = {
         token.login = user.login;
         token.teamId = user.teamId;
         token.team = user.team;
+        token.teams = user.teams; // Incluir array de teams que o usuário possui
       }
       return token;
     },
@@ -82,6 +85,7 @@ export const authOptions: NextAuthOptions = {
         session.user.login = token.login as string;
         session.user.teamId = token.teamId as string | null;
         session.user.team = token.team;
+        session.user.teams = token.teams; // Incluir array de teams que o usuário possui
       }
       return session;
     },

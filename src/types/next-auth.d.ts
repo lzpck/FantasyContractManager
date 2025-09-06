@@ -13,6 +13,7 @@ declare module 'next-auth' {
       role: UserRole;
       teamId?: string | null;
       team?: any;
+      teams?: any[]; // Array de teams que o usuário possui
     };
   }
 
@@ -21,6 +22,7 @@ declare module 'next-auth' {
     role: UserRole;
     teamId?: string | null;
     team?: any;
+    teams?: any[]; // Array de teams que o usuário possui
   }
 }
 
@@ -30,5 +32,6 @@ declare module 'next-auth/jwt' {
     login: string;
     teamId?: string | null;
     team?: any;
+    teams?: any[]; // Array de teams que o usuário possui
   }
 }
