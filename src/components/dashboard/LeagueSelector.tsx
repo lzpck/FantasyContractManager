@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ChevronDownIcon, TrophyIcon } from '@heroicons/react/24/outline';
 
 interface League {
@@ -42,6 +42,13 @@ export function LeagueSelector({
   loading = false,
 }: LeagueSelectorProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+
+  // Selecionar automaticamente a primeira liga disponível quando não há seleção
+  useEffect(() => {
+    if (leagues.length > 0 && !selectedLeague && !loading) {
+      onLeagueSelect(leagues[0]);
+    }
+  }, [leagues, selectedLeague, onLeagueSelect, loading]);
 
   const handleLeagueSelect = (league: League) => {
     onLeagueSelect(league);

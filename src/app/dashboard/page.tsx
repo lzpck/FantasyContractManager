@@ -54,6 +54,13 @@ function DashboardContent() {
   const [nflState, setNflState] = useState<{ season: string; week: number } | null>(null);
   const [selectedLeague, setSelectedLeague] = useState<any>(null);
 
+  // Selecionar automaticamente a primeira liga disponível
+  useEffect(() => {
+    if (leagues.length > 0 && !selectedLeague && !leaguesLoading) {
+      setSelectedLeague(leagues[0]);
+    }
+  }, [leagues, selectedLeague, leaguesLoading]);
+
   // Dados para os novos componentes analytics (estrutura preparada para integração futura)
   const [topSalariesData, setTopSalariesData] = useState<any[]>([]);
   const [topSalariesByPositionData, setTopSalariesByPositionData] = useState<any[]>([]);
