@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { League } from '@/types';
 import { useLeagueSalaryCap } from '@/hooks/useSalaryCap';
@@ -20,6 +20,13 @@ export function SalaryCapChart({ leagues }: SalaryCapChartProps) {
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>(
     leagues.length > 0 ? leagues[0].id : '',
   );
+
+  // Atualizar seleção automaticamente quando as ligas mudarem
+  useEffect(() => {
+    if (leagues.length > 0 && !selectedLeagueId) {
+      setSelectedLeagueId(leagues[0].id);
+    }
+  }, [leagues, selectedLeagueId]);
 
   const { teams, loading, error } = useLeagueSalaryCap(selectedLeagueId);
 
