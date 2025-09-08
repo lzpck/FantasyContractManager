@@ -72,7 +72,24 @@ export function Sidebar() {
 
   // Verificar se o item está ativo
   const isActiveItem = (href: string) => {
-    return pathname === href || pathname.startsWith(href + '/');
+    // Para evitar que '/leagues' seja ativo quando estamos em '/leagues/123/teams/456'
+    // verificamos se é uma correspondência exata ou se o pathname começa com href + '/'
+    // mas não é um subpath mais específico
+    if (pathname === href) {
+      return true;
+    }
+
+    // Para rotas como '/leagues', só considera ativo se for exatamente '/leagues'
+    // ou '/leagues/' seguido de algo que não seja um ID específico de liga
+    if (href === '/leagues') {
+      return (
+        pathname === '/leagues' ||
+        (pathname.startsWith('/leagues/') && pathname.split('/').length === 3)
+      );
+    }
+
+    // Para outras rotas, mantém a lógica original
+    return pathname.startsWith(href + '/');
   };
 
   return (
@@ -119,20 +136,13 @@ export function Sidebar() {
               className={`flex flex-1 flex-col gap-y-2 ${isCollapsed ? 'items-center' : ''}`}
             >
               {navigationItems.map(item => {
-                // Estilo especial para o item "Meu Time"
-                const isUserTeamItem = 'isUserTeam' in item && item.isUserTeam;
+                // Aplicar padrão visual uniforme para todos os itens, incluindo "Meu Time"
                 const baseClasses = `group flex rounded-xl p-2 text-sm leading-6 font-semibold transition-colors ${isCollapsed ? 'justify-center items-center min-h-[44px]' : 'gap-x-3'}`;
 
-                let itemClasses;
-                if (isActiveItem(item.href)) {
-                  itemClasses = isUserTeamItem
-                    ? 'bg-amber-600 text-white' // Cor dourada para "Meu Time" quando ativo
-                    : 'bg-blue-600 text-white';
-                } else {
-                  itemClasses = isUserTeamItem
-                    ? 'text-slate-100 hover:text-amber-400 hover:bg-slate-800' // Hover dourado para "Meu Time"
-                    : 'text-slate-100 hover:text-blue-400 hover:bg-slate-800';
-                }
+                // Usar apenas o padrão azul para todos os itens
+                const itemClasses = isActiveItem(item.href)
+                  ? 'bg-blue-600 text-white' // Azul para item ativo
+                  : 'text-slate-100 hover:text-blue-400 hover:bg-slate-800'; // Hover azul para todos os itens
 
                 return (
                   <li key={item.name} className={isCollapsed ? 'w-full' : ''}>
