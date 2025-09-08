@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserTeams } from '@/hooks/useUserTeams';
 import { useSidebar } from '@/contexts/SidebarContext';
 
 /**
@@ -14,10 +15,14 @@ import { useSidebar } from '@/contexts/SidebarContext';
 export function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();
   const pathname = usePathname();
-  const { isCommissioner } = useAuth();
+  const { isCommissioner, isAuthenticated } = useAuth();
+  const { teams } = useUserTeams();
 
   // Para manter compatibilidade com o código existente
   const isCollapsed = !isExpanded;
+
+  // Obter o primeiro time do usuário para o atalho "Meu Time"
+  const userTeam = teams && teams.length > 0 ? teams[0] : null;
 
   // Itens de navegação - Dashboard agora disponível para todos os usuários autenticados
   const navigationItems = [
@@ -27,6 +32,18 @@ export function Sidebar() {
       icon: '📊',
       description: 'Analytics da Liga',
     },
+    // Atalho "Meu Time" - aparece apenas se o usuário tiver um time associado
+    ...(userTeam
+      ? [
+          {
+            name: 'Meu Time',
+            href: `/leagues/${userTeam.leagueId}/teams/${userTeam.id}`,
+            icon: '⭐',
+            description: userTeam.name,
+            isUserTeam: true,
+          },
+        ]
+      : []),
     {
       name: 'Ligas',
       href: '/leagues',
@@ -101,29 +118,42 @@ export function Sidebar() {
               role="list"
               className={`flex flex-1 flex-col gap-y-2 ${isCollapsed ? 'items-center' : ''}`}
             >
-              {navigationItems.map(item => (
-                <li key={item.name} className={isCollapsed ? 'w-full' : ''}>
-                  <Link
-                    href={item.href}
-                    className={`group flex rounded-xl p-2 text-sm leading-6 font-semibold transition-colors ${
-                      isActiveItem(item.href)
-                        ? 'bg-blue-600 text-white'
-                        : 'text-slate-100 hover:text-blue-400 hover:bg-slate-800'
-                    } ${isCollapsed ? 'justify-center items-center min-h-[44px]' : 'gap-x-3'}`}
-                    title={isCollapsed ? item.name : undefined}
-                  >
-                    <span className={`text-lg flex-shrink-0 ${isCollapsed ? 'text-xl' : ''}`}>
-                      {item.icon}
-                    </span>
-                    {!isCollapsed && (
-                      <div className="flex-1 min-w-0">
-                        <div className="truncate">{item.name}</div>
-                        <div className="text-xs text-slate-400 truncate">{item.description}</div>
-                      </div>
-                    )}
-                  </Link>
-                </li>
-              ))}
+              {navigationItems.map(item => {
+                // Estilo especial para o item "Meu Time"
+                const isUserTeamItem = 'isUserTeam' in item && item.isUserTeam;
+                const baseClasses = `group flex rounded-xl p-2 text-sm leading-6 font-semibold transition-colors ${isCollapsed ? 'justify-center items-center min-h-[44px]' : 'gap-x-3'}`;
+
+                let itemClasses;
+                if (isActiveItem(item.href)) {
+                  itemClasses = isUserTeamItem
+                    ? 'bg-amber-600 text-white' // Cor dourada para "Meu Time" quando ativo
+                    : 'bg-blue-600 text-white';
+                } else {
+                  itemClasses = isUserTeamItem
+                    ? 'text-slate-100 hover:text-amber-400 hover:bg-slate-800' // Hover dourado para "Meu Time"
+                    : 'text-slate-100 hover:text-blue-400 hover:bg-slate-800';
+                }
+
+                return (
+                  <li key={item.name} className={isCollapsed ? 'w-full' : ''}>
+                    <Link
+                      href={item.href}
+                      className={`${baseClasses} ${itemClasses}`}
+                      title={isCollapsed ? item.name : undefined}
+                    >
+                      <span className={`text-lg flex-shrink-0 ${isCollapsed ? 'text-xl' : ''}`}>
+                        {item.icon}
+                      </span>
+                      {!isCollapsed && (
+                        <div className="flex-1 min-w-0">
+                          <div className="truncate">{item.name}</div>
+                          <div className="text-xs text-slate-400 truncate">{item.description}</div>
+                        </div>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
         </div>
