@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Sidebar } from './Sidebar';
+import Sidebar from './Sidebar';
 import { AuthNavigation } from './AuthNavigation';
 import { useSidebar } from '@/contexts/SidebarContext';
 
