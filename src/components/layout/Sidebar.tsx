@@ -7,6 +7,18 @@ import { useUserTeams } from '@/hooks/useUserTeams';
 import { useSidebar } from '@/contexts/SidebarContext';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 
+// Definição do tipo para itens de navegação
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: string;
+  description: string;
+  isLoading?: boolean;
+  isError?: boolean;
+  isUserTeam?: boolean;
+  onRetry?: () => void;
+}
+
 /**
  * Componente Sidebar - Menu lateral de navegação
  * Exibe opções de navegação baseadas no estado de autenticação e permissões do usuário
@@ -35,8 +47,8 @@ function Sidebar() {
   const userTeam = user?.teamId && teams ? teams.find(team => team.id === user.teamId) : null;
 
   // Função para criar itens de navegação com tratamento de loading (memoizada)
-  const getNavigationItems = useCallback(() => {
-    const baseItems = [
+  const getNavigationItems = useCallback((): NavigationItem[] => {
+    const baseItems: NavigationItem[] = [
       {
         name: 'Dashboard',
         href: '/dashboard',
@@ -227,7 +239,7 @@ function Sidebar() {
                         onClick={e => {
                           e.preventDefault();
                           e.stopPropagation();
-                          item.onRetry();
+                          item.onRetry?.();
                         }}
                         className="flex-shrink-0 p-1 rounded text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
                         title="Tentar novamente"
@@ -356,7 +368,7 @@ function Sidebar() {
                               onClick={e => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                item.onRetry();
+                                item.onRetry?.();
                               }}
                               className="flex-shrink-0 p-1 rounded text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
                               title="Tentar novamente"
