@@ -5,92 +5,135 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserTeams } from '@/hooks/useUserTeams';
 import { useSidebar } from '@/contexts/SidebarContext';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 
 /**
- * Componente de navegação lateral (sidebar)
- *
- * Fornece navegação principal para as diferentes seções do sistema.
- * Adapta o menu conforme o perfil do usuário (comissário vs usuário comum).
+ * Componente Sidebar - Menu lateral de navegação
+ * Exibe opções de navegação baseadas no estado de autenticação e permissões do usuário
+ * Inclui tratamento para loading, erro e estados de hidratação
+ * Otimizado com React.memo para evitar re-renderizações desnecessárias
  */
-export function Sidebar() {
+function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();
   const pathname = usePathname();
-  const { isCommissioner, isAuthenticated, user } = useAuth();
-  const { teams } = useUserTeams();
+  const { isCommissioner, isAuthenticated, user, isLoading: authLoading } = useAuth();
+  const { teams, loading: teamsLoading, error: teamsError, refetch } = useUserTeams();
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Controle de hidratação para evitar problemas de SSR
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   // Para manter compatibilidade com o código existente
   const isCollapsed = !isExpanded;
 
+  // Estados de loading combinados
+  const isLoading = authLoading || teamsLoading || !isHydrated;
+
   // Obter o time específico do usuário baseado no teamId da sessão
   const userTeam = user?.teamId && teams ? teams.find(team => team.id === user.teamId) : null;
 
-  // Itens de navegação - Dashboard agora disponível para todos os usuários autenticados
-  const navigationItems = [
-    {
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: '📊',
-      description: 'Analytics da Liga',
-    },
-    // Atalho "Meu Time" - aparece apenas se o usuário tiver um time associado
-    ...(userTeam
-      ? [
-          {
-            name: 'Meu Time',
-            href: `/leagues/${userTeam.leagueId}/teams/${userTeam.id}`,
-            icon: '⭐',
-            description: userTeam.name,
-            isUserTeam: true,
-          },
-        ]
-      : []),
-    {
-      name: 'Ligas',
-      href: '/leagues',
-      icon: '🏆',
-      description: 'Gerenciar ligas',
-    },
-    {
-      name: 'Eventos',
-      href: '/events',
-      icon: '📅',
-      description: 'Eventos das ligas',
-    },
-    {
-      name: 'Jogadores',
-      href: '/players',
-      icon: '🏃‍♂️',
-      description: 'Base de jogadores',
-    },
-    {
-      name: 'Informações',
-      href: '/informacoes',
-      icon: 'ℹ️',
-      description: 'Regras, contato e suporte',
-    },
-  ];
+  // Função para criar itens de navegação com tratamento de loading (memoizada)
+  const getNavigationItems = useCallback(() => {
+    const baseItems = [
+      {
+        name: 'Dashboard',
+        href: '/dashboard',
+        icon: '📊',
+        description: 'Analytics da Liga',
+      },
+    ];
 
-  // Verificar se o item está ativo
-  const isActiveItem = (href: string) => {
-    // Para evitar que '/leagues' seja ativo quando estamos em '/leagues/123/teams/456'
-    // verificamos se é uma correspondência exata ou se o pathname começa com href + '/'
-    // mas não é um subpath mais específico
-    if (pathname === href) {
-      return true;
+    // Se ainda está carregando dados do usuário, mostra placeholder para "Meu Time"
+    if (isLoading && isAuthenticated) {
+      baseItems.push({
+        name: 'Meu Time',
+        href: '#',
+        icon: '⭐',
+        description: 'Carregando...',
+        isLoading: true,
+      });
+    } else if (userTeam) {
+      // Atalho "Meu Time" - aparece apenas se o usuário tiver um time associado
+      baseItems.push({
+        name: 'Meu Time',
+        href: `/leagues/${userTeam.leagueId}/teams/${userTeam.id}`,
+        icon: '⭐',
+        description: userTeam.name,
+        isUserTeam: true,
+      });
+    } else if (teamsError && isAuthenticated) {
+      // Mostra item com erro se houve falha no carregamento
+      baseItems.push({
+        name: 'Meu Time',
+        href: '#',
+        icon: '⚠️',
+        description: teamsError || 'Erro ao carregar',
+        isError: true,
+        onRetry: () => {
+          refetch(); // Função para tentar recarregar os dados
+        },
+      });
     }
 
-    // Para rotas como '/leagues', só considera ativo se for exatamente '/leagues'
-    // ou '/leagues/' seguido de algo que não seja um ID específico de liga
-    if (href === '/leagues') {
-      return (
-        pathname === '/leagues' ||
-        (pathname.startsWith('/leagues/') && pathname.split('/').length === 3)
-      );
-    }
+    // Adiciona os demais itens
+    baseItems.push(
+      {
+        name: 'Ligas',
+        href: '/leagues',
+        icon: '🏆',
+        description: 'Gerenciar ligas',
+      },
+      {
+        name: 'Eventos',
+        href: '/events',
+        icon: '📅',
+        description: 'Eventos das ligas',
+      },
+      {
+        name: 'Jogadores',
+        href: '/players',
+        icon: '🏃‍♂️',
+        description: 'Base de jogadores',
+      },
+      {
+        name: 'Informações',
+        href: '/informacoes',
+        icon: 'ℹ️',
+        description: 'Regras, contato e suporte',
+      },
+    );
 
-    // Para outras rotas, mantém a lógica original
-    return pathname.startsWith(href + '/');
-  };
+    return baseItems;
+  }, [isAuthenticated, user, teams, isLoading, teamsError, refetch, userTeam]);
+
+  const navigationItems = useMemo(() => getNavigationItems(), [getNavigationItems]);
+
+  // Verificar se o item está ativo (memoizada)
+  const isActiveItem = useCallback(
+    (href: string) => {
+      // Para evitar que '/leagues' seja ativo quando estamos em '/leagues/123/teams/456'
+      // verificamos se é uma correspondência exata ou se o pathname começa com href + '/'
+      // mas não é um subpath mais específico
+      if (pathname === href) {
+        return true;
+      }
+
+      // Para rotas como '/leagues', só considera ativo se for exatamente '/leagues'
+      // ou '/leagues/' seguido de algo que não seja um ID específico de liga
+      if (href === '/leagues') {
+        return (
+          pathname === '/leagues' ||
+          (pathname.startsWith('/leagues/') && pathname.split('/').length === 3)
+        );
+      }
+
+      // Para outras rotas, mantém a lógica original
+      return pathname.startsWith(href + '/');
+    },
+    [pathname],
+  );
 
   return (
     <>
@@ -139,28 +182,80 @@ export function Sidebar() {
                 // Aplicar padrão visual uniforme para todos os itens, incluindo "Meu Time"
                 const baseClasses = `group flex rounded-xl p-2 text-sm leading-6 font-semibold transition-colors ${isCollapsed ? 'justify-center items-center min-h-[44px]' : 'gap-x-3'}`;
 
-                // Usar apenas o padrão azul para todos os itens
-                const itemClasses = isActiveItem(item.href)
-                  ? 'bg-blue-600 text-white' // Azul para item ativo
-                  : 'text-slate-100 hover:text-blue-400 hover:bg-slate-800'; // Hover azul para todos os itens
+                // Tratamento especial para estados de loading e erro
+                let itemClasses = '';
+                let isClickable = true;
+
+                if (item.isLoading) {
+                  itemClasses = 'text-slate-400 bg-slate-800 cursor-wait';
+                  isClickable = false;
+                } else if (item.isError) {
+                  itemClasses = 'text-red-400 bg-red-900/20 cursor-not-allowed';
+                  isClickable = false;
+                } else if (isActiveItem(item.href)) {
+                  itemClasses = 'bg-blue-600 text-white';
+                } else {
+                  itemClasses = 'text-slate-100 hover:text-blue-400 hover:bg-slate-800';
+                }
+
+                const content = (
+                  <>
+                    <span
+                      className={`text-lg flex-shrink-0 ${isCollapsed ? 'text-xl' : ''} ${item.isLoading ? 'animate-pulse' : ''}`}
+                    >
+                      {item.icon}
+                    </span>
+                    {!isCollapsed && (
+                      <div className="flex-1 min-w-0">
+                        <div className="truncate">{item.name}</div>
+                        <div
+                          className={`text-xs truncate ${
+                            item.isLoading
+                              ? 'text-slate-500'
+                              : item.isError
+                                ? 'text-red-500'
+                                : 'text-slate-400'
+                          }`}
+                        >
+                          {item.description}
+                        </div>
+                      </div>
+                    )}
+                    {/* Botão de retry para itens com erro */}
+                    {item.isError && item.onRetry && !isCollapsed && (
+                      <button
+                        onClick={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          item.onRetry();
+                        }}
+                        className="flex-shrink-0 p-1 rounded text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
+                        title="Tentar novamente"
+                      >
+                        🔄
+                      </button>
+                    )}
+                  </>
+                );
 
                 return (
                   <li key={item.name} className={isCollapsed ? 'w-full' : ''}>
-                    <Link
-                      href={item.href}
-                      className={`${baseClasses} ${itemClasses}`}
-                      title={isCollapsed ? item.name : undefined}
-                    >
-                      <span className={`text-lg flex-shrink-0 ${isCollapsed ? 'text-xl' : ''}`}>
-                        {item.icon}
-                      </span>
-                      {!isCollapsed && (
-                        <div className="flex-1 min-w-0">
-                          <div className="truncate">{item.name}</div>
-                          <div className="text-xs text-slate-400 truncate">{item.description}</div>
-                        </div>
-                      )}
-                    </Link>
+                    {isClickable ? (
+                      <Link
+                        href={item.href}
+                        className={`${baseClasses} ${itemClasses}`}
+                        title={isCollapsed ? item.name : undefined}
+                      >
+                        {content}
+                      </Link>
+                    ) : (
+                      <div
+                        className={`${baseClasses} ${itemClasses}`}
+                        title={isCollapsed ? item.name : undefined}
+                      >
+                        {content}
+                      </div>
+                    )}
                   </li>
                 );
               })}
@@ -169,16 +264,135 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Navegação mobile (placeholder) */}
+      {/* Navegação mobile */}
       <div className="lg:hidden">
         <div className="flex items-center justify-between bg-slate-900 border-b border-slate-700 px-4 py-3">
           <div className="flex items-center">
             <span className="text-2xl mr-2">🏈</span>
             <h1 className="text-lg font-semibold text-slate-100">Fantasy CM</h1>
           </div>
-          <button className="p-2 rounded-md text-slate-400 hover:bg-slate-700">☰</button>
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-md text-slate-400 hover:bg-slate-700 transition-colors"
+            aria-label="Abrir menu de navegação"
+          >
+            ☰
+          </button>
         </div>
+
+        {/* Menu mobile expandido */}
+        {isExpanded && (
+          <>
+            {/* Overlay */}
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={toggleSidebar} />
+
+            {/* Sidebar mobile */}
+            <div className="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-700 transform transition-transform duration-300 ease-in-out">
+              <div className="flex flex-col h-full">
+                {/* Header mobile */}
+                <div className="flex items-center justify-between p-4 border-b border-slate-700">
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-2">🏈</span>
+                    <div>
+                      <h1 className="text-lg font-semibold text-slate-100">Fantasy CM</h1>
+                      <p className="text-xs text-slate-400">Contract Manager</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={toggleSidebar}
+                    className="p-2 rounded-md text-slate-400 hover:bg-slate-700 transition-colors"
+                    aria-label="Fechar menu de navegação"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Navegação mobile */}
+                <nav className="flex-1 px-4 py-6">
+                  <ul className="space-y-2">
+                    {navigationItems.map(item => {
+                      const baseClasses =
+                        'group flex items-center gap-x-3 rounded-xl p-3 text-sm leading-6 font-semibold transition-colors';
+
+                      let itemClasses = '';
+                      let isClickable = true;
+
+                      if (item.isLoading) {
+                        itemClasses = 'text-slate-400 bg-slate-800 cursor-wait';
+                        isClickable = false;
+                      } else if (item.isError) {
+                        itemClasses = 'text-red-400 bg-red-900/20 cursor-not-allowed';
+                        isClickable = false;
+                      } else if (isActiveItem(item.href)) {
+                        itemClasses = 'bg-blue-600 text-white';
+                      } else {
+                        itemClasses = 'text-slate-100 hover:text-blue-400 hover:bg-slate-800';
+                      }
+
+                      const content = (
+                        <>
+                          <span
+                            className={`text-lg flex-shrink-0 ${item.isLoading ? 'animate-pulse' : ''}`}
+                          >
+                            {item.icon}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="truncate">{item.name}</div>
+                            <div
+                              className={`text-xs truncate ${
+                                item.isLoading
+                                  ? 'text-slate-500'
+                                  : item.isError
+                                    ? 'text-red-500'
+                                    : 'text-slate-400'
+                              }`}
+                            >
+                              {item.description}
+                            </div>
+                          </div>
+                          {/* Botão de retry para itens com erro */}
+                          {item.isError && item.onRetry && (
+                            <button
+                              onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                item.onRetry();
+                              }}
+                              className="flex-shrink-0 p-1 rounded text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
+                              title="Tentar novamente"
+                            >
+                              🔄
+                            </button>
+                          )}
+                        </>
+                      );
+
+                      return (
+                        <li key={item.name}>
+                          {isClickable ? (
+                            <Link
+                              href={item.href}
+                              className={`${baseClasses} ${itemClasses}`}
+                              onClick={toggleSidebar} // Fecha o menu ao clicar em um item
+                            >
+                              {content}
+                            </Link>
+                          ) : (
+                            <div className={`${baseClasses} ${itemClasses}`}>{content}</div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </>
   );
 }
+
+// Exporta o componente com React.memo para otimização de performance
+export default React.memo(Sidebar);
