@@ -9,13 +9,40 @@ interface UseUserTeamsReturn {
   refetch: () => void;
 }
 
-// Fetcher function para SWR
+// Fetcher function para SWR com tratamento de erro aprimorado
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Erro ao buscar times: ${response.status}`);
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      // Tratamento específico para diferentes códigos de erro
+      switch (response.status) {
+        case 401:
+          throw new Error('Sessão expirada. Faça login novamente.');
+        case 403:
+          throw new Error('Você não tem permissão para acessar estes dados.');
+        case 404:
+          throw new Error('Times não encontrados.');
+        case 500:
+          throw new Error('Erro interno do servidor. Tente novamente mais tarde.');
+        case 503:
+          throw new Error('Serviço temporariamente indisponível.');
+        default:
+          throw new Error(`Erro ao carregar times (${response.status})`);
+      }
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    // Se for um erro de rede ou outro erro não relacionado à resposta HTTP
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error('Erro de conexão. Verifique sua internet.');
+    }
+
+    // Re-throw outros erros (incluindo os que criamos acima)
+    throw error;
   }
-  return response.json();
 };
 
 /**
@@ -39,10 +66,24 @@ export function useUserTeams(): UseUserTeamsReturn {
     },
   );
 
+  // Formatação do erro para exibição ao usuário
+  const formatError = (err: any): string | null => {
+    if (!err) return null;
+
+    // Se já é uma string, retorna diretamente
+    if (typeof err === 'string') return err;
+
+    // Se tem uma mensagem, usa ela
+    if (err.message) return err.message;
+
+    // Fallback genérico
+    return 'Erro ao carregar dados do time';
+  };
+
   return {
     teams,
     loading: isLoading,
-    error: error?.message || null,
+    error: formatError(error),
     refetch: mutate,
   };
 }
