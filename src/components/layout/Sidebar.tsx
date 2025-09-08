@@ -15,14 +15,14 @@ import { useSidebar } from '@/contexts/SidebarContext';
 export function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();
   const pathname = usePathname();
-  const { isCommissioner, isAuthenticated } = useAuth();
+  const { isCommissioner, isAuthenticated, user } = useAuth();
   const { teams } = useUserTeams();
 
   // Para manter compatibilidade com o código existente
   const isCollapsed = !isExpanded;
 
-  // Obter o primeiro time do usuário para o atalho "Meu Time"
-  const userTeam = teams && teams.length > 0 ? teams[0] : null;
+  // Obter o time específico do usuário baseado no teamId da sessão
+  const userTeam = user?.teamId && teams ? teams.find(team => team.id === user.teamId) : null;
 
   // Itens de navegação - Dashboard agora disponível para todos os usuários autenticados
   const navigationItems = [
