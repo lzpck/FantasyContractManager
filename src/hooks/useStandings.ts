@@ -163,13 +163,22 @@ export function useStandings(leagueId: string, league: League | null) {
       teamFinancials: TeamFinancialSummary[],
       playoffTeams?: number,
     ): TeamStanding[] => {
+      if (!teamFinancials || teamFinancials.length === 0) {
+        console.warn('❌ Nenhum time disponível para combinar dados');
+        return [];
+      }
+
+      console.log(
+        `🔗 Combinando dados: ${teamFinancials.length} times, ${sleeperRosters.length} rosters Sleeper`,
+      );
+
       const standings: TeamStanding[] = [];
 
       // Para cada time financeiro, encontrar dados correspondentes no Sleeper
       teamFinancials.forEach(financial => {
         // Verificar se o time existe
         if (!financial.team) {
-          console.warn('Time inválido encontrado:', financial);
+          console.warn('❌ Time inválido encontrado:', financial);
           return;
         }
 
@@ -181,26 +190,33 @@ export function useStandings(leagueId: string, league: League | null) {
         // Se não tem sleeperOwnerId, avisar mas continuar processando
         if (!financial.team.sleeperOwnerId) {
           console.warn(
-            'Time sem sleeperOwnerId encontrado, usando dados padrão:',
+            '⚠️ Time sem sleeperOwnerId encontrado, usando dados padrão:',
             financial.team.name,
+          );
+        }
+
+        if (!sleeperRoster && sleeperRosters.length > 0 && financial.team.sleeperOwnerId) {
+          console.warn(
+            `⚠️ Roster do Sleeper não encontrado para time ${financial.team.name} (sleeperOwnerId: ${financial.team.sleeperOwnerId})`,
           );
         }
 
         // Calcular pontos com decimais
         const pointsFor = sleeperRoster
-          ? sleeperRoster.settings.fpts + sleeperRoster.settings.fpts_decimal / 100
+          ? sleeperRoster.settings.fpts + (sleeperRoster.settings.fpts_decimal || 0) / 100
           : 0;
         const pointsAgainst = sleeperRoster
-          ? sleeperRoster.settings.fpts_against + sleeperRoster.settings.fpts_against_decimal / 100
+          ? sleeperRoster.settings.fpts_against +
+            (sleeperRoster.settings.fpts_against_decimal || 0) / 100
           : 0;
 
         // Extrair streak dos metadados
         const streak = sleeperRoster?.metadata?.streak || '-';
 
         // Extrair dados de vitórias/derrotas
-        const wins = sleeperRoster?.settings.wins || 0;
-        const losses = sleeperRoster?.settings.losses || 0;
-        const ties = sleeperRoster?.settings.ties || 0;
+        const wins = sleeperRoster?.settings.wins ?? 0;
+        const losses = sleeperRoster?.settings.losses ?? 0;
+        const ties = sleeperRoster?.settings.ties ?? 0;
 
         // Calcular total de jogos e PCT (porcentagem de vitórias)
         const totalGames = wins + losses + ties;
@@ -228,6 +244,10 @@ export function useStandings(leagueId: string, league: League | null) {
             : undefined,
         };
 
+        console.log(
+          `📊 Time ${financial.team.name}: W-L-T ${wins}-${losses}-${ties}, PF: ${pointsFor.toFixed(2)}, Salary: $${financial.totalSalaries.toLocaleString()}`,
+        );
+
         standings.push(standing);
       });
 
@@ -241,12 +261,27 @@ export function useStandings(leagueId: string, league: League | null) {
         return b.pointsFor - a.pointsFor;
       });
 
+      console.log(
+        '🏆 Classificação ordenada:',
+        standings.map((t, i) => `${i + 1}. ${t.team.name} (${t.wins}-${t.losses})`).join(', '),
+      );
+
       // Atribuir posições e marcar zona de playoffs
       const numPlayoffTeams = playoffTeams || 6; // Usar valor da liga ou padrão 6
       standings.forEach((standing, index) => {
         standing.position = index + 1;
         standing.isPlayoffTeam = index < numPlayoffTeams;
       });
+
+      if (numPlayoffTeams > 0) {
+        console.log(
+          `🏆 Times de playoff (top ${numPlayoffTeams}):`,
+          standings
+            .slice(0, numPlayoffTeams)
+            .map(t => t.team.name)
+            .join(', '),
+        );
+      }
 
       return standings;
     },
@@ -257,25 +292,37 @@ export function useStandings(leagueId: string, league: League | null) {
    * Carrega dados de classificação
    */
   const loadStandings = useCallback(async () => {
-    if (!leagueId || !league) return;
+    if (!leagueId || !league) {
+      console.warn('loadStandings: leagueId ou league não disponível', {
+        leagueId,
+        league: !!league,
+      });
+      return;
+    }
 
+    console.log('🔄 Iniciando carregamento da classificação para liga:', league.name);
     setLoading(true);
     setError(null);
 
     try {
       // Sempre tentar buscar dados financeiros locais
+      console.log('📊 Buscando dados financeiros dos times...');
       const teamFinancials = await fetchTeamFinancials();
+      console.log(`✅ Dados financeiros carregados para ${teamFinancials.length} times`);
 
       let sleeperRosters: SleeperRoster[] = [];
       let playoffTeams: number | undefined;
       let hasSleeperError = false;
+      let sleeperErrorMessage = '';
 
       // Tentar buscar dados do Sleeper, mas não falhar se não conseguir
-      try {
-        sleeperRosters = await fetchSleeperStandings();
+      if (league?.sleeperLeagueId) {
+        console.log('🏈 Buscando dados do Sleeper para liga:', league.sleeperLeagueId);
+        try {
+          sleeperRosters = await fetchSleeperStandings();
+          console.log(`✅ Dados do Sleeper carregados para ${sleeperRosters.length} rosters`);
 
-        // Buscar informações da liga do Sleeper para obter playoff_teams
-        if (league?.sleeperLeagueId) {
+          // Buscar informações da liga do Sleeper para obter playoff_teams
           const response = await fetch(
             `https://api.sleeper.app/v1/league/${league.sleeperLeagueId}`,
           );
@@ -284,28 +331,51 @@ export function useStandings(leagueId: string, league: League | null) {
             playoffTeams = sleeperLeague.settings?.playoff_teams;
             if (playoffTeams) {
               setPlayoffTeamsCount(playoffTeams);
+              console.log(`🏆 Configuração de playoffs: ${playoffTeams} times`);
             }
+          } else {
+            console.warn(
+              'Não foi possível buscar configurações da liga do Sleeper:',
+              response.status,
+            );
           }
+        } catch (sleeperErr) {
+          const errorMsg =
+            sleeperErr instanceof Error ? sleeperErr.message : 'Erro ao conectar com Sleeper';
+          console.warn('⚠️ Erro ao buscar dados do Sleeper:', errorMsg);
+          sleeperErrorMessage = errorMsg;
+          hasSleeperError = true;
         }
-      } catch (sleeperErr) {
-        console.warn('Erro ao buscar dados do Sleeper (pode estar na offseason):', sleeperErr);
-        setError(sleeperErr instanceof Error ? sleeperErr.message : 'Erro ao conectar com Sleeper');
+      } else {
+        console.warn('⚠️ Liga não possui sleeperLeagueId configurado');
+        sleeperErrorMessage = 'Liga não possui integração com Sleeper configurada';
         hasSleeperError = true;
       }
 
       // Combinar dados (mesmo se não há dados do Sleeper)
+      console.log('🔗 Combinando dados financeiros com dados do Sleeper...');
       const combinedStandings = combineStandingsData(sleeperRosters, teamFinancials, playoffTeams);
+      console.log(`✅ Classificação gerada com ${combinedStandings.length} times`);
 
       setStandings(combinedStandings);
       setLastSync(new Date());
 
-      // Se conseguiu dados mas houve erro do Sleeper, manter o erro para mostrar aviso
-      if (!hasSleeperError) {
+      // Definir erro apenas se houve problema crítico ou se não há dados do Sleeper
+      if (hasSleeperError && combinedStandings.length > 0) {
+        // Se temos dados locais mas erro do Sleeper, mostrar aviso
+        setError(`Dados do Sleeper indisponíveis: ${sleeperErrorMessage}`);
+      } else if (hasSleeperError && combinedStandings.length === 0) {
+        // Se não temos dados nenhuns, mostrar erro crítico
+        setError(`Erro crítico: ${sleeperErrorMessage}`);
+      } else {
         setError(null);
       }
+
+      console.log('✅ Classificação carregada com sucesso');
     } catch (err) {
-      console.error('Erro crítico ao carregar classificação:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      const errorMsg = err instanceof Error ? err.message : 'Erro desconhecido';
+      console.error('❌ Erro crítico ao carregar classificação:', err);
+      setError(`Erro crítico: ${errorMsg}`);
       // Não limpar standings aqui - manter dados anteriores se existirem
     } finally {
       setLoading(false);
