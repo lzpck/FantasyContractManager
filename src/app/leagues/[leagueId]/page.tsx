@@ -262,6 +262,8 @@ export default function LeagueDetailsPage() {
         return;
       }
 
+      console.log('🔄 Iniciando sincronização com Sleeper para liga:', league.name);
+
       // 1. Buscar dados atuais do roster antes da sincronização
       const rosterDataResponse = await fetch(`/api/leagues/${league.id}/roster-data`);
       const rosterData = await rosterDataResponse.json();
@@ -276,12 +278,22 @@ export default function LeagueDetailsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ leagueId: league.id }),
+        body: JSON.stringify({
+          leagueId: league.id,
+          sleeperLeagueId: league.sleeperLeagueId,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+        throw new Error(errorData.message || 'Erro na sincronização');
+      }
 
       const data = await response.json();
 
       if (data.success) {
+        console.log('✅ Sincronização concluída:', data);
+
         // 3. Detectar diferenças no roster
         try {
           const rosterDiff = await calculateRosterDiff(
@@ -311,6 +323,9 @@ export default function LeagueDetailsPage() {
           );
         }
 
+        // Aguardar um pouco para garantir que os dados foram persistidos
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         // Atualizar dados locais
         setLeague(data.league);
 
@@ -319,8 +334,12 @@ export default function LeagueDetailsPage() {
           setTradesProcessed(data.syncStats.tradesProcessed);
         }
 
+        // Recarregar dados após sincronização de forma sequencial para evitar conflitos
+        console.log('🔄 Recarregando dados após sincronização...');
+
         // Atualizar dados financeiros com os novos times
         if (data.league.teams) {
+          console.log('📊 Recalculando dados financeiros...');
           const summariesPromises = data.league.teams.map((team: Team) =>
             calculateTeamFinancials(team),
           );
@@ -328,16 +347,21 @@ export default function LeagueDetailsPage() {
           setTeamsFinancialSummary(updatedFinancialSummaries);
         }
 
+        // Aguardar mais um pouco antes de recarregar a classificação
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         // Atualizar dados de classificação
         await loadStandings();
 
+        console.log('✅ Todos os dados foram recarregados após sincronização');
         toast.success(data.message);
       } else {
         toast.error(`Erro: ${data.error}`);
       }
     } catch (error) {
-      console.error('Erro ao sincronizar com Sleeper:', error);
-      toast.error('Ocorreu um erro ao sincronizar com o Sleeper. Tente novamente mais tarde.');
+      console.error('❌ Erro ao sincronizar com Sleeper:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error(`Erro ao sincronizar com Sleeper: ${errorMessage}`);
     }
   };
 

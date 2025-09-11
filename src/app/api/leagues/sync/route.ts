@@ -662,11 +662,15 @@ export async function POST(request: NextRequest) {
     // Verificar autenticação
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
+      console.error('❌ Tentativa de acesso não autenticado ao endpoint de sincronização');
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
     // Verificar se é comissário
     if (session.user.role !== UserRole.COMMISSIONER) {
+      console.error(
+        `❌ Usuário ${session.user.id} tentou acessar sincronização sem permissão de comissário`,
+      );
       return NextResponse.json(
         { error: 'Acesso negado. Apenas comissários podem sincronizar ligas.' },
         { status: 403 },
@@ -674,11 +678,55 @@ export async function POST(request: NextRequest) {
     }
 
     // Obter dados da requisição
-    const { leagueId } = await request.json();
+    const { leagueId, sleeperLeagueId } = await request.json();
 
     if (!leagueId) {
+      console.error('❌ League ID não fornecido na requisição');
       return NextResponse.json({ error: 'ID da liga é obrigatório' }, { status: 400 });
     }
+
+    console.log(
+      `🔄 Iniciando sincronização para liga ${leagueId}${sleeperLeagueId ? ` com Sleeper ID ${sleeperLeagueId}` : ''} pelo usuário ${session.user.id}`,
+    );
+
+    // Buscar a liga no banco de dados para validação adicional
+    const existingLeague = await prisma.league.findUnique({
+      where: { id: leagueId },
+      select: {
+        id: true,
+        name: true,
+        sleeperLeagueId: true,
+        commissionerId: true,
+        teams: {
+          select: {
+            id: true,
+            name: true,
+            sleeperTeamId: true,
+          },
+        },
+      },
+    });
+
+    if (!existingLeague) {
+      console.error(`❌ Liga ${leagueId} não encontrada no banco de dados`);
+      return NextResponse.json({ error: 'Liga não encontrada' }, { status: 404 });
+    }
+
+    console.log(
+      `📊 Liga encontrada: ${existingLeague.name} (${existingLeague.teams.length} times)`,
+    );
+
+    // Verificar se a liga tem integração com Sleeper
+    const targetSleeperLeagueId = sleeperLeagueId || existingLeague.sleeperLeagueId;
+    if (!targetSleeperLeagueId) {
+      console.error(`❌ Liga ${existingLeague.name} não possui sleeperLeagueId configurado`);
+      return NextResponse.json(
+        { error: 'Liga não possui integração com Sleeper configurada' },
+        { status: 400 },
+      );
+    }
+
+    console.log(`🏈 Sincronizando com Sleeper League ID: ${targetSleeperLeagueId}`);
 
     // Sincronizar a liga com timeout
     const result = (await Promise.race([syncLeague(leagueId), timeoutPromise])) as SyncResult;
@@ -687,6 +735,15 @@ export async function POST(request: NextRequest) {
     const totalRequestTime = requestEndTime - requestStartTime;
 
     if (result.success) {
+      console.log(
+        `✅ Sincronização concluída para liga ${existingLeague.name} em ${totalRequestTime}ms:`,
+        {
+          teamsUpdated: result.details?.teamsUpdated || 0,
+          playersUpdated: result.details?.playersUpdated || 0,
+          tradesProcessed: result.tradesProcessed?.length || 0,
+        },
+      );
+
       return NextResponse.json({
         success: true,
         league: result.league,
@@ -700,6 +757,7 @@ export async function POST(request: NextRequest) {
         },
       });
     } else {
+      console.error(`❌ Falha na sincronização da liga ${existingLeague.name}:`, result.message);
       return NextResponse.json(
         {
           success: false,
@@ -719,11 +777,19 @@ export async function POST(request: NextRequest) {
     // Verificar se foi timeout
     const isTimeout = error instanceof Error && error.message.includes('Timeout');
 
+    console.error(`❌ Erro na sincronização após ${totalRequestTime}ms:`, error);
+
+    // Log mais detalhado do erro
+    if (error instanceof Error) {
+      console.error('Stack trace:', error.stack);
+    }
+
     return NextResponse.json(
       {
         error: isTimeout
           ? 'Sincronização interrompida por timeout. Tente novamente.'
           : 'Erro interno do servidor',
+        details: error instanceof Error ? error.message : 'Erro desconhecido',
         performanceStats: {
           totalTime: totalRequestTime,
           timeout: isTimeout,
