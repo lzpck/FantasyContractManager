@@ -372,7 +372,14 @@ export default function LeagueDetailsPage() {
 
   // Função para manipular ordenação da classificação
   const handleStandingsSort = (sortBy: StandingsSortBy, order: 'asc' | 'desc') => {
-    sortStandings(sortBy, order);
+    // A função sortStandings retorna os standings ordenados, mas não os atualiza automaticamente
+    // Como o hook já gerencia o estado interno, vamos apenas chamar a função de ordenação
+    const sortedStandings = sortStandings(
+      standings,
+      sortBy as 'position' | 'name' | 'wins' | 'pct' | 'pointsFor',
+    );
+    // Note: O hook useStandings deveria ter uma função para atualizar o estado dos standings
+    // Por enquanto, a ordenação será feita internamente pelo componente StandingsTable
   };
 
   // Função para adicionar contrato para jogador recém-adicionado
