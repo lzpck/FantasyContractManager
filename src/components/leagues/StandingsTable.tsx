@@ -10,7 +10,6 @@ import {
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip } from '@/components/ui/Tooltip';
 
 interface StandingsTableProps {
   /** Lista de classificação dos times */
@@ -92,22 +91,6 @@ export function StandingsTable({
       <ChevronUpIcon className="w-4 h-4 text-blue-400" />
     ) : (
       <ChevronDownIcon className="w-4 h-4 text-blue-400" />
-    );
-  };
-
-  /**
-   * Renderiza badge de zona de playoffs
-   */
-  const renderPlayoffBadge = (standing: TeamStanding) => {
-    if (!standing.isPlayoffTeam) return null;
-
-    return (
-      <Tooltip content={`Zona de Playoffs (Top ${playoffTeamsCount})`}>
-        <Badge variant="default" className="bg-green-600 text-green-100 ml-2">
-          <TrophyIcon className="w-3 h-3 mr-1" />
-          Playoffs
-        </Badge>
-      </Tooltip>
     );
   };
 
@@ -266,7 +249,7 @@ export function StandingsTable({
                   >
                     {/* Posição */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
+                      <div className="flex items-center space-x-2">
                         <span
                           className={`text-lg font-bold ${
                             standing.isPlayoffTeam ? 'text-green-400' : 'text-slate-300'
@@ -274,10 +257,14 @@ export function StandingsTable({
                         >
                           {standing.position}
                         </span>
-                        {standing.position <= 3 && (
-                          <span className="ml-2 text-yellow-400">
-                            {standing.position === 1 ? '🥇' : standing.position === 2 ? '🥈' : '🥉'}
-                          </span>
+                        {/* Indicador de bye para os dois primeiros colocados */}
+                        {standing.position <= 2 && standing.isPlayoffTeam && (
+                          <Badge
+                            variant="secondary"
+                            className="bg-yellow-900/30 text-yellow-400 text-xs px-2 py-1"
+                          >
+                            BYE
+                          </Badge>
                         )}
                       </div>
                     </td>
@@ -297,7 +284,6 @@ export function StandingsTable({
                             <div className="text-sm font-medium text-slate-100">
                               {standing.team.name}
                             </div>
-                            {renderPlayoffBadge(standing)}
                           </div>
                         </div>
                       </div>
@@ -377,8 +363,20 @@ export function StandingsTable({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col space-y-1">
                         {standing.isPlayoffTeam && (
-                          <Badge variant="default" className="bg-green-600 text-green-100 text-xs">
+                          <Badge
+                            variant="default"
+                            className="bg-green-900/30 text-green-400 text-xs"
+                          >
                             Playoffs
+                          </Badge>
+                        )}
+                        {/* Badge adicional para times com bye */}
+                        {standing.position <= 2 && standing.isPlayoffTeam && (
+                          <Badge
+                            variant="outline"
+                            className="border-yellow-500 text-yellow-400 text-xs"
+                          >
+                            1ª Semana Livre
                           </Badge>
                         )}
                         {standing.financialSummary.availableCap < 0 && (
@@ -418,8 +416,19 @@ export function StandingsTable({
               <strong>🏆 Playoffs:</strong> Top {playoffTeamsCount} times classificados
             </div>
           </div>
-          <div className="mt-2 text-xs text-slate-500">
-            <strong>Critério de desempate:</strong> 1º Vitórias, 2º Pontos Feitos
+          <div className="mt-3 space-y-2 text-xs text-slate-400">
+            <div>
+              <strong>Critério de desempate:</strong> 1º Vitórias, 2º Pontos Feitos
+            </div>
+            <div className="flex items-center space-x-2">
+              <Badge
+                variant="secondary"
+                className="bg-yellow-900/30 text-yellow-400 text-xs px-2 py-1"
+              >
+                BYE
+              </Badge>
+              <span>Os dois primeiros colocados recebem bye na primeira semana dos playoffs</span>
+            </div>
           </div>
         </div>
       </div>
