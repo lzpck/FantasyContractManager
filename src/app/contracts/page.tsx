@@ -187,7 +187,8 @@ function ContractsContent() {
 
           {/* Barra de Filtros */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
+            {/* Todos os filtros na mesma linha horizontal */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 items-end">
               {/* Busca por texto */}
               <div>
                 <label
@@ -350,7 +351,7 @@ function ContractsContent() {
                     onChange={e =>
                       setSortBy(e.target.value as 'name' | 'position' | 'salary' | 'yearsRemaining')
                     }
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    className="flex-1 min-w-0 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
                   >
                     <option
                       value="name"
@@ -379,7 +380,7 @@ function ContractsContent() {
                   </select>
                   <button
                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    className="flex-shrink-0 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
                   >
                     {sortOrder === 'asc' ? '↑' : '↓'}
                   </button>
@@ -387,8 +388,8 @@ function ContractsContent() {
               </div>
             </div>
 
-            {/* Botão para limpar filtros */}
-            <div className="mt-4 flex justify-end">
+            {/* Botão Limpar Filtros alinhado à direita */}
+            <div className="mt-6 flex justify-end">
               <button
                 onClick={() => {
                   setFilterText('');
@@ -400,7 +401,7 @@ function ContractsContent() {
                   setSortOrder('asc');
                   setCurrentPage(1);
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 Limpar Filtros
               </button>

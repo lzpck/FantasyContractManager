@@ -98,16 +98,22 @@ function Sidebar() {
         description: 'Gerenciar ligas',
       },
       {
-        name: 'Eventos',
-        href: '/events',
-        icon: '📅',
-        description: 'Eventos das ligas',
+        name: 'Contratos',
+        href: '/contracts',
+        icon: '📋',
+        description: 'Gerenciar contratos',
       },
       {
         name: 'Jogadores',
         href: '/players',
         icon: '🏃‍♂️',
         description: 'Base de jogadores',
+      },
+      {
+        name: 'Eventos',
+        href: '/events',
+        icon: '📅',
+        description: 'Eventos das ligas',
       },
       {
         name: 'Informações',
