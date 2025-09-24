@@ -6,22 +6,12 @@ import {
   InformationCircleIcon,
   EnvelopeIcon,
   ExclamationTriangleIcon,
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
+  ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
 
 // ============================================================================
 // TIPOS E INTERFACES
 // ============================================================================
-
-interface LeagueRule {
-  id: string;
-  leagueName: string;
-  title: string;
-  description: string;
-  createdAt: string;
-}
 
 interface BugReport {
   type: 'bug' | 'suggestion' | 'question';
@@ -38,31 +28,6 @@ export default function InformacoesPage() {
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<'rules' | 'contact' | 'report'>('rules');
 
-  // Estados para regras das ligas
-  const [leagueRules, setLeagueRules] = useState<LeagueRule[]>([
-    {
-      id: '1',
-      leagueName: 'Liga The Bad Place',
-      title: 'Salary Cap',
-      description: 'Teto salarial de $279.000.000 por temporada.',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      leagueName: 'Liga The Bad Place',
-      title: 'Aumentos Salariais',
-      description: 'Aumento automático de 15% a cada virada de temporada (1º de abril).',
-      createdAt: new Date().toISOString(),
-    },
-  ]);
-  const [isAddingRule, setIsAddingRule] = useState(false);
-  const [editingRule, setEditingRule] = useState<LeagueRule | null>(null);
-  const [newRule, setNewRule] = useState({
-    leagueName: '',
-    title: '',
-    description: '',
-  });
-
   // Estados para report de bugs
   const [bugReport, setBugReport] = useState<BugReport>({
     type: 'bug',
@@ -71,80 +36,6 @@ export default function InformacoesPage() {
     email: '',
   });
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
-
-  // ============================================================================
-  // FUNÇÕES PARA REGRAS DAS LIGAS
-  // ============================================================================
-
-  const handleAddRule = () => {
-    if (!newRule.leagueName.trim() || !newRule.title.trim() || !newRule.description.trim()) {
-      addToast({ message: 'Todos os campos são obrigatórios', type: 'error' });
-      return;
-    }
-
-    const rule: LeagueRule = {
-      id: Date.now().toString(),
-      leagueName: newRule.leagueName,
-      title: newRule.title,
-      description: newRule.description,
-      createdAt: new Date().toISOString(),
-    };
-
-    setLeagueRules(prev => [...prev, rule]);
-    setNewRule({ leagueName: '', title: '', description: '' });
-    setIsAddingRule(false);
-    addToast({ message: 'Regra adicionada com sucesso!', type: 'success' });
-  };
-
-  const handleEditRule = (rule: LeagueRule) => {
-    setEditingRule(rule);
-    setNewRule({
-      leagueName: rule.leagueName,
-      title: rule.title,
-      description: rule.description,
-    });
-    setIsAddingRule(true);
-  };
-
-  const handleUpdateRule = () => {
-    if (!editingRule) return;
-
-    if (!newRule.leagueName.trim() || !newRule.title.trim() || !newRule.description.trim()) {
-      addToast({ message: 'Todos os campos são obrigatórios', type: 'error' });
-      return;
-    }
-
-    setLeagueRules(prev =>
-      prev.map(rule =>
-        rule.id === editingRule.id
-          ? {
-              ...rule,
-              leagueName: newRule.leagueName,
-              title: newRule.title,
-              description: newRule.description,
-            }
-          : rule,
-      ),
-    );
-
-    setNewRule({ leagueName: '', title: '', description: '' });
-    setIsAddingRule(false);
-    setEditingRule(null);
-    addToast({ message: 'Regra atualizada com sucesso!', type: 'success' });
-  };
-
-  const handleDeleteRule = (ruleId: string) => {
-    if (confirm('Tem certeza que deseja excluir esta regra?')) {
-      setLeagueRules(prev => prev.filter(rule => rule.id !== ruleId));
-      addToast({ message: 'Regra excluída com sucesso!', type: 'success' });
-    }
-  };
-
-  const cancelEdit = () => {
-    setIsAddingRule(false);
-    setEditingRule(null);
-    setNewRule({ leagueName: '', title: '', description: '' });
-  };
 
   // ============================================================================
   // FUNÇÕES PARA REPORT DE BUGS
@@ -231,117 +122,121 @@ export default function InformacoesPage() {
           {/* Tab: Regras das Ligas */}
           {activeTab === 'rules' && (
             <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-slate-100">Regras das Ligas</h2>
-                <button
-                  onClick={() => setIsAddingRule(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                >
-                  <PlusIcon className="w-4 h-4" />
-                  Adicionar Regra
-                </button>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-slate-100 mb-2">Regras das Ligas</h2>
+                <p className="text-slate-400">Consulte as regras oficiais da liga The Bad Place</p>
               </div>
 
-              {/* Formulário de Adicionar/Editar Regra */}
-              {isAddingRule && (
-                <div className="bg-slate-800 rounded-lg p-4 mb-6">
-                  <h3 className="text-lg font-medium text-slate-100 mb-4">
-                    {editingRule ? 'Editar Regra' : 'Nova Regra'}
+              {/* Card principal com link para o documento */}
+              <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 shadow-2xl border border-slate-700 mb-6">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <InformationCircleIcon className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-100 mb-2">
+                    Regras Oficiais da Liga
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">
-                        Nome da Liga
-                      </label>
-                      <input
-                        type="text"
-                        value={newRule.leagueName}
-                        onChange={e =>
-                          setNewRule(prev => ({ ...prev, leagueName: e.target.value }))
-                        }
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ex: Liga The Bad Place"
-                      />
+                  <p className="text-slate-400">
+                    Acesse o documento completo com todas as regras da liga The Bad Place
+                  </p>
+                </div>
+
+                {/* Link para o documento */}
+                <div className="bg-slate-700/50 rounded-xl p-6 hover:bg-slate-700/70 transition-all duration-200 group">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
+                        <span className="text-2xl">📋</span>
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-slate-100 mb-1">
+                          Documento Oficial das Regras
+                        </h4>
+                        <p className="text-slate-400 text-sm">
+                          Google Docs • Atualizado regularmente
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">
-                        Título da Regra
-                      </label>
-                      <input
-                        type="text"
-                        value={newRule.title}
-                        onChange={e => setNewRule(prev => ({ ...prev, title: e.target.value }))}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ex: Salary Cap"
-                      />
-                    </div>
+                    <ArrowTopRightOnSquareIcon className="w-5 h-5 text-slate-400 group-hover:text-blue-400 transition-colors" />
                   </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Descrição
-                    </label>
-                    <textarea
-                      value={newRule.description}
-                      onChange={e => setNewRule(prev => ({ ...prev, description: e.target.value }))}
-                      rows={3}
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Descreva a regra em detalhes..."
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={editingRule ? handleUpdateRule : handleAddRule}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+
+                  <div className="mt-4">
+                    <a
+                      href="https://docs.google.com/document/d/1XyA8oRaIE6JMm5lqHLumTNXMNZD1CphN5jR1ghfM0FE/edit?usp=sharing"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
                     >
-                      {editingRule ? 'Atualizar' : 'Adicionar'}
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors"
-                    >
-                      Cancelar
-                    </button>
+                      <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                      Acessar Regras Completas
+                    </a>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Lista de Regras */}
-              <div className="space-y-4">
-                {leagueRules.length === 0 ? (
-                  <div className="text-center py-8 text-slate-400">
-                    <InformationCircleIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Nenhuma regra cadastrada ainda.</p>
-                  </div>
-                ) : (
-                  leagueRules.map(rule => (
-                    <div key={rule.id} className="bg-slate-800 rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 className="text-lg font-medium text-slate-100">{rule.title}</h3>
-                          <p className="text-sm text-blue-400">{rule.leagueName}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditRule(rule)}
-                            className="text-slate-400 hover:text-blue-400 transition-colors"
-                          >
-                            <PencilIcon className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRule(rule.id)}
-                            className="text-slate-400 hover:text-red-400 transition-colors"
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <p className="text-slate-300">{rule.description}</p>
-                      <p className="text-xs text-slate-500 mt-2">
-                        Criado em {new Date(rule.createdAt).toLocaleDateString('pt-BR')}
-                      </p>
+              {/* Resumo das principais regras */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Contratos */}
+                <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                      <span className="text-xl">📝</span>
                     </div>
-                  ))
-                )}
+                    <h4 className="text-lg font-semibold text-slate-100">Contratos</h4>
+                  </div>
+                  <ul className="text-sm text-slate-300 space-y-2">
+                    <li>• Contratos de 1 a 4 anos</li>
+                    <li>• Aumento de 15% por temporada</li>
+                    <li>• Extensões no último ano</li>
+                    <li>• Franchise Tag disponível</li>
+                  </ul>
+                </div>
+
+                {/* Salary Cap */}
+                <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                      <span className="text-xl">💰</span>
+                    </div>
+                    <h4 className="text-lg font-semibold text-slate-100">Salary Cap</h4>
+                  </div>
+                  <ul className="text-sm text-slate-300 space-y-2">
+                    <li>• Teto de $279.000.000</li>
+                    <li>• Dead money por cortes</li>
+                    <li>• Gestão financeira estratégica</li>
+                    <li>• Penalidades por excesso</li>
+                  </ul>
+                </div>
+
+                {/* Draft & Waivers */}
+                <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                      <span className="text-xl">🎯</span>
+                    </div>
+                    <h4 className="text-lg font-semibold text-slate-100">Draft & Waivers</h4>
+                  </div>
+                  <ul className="text-sm text-slate-300 space-y-2">
+                    <li>• Rookie Draft de 3 rodadas</li>
+                    <li>• FAAB para free agents</li>
+                    <li>• Contratos automáticos</li>
+                    <li>• Opção de 4º ano para 1ª rodada</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Aviso importante */}
+              <div className="mt-6 p-4 bg-amber-900/20 border border-amber-700 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <ExclamationTriangleIcon className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-amber-200 font-medium mb-1">Importante</h4>
+                    <p className="text-amber-200/80 text-sm">
+                      As regras podem ser atualizadas durante a temporada. Sempre consulte o
+                      documento oficial para ter as informações mais recentes.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
