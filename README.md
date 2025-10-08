@@ -473,17 +473,47 @@ docker run -p 3000:3000 fantasy-contract-manager
 
 ### **⚙️ Variáveis de Ambiente**
 
+> ⚠️ **IMPORTANTE**: Nunca commite credenciais reais no repositório!
+
+1. **Copie o arquivo de exemplo:**
+
+```bash
+cp .env.example .env.local  # Para desenvolvimento
+# ou
+cp .env.example .env        # Para produção
+```
+
+2. **Configure as variáveis necessárias:**
+
 ```env
 # Banco de Dados
+# Para desenvolvimento local (SQLite)
 DATABASE_URL="file:./dev.db"
 
-# NextAuth
-NEXTAUTH_SECRET="seu-secret-aqui"
+# Para produção (PostgreSQL) - SUBSTITUA pelos valores reais
+# DATABASE_URL="postgresql://usuario:senha@host:porta/fantasy_contract_manager?sslmode=require&channel_binding=require"
+
+# NextAuth.js
 NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-here-SUBSTITUA-POR-VALOR-SEGURO"
 
 # Sleeper API
 SLEEPER_API_URL="https://api.sleeper.app/v1"
+
+# Ambiente
+NODE_ENV="development"
 ```
+
+3. **Gere um secret seguro para NextAuth:**
+
+```bash
+# Use um dos comandos abaixo para gerar um secret seguro
+openssl rand -base64 32
+# ou
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+> 📖 **Mais detalhes**: Consulte o arquivo <mcfile name=".env.example" path=".env.example"></mcfile> para todas as opções disponíveis.
 
 ## 🗺️ Roadmap
 

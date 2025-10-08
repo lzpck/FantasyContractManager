@@ -31,28 +31,32 @@ Este guia fornece instruções completas para aplicar as migrations do sistema d
 
 ```powershell
 # 1. Definir variável de ambiente
-$env:DATABASE_URL = "postgresql://neondb_owner:npg_ZjAw8GoclDS5@ep-old-violet-acwdosej-pooler.sa-east-1.aws.neon.tech/fantasy_contract_manager?sslmode=require&channel_binding=require"
+$env:DATABASE_URL = "postgresql://usuario:senha@host:porta/database?sslmode=require&channel_binding=require"
 
 # 2. Executar script
 .\scripts\deploy-production-migrations.ps1
 ```
 
+> ⚠️ **IMPORTANTE**: Substitua `usuario`, `senha`, `host`, `porta` e `database` pelos valores reais do seu ambiente de produção.
+
 #### Para Linux/Mac (Bash):
 
 ```bash
 # 1. Definir variável de ambiente
-export DATABASE_URL="postgresql://neondb_owner:npg_ZjAw8GoclDS5@ep-old-violet-acwdosej-pooler.sa-east-1.aws.neon.tech/fantasy_contract_manager?sslmode=require&channel_binding=require"
+export DATABASE_URL="postgresql://usuario:senha@host:porta/database?sslmode=require&channel_binding=require"
 
 # 2. Dar permissão e executar
 chmod +x scripts/deploy-production-migrations.sh
 ./scripts/deploy-production-migrations.sh
 ```
 
+> ⚠️ **IMPORTANTE**: Substitua `usuario`, `senha`, `host`, `porta` e `database` pelos valores reais do seu ambiente de produção.
+
 ### Opção 2: Comandos Manuais
 
 ```bash
 # 1. Definir variável de ambiente
-export DATABASE_URL="postgresql://neondb_owner:npg_ZjAw8GoclDS5@ep-old-violet-acwdosej-pooler.sa-east-1.aws.neon.tech/fantasy_contract_manager?sslmode=require&channel_binding=require"
+export DATABASE_URL="postgresql://usuario:senha@host:porta/database?sslmode=require&channel_binding=require"
 
 # 2. Verificar status atual
 npx prisma migrate status
@@ -66,6 +70,8 @@ npx prisma generate
 # 5. Verificar resultado
 npx prisma migrate status
 ```
+
+> ⚠️ **IMPORTANTE**: Substitua `usuario`, `senha`, `host`, `porta` e `database` pelos valores reais do seu ambiente de produção.
 
 ---
 
