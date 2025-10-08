@@ -33,7 +33,10 @@ log_error() {
 if [ -z "$DATABASE_URL" ]; then
     log_error "DATABASE_URL não está definida!"
     echo "Por favor, defina a variável de ambiente DATABASE_URL:"
-    echo "export DATABASE_URL='postgresql://neondb_owner:npg_ZjAw8GoclDS5@ep-old-violet-acwdosej-pooler.sa-east-1.aws.neon.tech/fantasy_contract_manager?sslmode=require&channel_binding=require'"
+    echo "export DATABASE_URL='postgresql://usuario:senha@host:porta/database?sslmode=require&channel_binding=require'"
+    echo ""
+    echo "⚠️  IMPORTANTE: Substitua 'usuario', 'senha', 'host', 'porta' e 'database' pelos valores reais."
+    echo "⚠️  NUNCA commite credenciais reais no repositório!"
     exit 1
 fi
 

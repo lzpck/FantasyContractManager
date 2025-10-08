@@ -33,7 +33,10 @@ function Write-Log {
 if (-not $env:DATABASE_URL) {
     Write-Log "DATABASE_URL não está definida!" "Error"
     Write-Host "Por favor, defina a variável de ambiente DATABASE_URL:"
-    Write-Host '$env:DATABASE_URL = "postgresql://neondb_owner:npg_ZjAw8GoclDS5@ep-old-violet-acwdosej-pooler.sa-east-1.aws.neon.tech/fantasy_contract_manager?sslmode=require&channel_binding=require"'
+    Write-Host '$env:DATABASE_URL = "postgresql://usuario:senha@host:porta/database?sslmode=require&channel_binding=require"'
+    Write-Host ""
+    Write-Host "⚠️  IMPORTANTE: Substitua 'usuario', 'senha', 'host', 'porta' e 'database' pelos valores reais." -ForegroundColor Yellow
+    Write-Host "⚠️  NUNCA commite credenciais reais no repositório!" -ForegroundColor Yellow
     exit 1
 }
 
