@@ -201,8 +201,9 @@ export function PlayerContractsManager({
     return total + (p.contract?.currentSalary || 0);
   }, 0);
 
-  const availableCap = league.salaryCap - totalSalaries;
-  const capUsagePercentage = (totalSalaries / league.salaryCap) * 100;
+  const deadMoney = team.currentDeadMoney || 0;
+  const availableCap = league.salaryCap - totalSalaries - deadMoney;
+  const capUsagePercentage = ((totalSalaries + deadMoney) / league.salaryCap) * 100;
 
   // Escutar atualizações de contratos
   useEffect(() => {
@@ -250,7 +251,7 @@ export function PlayerContractsManager({
             <div className="bg-slate-700 rounded-lg p-4">
               <div className="text-sm text-slate-400">Cap Utilizado</div>
               <div className="text-lg font-bold text-slate-100">
-                {formatCurrency(totalSalaries)}
+                {formatCurrency(totalSalaries + deadMoney)}
               </div>
               <div className="text-xs text-slate-400">{capUsagePercentage.toFixed(1)}% do cap</div>
             </div>

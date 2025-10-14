@@ -24,9 +24,9 @@ interface TeamsTableProps {
  * são calculados baseados nos contratos reais dos jogadores.
  */
 export default function TeamsTable({ teams, onTeamClick, league }: TeamsTableProps) {
-  // Função para calcular percentual do cap usado
-  const getCapUsagePercentage = (totalSalaries: number) => {
-    return ((totalSalaries / league.salaryCap) * 100).toFixed(1);
+  // Função para calcular percentual do cap usado (inclui dead money)
+  const getCapUsagePercentage = (totalSalaries: number, currentDeadMoney: number) => {
+    return (((totalSalaries + (currentDeadMoney || 0)) / league.salaryCap) * 100).toFixed(1);
   };
 
   // Função para obter cor baseada no percentual do cap usado
@@ -80,7 +80,9 @@ export default function TeamsTable({ teams, onTeamClick, league }: TeamsTablePro
         </thead>
         <tbody className="bg-slate-800 divide-y divide-slate-600">
           {teams.map(teamSummary => {
-            const capUsagePercentage = parseFloat(getCapUsagePercentage(teamSummary.totalSalaries));
+            const capUsagePercentage = parseFloat(
+              getCapUsagePercentage(teamSummary.totalSalaries, teamSummary.currentDeadMoney),
+            );
 
             return (
               <tr
@@ -114,10 +116,12 @@ export default function TeamsTable({ teams, onTeamClick, league }: TeamsTablePro
                   </div>
                 </td>
 
-                {/* Salary Cap Usado */}
+                {/* Salary Cap Usado (inclui dead money) */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-slate-100">
-                    {formatCurrency(teamSummary.totalSalaries)}
+                    {formatCurrency(
+                      teamSummary.totalSalaries + (teamSummary.currentDeadMoney || 0),
+                    )}
                   </div>
                   <div className={`text-sm ${getCapUsageColor(capUsagePercentage)}`}>
                     {capUsagePercentage}% do cap
@@ -189,7 +193,10 @@ export default function TeamsTable({ teams, onTeamClick, league }: TeamsTablePro
             <span>
               Cap médio usado:{' '}
               {formatCurrency(
-                teams.reduce((acc, team) => acc + team.totalSalaries, 0) / teams.length,
+                teams.reduce(
+                  (acc, team) => acc + team.totalSalaries + (team.currentDeadMoney || 0),
+                  0,
+                ) / teams.length,
               )}
             </span>
             <span>

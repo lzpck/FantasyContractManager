@@ -65,11 +65,13 @@ export function useSalaryCap() {
       );
 
       const totalCap = league?.salaryCap || 279000000; // Default $279M
-      const usedCap = teamContracts.reduce(
+      const contractsUsedCap = teamContracts.reduce(
         (sum: number, contract: ContractWithPlayer) => sum + contract.currentSalary,
         0,
       );
-      const availableCap = totalCap - usedCap - team.currentDeadMoney;
+      const deadMoney = team.currentDeadMoney || 0;
+      const usedCap = contractsUsedCap + deadMoney;
+      const availableCap = totalCap - usedCap;
       const usedPercentage = (usedCap / totalCap) * 100;
       const expiringContracts = teamContracts.filter(
         (c: ContractWithPlayer) => c.yearsRemaining === 1,
