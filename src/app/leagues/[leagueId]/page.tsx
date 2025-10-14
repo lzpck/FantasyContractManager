@@ -84,15 +84,21 @@ export default function LeagueDetailsPage() {
         const contractsData = await contractsResponse.json();
         contracts = contractsData.contracts || [];
 
+        // Considerar APENAS contratos ativos para cálculo financeiro
+        const activeContracts = contracts.filter((contract: any) => contract.status === 'ACTIVE');
+
         // Calcular total de salários dos contratos ativos
-        totalSalaries = contracts.reduce((sum: number, contract: any) => {
+        totalSalaries = activeContracts.reduce((sum: number, contract: any) => {
           return sum + (contract.currentSalary || 0);
         }, 0);
 
-        // Contar contratos expirando (1 ano restante)
-        contractsExpiring = contracts.filter(
+        // Contar contratos expirando (1 ano restante) somente entre ativos
+        contractsExpiring = activeContracts.filter(
           (contract: any) => contract.yearsRemaining === 1,
         ).length;
+
+        // Substituir lista por contratos ativos para consistência
+        contracts = activeContracts;
       }
 
       // Buscar registros de dead money detalhados da API

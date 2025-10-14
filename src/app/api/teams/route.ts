@@ -67,12 +67,14 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Calcular dados de salary cap para cada time
+    // Calcular dados de salary cap para cada time (incluindo dead money)
     const teamsWithSalaryCap = teams.map(team => {
-      const totalUsedCap = team.contracts.reduce((sum, contract) => {
+      const contractsUsedCap = team.contracts.reduce((sum, contract) => {
         return sum + contract.currentSalary;
       }, 0);
 
+      const deadMoney = team.currentDeadMoney || 0;
+      const totalUsedCap = contractsUsedCap + deadMoney;
       const availableCap = team.league.salaryCap - totalUsedCap;
       const usedPercentage = (totalUsedCap / team.league.salaryCap) * 100;
 
@@ -86,7 +88,7 @@ export async function GET() {
         leagueId: team.leagueId,
         ownerId: team.ownerId,
         currentSalaryCap: team.league.salaryCap,
-        currentDeadMoney: team.currentDeadMoney || 0,
+        currentDeadMoney: deadMoney,
         usedCap: totalUsedCap,
         availableCap,
         usedPercentage,
