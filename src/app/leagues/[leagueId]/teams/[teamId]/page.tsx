@@ -109,31 +109,56 @@ export default function TeamDetailsPage() {
           };
         });
 
-        // Adicionar também jogadores com contratos que não estão no roster atual
-        // (jogadores que foram cortados mas ainda têm dead money)
-        const playersNotInRoster = contractsData.contracts.filter(
-          (c: any) =>
-            !rosterPlayers.some((p: any) => p.sleeperPlayerId === c.player.sleeperPlayerId),
-        );
+        // Adicionar também jogadores com contratos cortados que ainda têm dead money
+        // Isso inclui jogadores que foram cortados e readicionados
+        const cutContracts = contractsData.contracts.filter((c: any) => c.status === 'CUT');
 
-        playersNotInRoster.forEach((contract: any) => {
-          playersWithContractsData.push({
-            player: {
-              id: contract.player.id,
-              sleeperPlayerId: contract.player.sleeperPlayerId,
-              name: contract.player.name,
-              position: contract.player.position,
-              fantasyPositions: contract.player.fantasyPositions
-                ? contract.player.fantasyPositions.split(',')
-                : [contract.player.position],
-              nflTeam: contract.player.nflTeam || 'FA',
-              isActive: contract.player.isActive,
-              createdAt: contract.player.createdAt,
-              updatedAt: contract.player.updatedAt,
-            },
-            contract: contract,
-            rosterStatus: 'cut' as PlayerRosterStatus, // Jogador foi cortado
-          });
+        cutContracts.forEach((contract: any) => {
+          // Verifica se o jogador já foi adicionado (pode estar no roster atual)
+          const existingPlayerIndex = playersWithContractsData.findIndex(
+            (p: any) => p.player.sleeperPlayerId === contract.player.sleeperPlayerId,
+          );
+
+          if (existingPlayerIndex >= 0) {
+            // Jogador já existe na lista (está no roster atual)
+            // Adiciona uma entrada separada para o contrato cortado
+            playersWithContractsData.push({
+              player: {
+                id: contract.player.id,
+                sleeperPlayerId: contract.player.sleeperPlayerId,
+                name: contract.player.name,
+                position: contract.player.position,
+                fantasyPositions: contract.player.fantasyPositions
+                  ? contract.player.fantasyPositions.split(',')
+                  : [contract.player.position],
+                nflTeam: contract.player.nflTeam || 'FA',
+                isActive: contract.player.isActive,
+                createdAt: contract.player.createdAt,
+                updatedAt: contract.player.updatedAt,
+              },
+              contract: contract,
+              rosterStatus: 'cut' as PlayerRosterStatus, // Contrato cortado
+            });
+          } else {
+            // Jogador não está no roster atual, adiciona normalmente
+            playersWithContractsData.push({
+              player: {
+                id: contract.player.id,
+                sleeperPlayerId: contract.player.sleeperPlayerId,
+                name: contract.player.name,
+                position: contract.player.position,
+                fantasyPositions: contract.player.fantasyPositions
+                  ? contract.player.fantasyPositions.split(',')
+                  : [contract.player.position],
+                nflTeam: contract.player.nflTeam || 'FA',
+                isActive: contract.player.isActive,
+                createdAt: contract.player.createdAt,
+                updatedAt: contract.player.updatedAt,
+              },
+              contract: contract,
+              rosterStatus: 'cut' as PlayerRosterStatus, // Jogador foi cortado
+            });
+          }
         });
 
         setPlayersWithContracts(playersWithContractsData);
@@ -291,6 +316,7 @@ export default function TeamDetailsPage() {
             onPlayerAction={handlePlayerAction}
             league={league}
             isCommissioner={isCommissioner}
+            deadMoneyRecords={deadMoneyRecords}
           />
         </div>
       </div>
