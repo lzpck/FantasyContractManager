@@ -4,14 +4,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuth } from '@/hooks/useAuth';
-import { useLeagues } from '@/hooks/useLeagues';
+import { useCurrentLeague } from '@/hooks/useCurrentLeague';
 // Removido useUserTeams - dashboard deve mostrar dados agregados da liga, não do usuário
 import { useContracts } from '@/hooks/useContracts';
 import { useSalaryCap } from '@/hooks/useSalaryCap';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 import { SummaryCard } from '@/components/dashboard/SummaryCard';
-import { LeagueSelector } from '@/components/dashboard/LeagueSelector';
 import { TopSalaries } from '@/components/dashboard/TopSalaries';
 import { TopSalariesByPosition } from '@/components/dashboard/TopSalariesByPosition';
 import { FranchiseTagValues } from '@/components/dashboard/FranchiseTagValues';
@@ -47,7 +46,12 @@ function DashboardContent() {
   const router = useRouter();
   const { state, setUser } = useAppContext();
   const { user: authUser, isAuthenticated, isCommissioner } = useAuth();
-  const { leagues, loading: leaguesLoading, error: leaguesError, hasLeagues } = useLeagues();
+  const {
+    league: currentLeague,
+    loading: leaguesLoading,
+    error: leaguesError,
+    isConfigured,
+  } = useCurrentLeague();
   // Removido useUserTeams - dashboard mostra dados agregados da liga
   const { contracts, loading: contractsLoading } = useContracts();
   const { salaryCapData, loading: salaryCapLoading } = useSalaryCap();
@@ -56,10 +60,10 @@ function DashboardContent() {
 
   // Selecionar automaticamente a primeira liga disponível
   useEffect(() => {
-    if (leagues.length > 0 && !selectedLeague && !leaguesLoading) {
-      setSelectedLeague(leagues[0]);
+    if (currentLeague && !selectedLeague && !leaguesLoading) {
+      setSelectedLeague(currentLeague);
     }
-  }, [leagues, selectedLeague, leaguesLoading]);
+  }, [currentLeague, selectedLeague, leaguesLoading]);
 
   // Dados para os novos componentes analytics (estrutura preparada para integração futura)
   const [topSalariesData, setTopSalariesData] = useState<any[]>([]);
@@ -106,7 +110,7 @@ function DashboardContent() {
 
   // Dashboard mostra dados agregados de qualquer liga selecionada
   // Não filtra por usuário específico - todos podem ver analytics de qualquer liga
-  const availableLeagues = leagues;
+  const availableLeagues = currentLeague ? [currentLeague] : [];
 
   // Handler para seleção de liga
   const handleLeagueSelect = useCallback((league: any) => {
@@ -247,19 +251,19 @@ function DashboardContent() {
   }
 
   // Mensagem para usuários sem dados
-  if (!hasLeagues) {
+  if (!isConfigured) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center max-w-md">
           <h2 className="text-2xl font-bold text-foreground mb-4">Nenhuma liga encontrada</h2>
           <p className="text-slate-400 mb-6">
-            Você ainda não possui ligas cadastradas. Importe uma liga do Sleeper para começar!
+            Nenhuma liga configurada. Configure sua liga para começar.
           </p>
           <button
             onClick={() => router.push('/leagues')}
             className="bg-slate-700 text-slate-100 px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors border border-slate-600"
           >
-            Importar Liga
+            Configurar Liga
           </button>
         </div>
       </div>
@@ -341,19 +345,11 @@ function DashboardContent() {
             </p>
           </div>
 
-          {/* Seletor de Liga */}
-          <LeagueSelector
-            leagues={availableLeagues}
-            selectedLeague={selectedLeague}
-            onLeagueSelect={handleLeagueSelect}
-            loading={leaguesLoading}
-          />
-
           {/* Cards de resumo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <SummaryCard
-              title="Total de Ligas"
-              value={totalLeagues.toString()}
+              title="Liga em Andamento"
+              value={selectedLeague ? selectedLeague.name : '—'}
               subtitle={
                 nflState ? `Temporada ${nflState.season} - Semana ${nflState.week}` : undefined
               }

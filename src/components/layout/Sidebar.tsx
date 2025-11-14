@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserTeams } from '@/hooks/useUserTeams';
+import { useCurrentLeague } from '@/hooks/useCurrentLeague';
 import { useSidebar } from '@/contexts/SidebarContext';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 
@@ -30,6 +31,7 @@ function Sidebar() {
   const pathname = usePathname();
   const { isCommissioner, isAuthenticated, user, isLoading: authLoading } = useAuth();
   const { teams, loading: teamsLoading, error: teamsError, refetch } = useUserTeams();
+  const { league: currentLeague } = useCurrentLeague();
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Controle de hidratação para evitar problemas de SSR
@@ -57,16 +59,8 @@ function Sidebar() {
       },
     ];
 
-    // Se ainda está carregando dados do usuário, mostra placeholder para "Meu Time"
-    if (isLoading && isAuthenticated) {
-      baseItems.push({
-        name: 'Meu Time',
-        href: '#',
-        icon: '⭐',
-        description: 'Carregando...',
-        isLoading: true,
-      });
-    } else if (userTeam) {
+    // Prioriza exibir o link do time do usuário quando disponível
+    if (userTeam) {
       // Atalho "Meu Time" - aparece apenas se o usuário tiver um time associado
       baseItems.push({
         name: 'Meu Time',
@@ -87,16 +81,26 @@ function Sidebar() {
           refetch(); // Função para tentar recarregar os dados
         },
       });
+    } else if (isAuthenticated && (isLoading || !!user?.teamId)) {
+      // Garante que "Meu Time" permaneça visível mesmo durante transições de rota/hidratação
+      baseItems.push({
+        name: 'Meu Time',
+        href: '#',
+        icon: '⭐',
+        description: 'Carregando...',
+        isLoading: true,
+      });
     }
 
     // Adiciona os demais itens
+    baseItems.push({
+      name: 'Liga',
+      href: currentLeague ? `/leagues/${currentLeague.id}` : '/leagues',
+      icon: '🏆',
+      description: currentLeague ? currentLeague.name : 'Configurar liga',
+    });
+
     baseItems.push(
-      {
-        name: 'Ligas',
-        href: '/leagues',
-        icon: '🏆',
-        description: 'Gerenciar ligas',
-      },
       {
         name: 'Contratos',
         href: '/contracts',
@@ -123,23 +127,39 @@ function Sidebar() {
       },
     );
 
+    if (currentLeague && isCommissioner) {
+      baseItems.push({
+        name: 'Configurações',
+        href: `/leagues/${currentLeague.id}/settings`,
+        icon: '⚙️',
+        description: 'Configurações da Liga',
+      });
+    }
+
     return baseItems;
-  }, [isAuthenticated, user, teams, isLoading, teamsError, refetch, userTeam]);
+  }, [
+    isAuthenticated,
+    user,
+    teams,
+    isLoading,
+    teamsError,
+    refetch,
+    userTeam,
+    currentLeague,
+    isCommissioner,
+  ]);
 
   const navigationItems = useMemo(() => getNavigationItems(), [getNavigationItems]);
 
   // Verificar se o item está ativo (memoizada)
   const isActiveItem = useCallback(
     (href: string) => {
-      // Para evitar que '/leagues' seja ativo quando estamos em '/leagues/123/teams/456'
-      // verificamos se é uma correspondência exata ou se o pathname começa com href + '/'
-      // mas não é um subpath mais específico
       if (pathname === href) {
         return true;
       }
 
-      // Para rotas como '/leagues', só considera ativo se for exatamente '/leagues'
-      // ou '/leagues/' seguido de algo que não seja um ID específico de liga
+      // Item "Liga" com href '/leagues' deve ficar ativo apenas
+      // na lista de ligas ou na página de liga raiz '/leagues/:id'
       if (href === '/leagues') {
         return (
           pathname === '/leagues' ||
@@ -147,7 +167,12 @@ function Sidebar() {
         );
       }
 
-      // Para outras rotas, mantém a lógica original
+      // Item "Liga" com href '/leagues/:id' NÃO deve ficar ativo
+      // em subpáginas como '/leagues/:id/teams/...'
+      if (/^\/leagues\/[^/]+$/.test(href)) {
+        return false;
+      }
+
       return pathname.startsWith(href + '/');
     },
     [pathname],

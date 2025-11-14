@@ -1,14 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowLeftIcon,
+  Cog6ToothIcon,
+  CurrencyDollarIcon,
+  CalendarDaysIcon,
+  TagIcon,
+  IdentificationIcon,
+} from '@heroicons/react/24/outline';
 import { useLeagues } from '@/hooks/useLeagues';
 import { useDeadMoneyConfig } from '@/hooks/useDeadMoneyConfig';
 import { DeadMoneyConfigForm } from '@/components/leagues/DeadMoneyConfigForm';
 import { SeasonTurnoverManager } from '@/components/leagues/SeasonTurnoverManager';
 import { useToast } from '@/components/ui/Toast';
 import { DeadMoneyConfig } from '@/types';
+import { z } from 'zod';
 
 /**
  * Página de configurações avançadas da liga
@@ -27,8 +35,83 @@ export default function LeagueSettingsPage() {
     'dead-money',
   );
 
+  const [formData, setFormData] = useState({
+    sleeperLeagueId: '',
+    salaryCap: 0,
+    maxFranchiseTags: 0,
+    annualIncreasePercentage: 0,
+    minimumSalary: 0,
+    seasonTurnoverDate: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   // Encontrar a liga atual
   const league = leagues.find(l => l.id === leagueId);
+
+  const validationSchema = useMemo(
+    () =>
+      z.object({
+        salaryCap: z.coerce.number().min(1, 'O Salary Cap deve ser positivo.'),
+        maxFranchiseTags: z.coerce
+          .number()
+          .min(0, 'Máximo de Franchise Tags deve ser não negativo.'),
+        minimumSalary: z.coerce.number().min(0, 'Salário mínimo deve ser não negativo.'),
+        annualIncreasePercentage: z.coerce.number().min(0, 'Aumento anual deve ser não negativo.'),
+        seasonTurnoverDate: z
+          .string()
+          .regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/, 'Data no formato MM-DD (ex: 04-01)'),
+        sleeperLeagueId: z.string().optional(),
+      }),
+    [],
+  );
+
+  const initialValues = useMemo(() => {
+    if (!league) return formData;
+    return {
+      sleeperLeagueId: league.sleeperLeagueId || '',
+      salaryCap: league.salaryCap || 0,
+      maxFranchiseTags: league.maxFranchiseTags || 0,
+      annualIncreasePercentage: league.annualIncreasePercentage || 0,
+      minimumSalary: league.minimumSalary || 0,
+      seasonTurnoverDate: league.seasonTurnoverDate || '',
+    };
+  }, [league]);
+
+  useEffect(() => {
+    setFormData(initialValues);
+    setErrors({});
+  }, [initialValues]);
+
+  const isDirty = useMemo(() => {
+    return (
+      formData.sleeperLeagueId !== initialValues.sleeperLeagueId ||
+      formData.salaryCap !== initialValues.salaryCap ||
+      formData.maxFranchiseTags !== initialValues.maxFranchiseTags ||
+      formData.annualIncreasePercentage !== initialValues.annualIncreasePercentage ||
+      formData.minimumSalary !== initialValues.minimumSalary ||
+      formData.seasonTurnoverDate !== initialValues.seasonTurnoverDate
+    );
+  }, [formData, initialValues]);
+
+  const validateField = (key: keyof typeof formData, value: any) => {
+    const candidate = { ...formData, [key]: value };
+    try {
+      validationSchema.parse(candidate);
+      setErrors(prev => ({ ...prev, [key]: '' }));
+      return true;
+    } catch (e: any) {
+      if (e instanceof z.ZodError) {
+        const fieldErr = e.errors.find(err => String(err.path[0]) === key);
+        setErrors(prev => ({ ...prev, [key]: fieldErr?.message || '' }));
+      }
+      return false;
+    }
+  };
+
+  const updateField = (key: keyof typeof formData, value: any) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+    validateField(key, value);
+  };
 
   // Lidar com atualização da configuração de dead money
   const handleDeadMoneyConfigChange = async (newConfig: DeadMoneyConfig) => {
@@ -128,7 +211,6 @@ export default function LeagueSettingsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Aviso de permissão */}
         {!canEdit && (
           <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-4 mb-6">
             <div className="flex items-center space-x-2">
@@ -142,10 +224,8 @@ export default function LeagueSettingsPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-yellow-200">Acesso Limitado</h3>
-                <p className="text-sm text-yellow-100">
-                  Apenas o comissário da liga pode alterar essas configurações.
-                </p>
+                <h3 className="text-sm font-medium text-yellow-200">Somente leitura</h3>
+                <p className="text-sm text-yellow-100">Você não pode editar essas configurações.</p>
               </div>
             </div>
           </div>
@@ -230,8 +310,12 @@ export default function LeagueSettingsPage() {
         )}
 
         {activeTab === 'general' && (
-          <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
-            <h3 className="text-lg font-semibold text-slate-100 mb-4">Configurações Gerais</h3>
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-6 space-y-6">
+            <div className="flex items-center gap-2">
+              <Cog6ToothIcon className="h-5 w-5 text-slate-400" />
+              <h3 className="text-lg font-semibold text-slate-100">Configurações Gerais</h3>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -240,53 +324,210 @@ export default function LeagueSettingsPage() {
                 <div className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-300">
                   {league.name}
                 </div>
+                <p className="mt-1 text-xs text-slate-400">Nome importado do Sleeper</p>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Salary Cap</label>
-                <div className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-300">
-                  ${league.salaryCap.toLocaleString()}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Máximo de Franchise Tags
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-2">
+                  <IdentificationIcon className="h-4 w-4 text-slate-400" />
+                  ID da Liga (Sleeper)
                 </label>
-                <div className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-300">
-                  {league.maxFranchiseTags}
-                </div>
+                <input
+                  type="text"
+                  value={formData.sleeperLeagueId || ''}
+                  onChange={e => updateField('sleeperLeagueId', e.target.value)}
+                  disabled={!canEdit || isSaving}
+                  className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.sleeperLeagueId ? 'border-red-500' : 'border-slate-600'
+                  }`}
+                  placeholder="Ex: 123456789012345678"
+                />
+                {errors.sleeperLeagueId && (
+                  <p className="mt-1 text-sm text-red-400">{errors.sleeperLeagueId}</p>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Aumento Anual (%)
-                </label>
-                <div className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-300">
-                  {league.annualIncreasePercentage}%
-                </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <CurrencyDollarIcon className="h-5 w-5 text-slate-400" />
+                <h4 className="text-sm font-medium text-slate-200">Financeiro</h4>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Salário Mínimo
-                </label>
-                <div className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-300">
-                  ${league.minimumSalary.toLocaleString()}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Salary Cap
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.salaryCap}
+                    onChange={e => updateField('salaryCap', parseInt(e.target.value) || 0)}
+                    disabled={!canEdit || isSaving}
+                    className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.salaryCap ? 'border-red-500' : 'border-slate-600'
+                    }`}
+                    min={1}
+                  />
+                  {errors.salaryCap && (
+                    <p className="mt-1 text-sm text-red-400">{errors.salaryCap}</p>
+                  )}
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Data de Virada de Temporada
-                </label>
-                <div className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-300">
-                  {league.seasonTurnoverDate}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Salário Mínimo
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.minimumSalary}
+                    onChange={e => updateField('minimumSalary', parseInt(e.target.value) || 0)}
+                    disabled={!canEdit || isSaving}
+                    className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.minimumSalary ? 'border-red-500' : 'border-slate-600'
+                    }`}
+                    min={0}
+                  />
+                  {errors.minimumSalary && (
+                    <p className="mt-1 text-sm text-red-400">{errors.minimumSalary}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Aumento Anual (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.annualIncreasePercentage}
+                    onChange={e =>
+                      updateField('annualIncreasePercentage', parseFloat(e.target.value) || 0)
+                    }
+                    disabled={!canEdit || isSaving}
+                    className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.annualIncreasePercentage ? 'border-red-500' : 'border-slate-600'
+                    }`}
+                    min={0}
+                    step={0.1}
+                  />
+                  {errors.annualIncreasePercentage && (
+                    <p className="mt-1 text-sm text-red-400">{errors.annualIncreasePercentage}</p>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700/30 rounded-lg">
-              <h4 className="text-sm font-medium text-blue-200 mb-2">📝 Nota</h4>
-              <p className="text-sm text-blue-100">
-                Para alterar as configurações gerais da liga, use o modal de edição na página
-                principal das ligas.
-              </p>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <TagIcon className="h-5 w-5 text-slate-400" />
+                <h4 className="text-sm font-medium text-slate-200">Regras</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Máximo de Franchise Tags
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.maxFranchiseTags}
+                    onChange={e => updateField('maxFranchiseTags', parseInt(e.target.value) || 0)}
+                    disabled={!canEdit || isSaving}
+                    className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.maxFranchiseTags ? 'border-red-500' : 'border-slate-600'
+                    }`}
+                    min={0}
+                  />
+                  {errors.maxFranchiseTags && (
+                    <p className="mt-1 text-sm text-red-400">{errors.maxFranchiseTags}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-300 mb-2">
+                    <CalendarDaysIcon className="h-4 w-4 text-slate-400" />
+                    Data de Virada de Temporada
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.seasonTurnoverDate}
+                    onChange={e => updateField('seasonTurnoverDate', e.target.value)}
+                    disabled={!canEdit || isSaving}
+                    className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.seasonTurnoverDate ? 'border-red-500' : 'border-slate-600'
+                    }`}
+                    placeholder="MM-DD"
+                  />
+                  {errors.seasonTurnoverDate && (
+                    <p className="mt-1 text-sm text-red-400">{errors.seasonTurnoverDate}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setFormData(initialValues)}
+                disabled={!canEdit || isSaving || !isDirty}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Reverter
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    validationSchema.parse(formData);
+                  } catch (e) {
+                    addToast({ message: 'Verifique os campos inválidos', type: 'error' });
+                    return;
+                  }
+                  if (!canEdit) {
+                    addToast({
+                      message: 'Apenas o comissário pode salvar alterações',
+                      type: 'error',
+                    });
+                    return;
+                  }
+                  setIsSaving(true);
+                  try {
+                    const res = await fetch(`/api/leagues/${leagueId}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        sleeperLeagueId: formData.sleeperLeagueId,
+                        salaryCap: formData.salaryCap,
+                        maxFranchiseTags: formData.maxFranchiseTags,
+                        minimumSalary: formData.minimumSalary,
+                        annualIncreasePercentage: formData.annualIncreasePercentage,
+                        seasonTurnoverDate: formData.seasonTurnoverDate,
+                      }),
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok) {
+                      addToast({
+                        message: 'Configurações atualizadas com sucesso!',
+                        type: 'success',
+                      });
+                    } else {
+                      addToast({
+                        message: data.error || 'Erro ao atualizar configurações',
+                        type: 'error',
+                      });
+                    }
+                  } catch (err) {
+                    addToast({ message: 'Erro inesperado ao salvar', type: 'error' });
+                  } finally {
+                    setIsSaving(false);
+                  }
+                }}
+                disabled={!canEdit || isSaving || !isDirty || Object.values(errors).some(v => v)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="h-5 w-5"
+                >
+                  <path d="M17 3a2 2 0 012 2v10a2 2 0 01-2 2H7l-4 2V5a2 2 0 012-2h12z" />
+                </svg>
+                Salvar
+              </button>
             </div>
           </div>
         )}

@@ -1,9 +1,8 @@
 'use client';
 
 import { League } from '@/types';
-import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { formatCurrency, getStatusColor, getStatusText } from '@/utils/formatUtils';
-import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
 interface LeagueHeaderProps {
@@ -13,7 +12,6 @@ interface LeagueHeaderProps {
 }
 
 export default function LeagueHeader({ league, onBack, totalTeams }: LeagueHeaderProps) {
-  const { isCommissioner } = useAuth();
   const router = useRouter();
 
   const handleSettingsClick = () => {
@@ -38,18 +36,6 @@ export default function LeagueHeader({ league, onBack, totalTeams }: LeagueHeade
               <span className="text-slate-400 ml-2">• Temporada {league.season}</span>
             </div>
           </div>
-
-          {/* Botão de Configurações - apenas para comissários */}
-          {isCommissioner && (
-            <button
-              onClick={handleSettingsClick}
-              className="flex items-center px-3 py-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
-              title="Configurações da Liga"
-            >
-              <Cog6ToothIcon className="h-5 w-5 mr-2" />
-              <span className="hidden sm:inline">Configurações</span>
-            </button>
-          )}
         </div>
       </div>
 

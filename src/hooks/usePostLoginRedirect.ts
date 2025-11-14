@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './useAuth';
 import { useUserTeams } from './useUserTeams';
-import { useLeagues } from './useLeagues';
+import { useCurrentLeague } from './useCurrentLeague';
 
 /**
  * Hook para gerenciar redirecionamento pós-login baseado no perfil do usuário
@@ -16,7 +16,7 @@ export function usePostLoginRedirect() {
   const router = useRouter();
   const { user, isCommissioner, isAuthenticated, isLoading } = useAuth();
   const { teams, loading: teamsLoading } = useUserTeams();
-  const { loading: leaguesLoading, hasLeagues } = useLeagues();
+  const { loading: leaguesLoading, isConfigured, league } = useCurrentLeague();
 
   useEffect(() => {
     // Aguardar carregamento da autenticação
@@ -44,9 +44,9 @@ export function usePostLoginRedirect() {
       }
     }
 
-    // Se usuário não tem time mas tem acesso a ligas, redirecionar para /leagues
-    if (hasLeagues) {
-      router.push('/leagues');
+    // Se usuário não tem time mas há liga configurada, ir para a liga
+    if (isConfigured && league) {
+      router.push(`/leagues/${league.id}`);
       return;
     }
 
@@ -60,7 +60,8 @@ export function usePostLoginRedirect() {
     teamsLoading,
     leaguesLoading,
     teams,
-    hasLeagues,
+    isConfigured,
+    league,
     router,
   ]);
 
