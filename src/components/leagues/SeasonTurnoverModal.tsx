@@ -162,8 +162,8 @@ export function SeasonTurnoverModal({
                   <p className="text-sm text-yellow-100 mt-1">
                     Esta ação é irreversível. Todos os contratos ativos terão seus anos reduzidos em
                     1. Contratos com mais de 1 ano restante terão salários aumentados em{' '}
-                    {annualIncreasePercentage}%. Contratos que chegarem a 0 anos manterão o salário
-                    atual. Verifique cuidadosamente as alterações abaixo.
+                    {annualIncreasePercentage}%. Contratos que chegarem a 0 anos terão o salário
+                    redefinido para $0. Verifique cuidadosamente as alterações abaixo.
                   </p>
                 </div>
               </div>
@@ -313,11 +313,7 @@ export function SeasonTurnoverModal({
                           </span>
                           <span className="text-slate-500">→</span>
                           <span
-                            className={`text-sm font-medium ${
-                              change.newSalary === change.currentSalary
-                                ? 'text-yellow-400' // Salário mantido (contrato expirando)
-                                : 'text-slate-100' // Salário aumentado
-                            }`}
+                            className={`text-sm font-medium ${change.newYearsRemaining === 0 ? 'text-red-400' : 'text-slate-100'}`}
                           >
                             {formatCurrency(change.newSalary)}
                           </span>

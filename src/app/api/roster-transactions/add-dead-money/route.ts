@@ -182,6 +182,39 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      const currentSeason = team.league.season;
+      const nextSeason = currentSeason + 1;
+      const currentSeasonTotal = deadMoneyRecords
+        .filter(r => r.year === currentSeason)
+        .reduce((sum, r) => sum + r.amount, 0);
+      const nextSeasonTotal = deadMoneyRecords
+        .filter(r => r.year === nextSeason)
+        .reduce((sum, r) => sum + r.amount, 0);
+
+      if (deadMoneyRecord) {
+        if (deadMoneyRecord.year === currentSeason) {
+          deadMoneyRecords = [...deadMoneyRecords, deadMoneyRecord];
+        }
+        if (deadMoneyRecord.year === nextSeason) {
+          deadMoneyRecords = [...deadMoneyRecords, deadMoneyRecord];
+        }
+      }
+
+      const finalCurrentTotal = deadMoneyRecords
+        .filter(r => r.year === currentSeason)
+        .reduce((sum, r) => sum + r.amount, currentSeasonTotal);
+      const finalNextTotal = deadMoneyRecords
+        .filter(r => r.year === nextSeason)
+        .reduce((sum, r) => sum + r.amount, nextSeasonTotal);
+
+      await tx.team.update({
+        where: { id: teamId },
+        data: {
+          currentDeadMoney: { increment: finalCurrentTotal },
+          nextSeasonDeadMoney: { increment: finalNextTotal },
+        },
+      });
+
       return {
         contract: activeContract,
         deadMoney: deadMoneyRecord,

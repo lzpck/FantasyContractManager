@@ -129,6 +129,17 @@ export function PlayerRosterSections({
     };
   };
 
+  const hasDeadMoneyForSeasons = (playerId: string, currentYear: number) => {
+    const playerDeadMoneyRecords = deadMoneyRecords.filter(record => record.playerId === playerId);
+    const current = playerDeadMoneyRecords
+      .filter(record => record.year === currentYear)
+      .reduce((total, record) => total + record.amount, 0);
+    const next = playerDeadMoneyRecords
+      .filter(record => record.year === currentYear + 1)
+      .reduce((total, record) => total + record.amount, 0);
+    return current > 0 || next > 0;
+  };
+
   /**
    * Simula dead money baseado nas regras da liga (fallback quando não há registros reais)
    * @param contract - Contrato do jogador
@@ -216,7 +227,12 @@ export function PlayerRosterSections({
   const activePlayers = sortPlayersByPosition(players.filter(p => p.rosterStatus === 'active'));
   const irPlayers = sortPlayersByPosition(players.filter(p => p.rosterStatus === 'ir'));
   const taxiPlayers = sortPlayersByPosition(players.filter(p => p.rosterStatus === 'taxi'));
-  const cutPlayers = sortPlayersByPosition(players.filter(p => p.rosterStatus === 'cut'));
+  const rosterCurrentYear = league?.season || new Date().getFullYear();
+  const cutPlayers = sortPlayersByPosition(
+    players
+      .filter(p => p.rosterStatus === 'cut')
+      .filter(p => hasDeadMoneyForSeasons(p.player.id, rosterCurrentYear)),
+  );
 
   // Componente para renderizar uma seção de jogadores
   const PlayerSection = ({
@@ -286,16 +302,17 @@ export function PlayerRosterSections({
                 const actualDeadMoney = getActualDeadMoney(player.id, currentYear);
 
                 // Se não há registros reais, usa simulação como fallback
-                const { deadMoneyCurrent, deadMoneyNext } =
-                  actualDeadMoney.deadMoneyCurrent > 0 || actualDeadMoney.deadMoneyNext > 0
-                    ? actualDeadMoney
-                    : contract
-                      ? simulateDeadMoney(
-                          contract,
-                          league?.deadMoneyConfig as DeadMoneyConfig | undefined,
-                          currentYear,
-                        )
-                      : { deadMoneyCurrent: 0, deadMoneyNext: 0 };
+                const hasActual =
+                  actualDeadMoney.deadMoneyCurrent > 0 || actualDeadMoney.deadMoneyNext > 0;
+                const shouldSimulate = !hasActual && contract && contract.status !== 'CUT';
+
+                const { deadMoneyCurrent, deadMoneyNext } = shouldSimulate
+                  ? simulateDeadMoney(
+                      contract,
+                      league?.deadMoneyConfig as DeadMoneyConfig | undefined,
+                      currentYear,
+                    )
+                  : actualDeadMoney;
 
                 const statusColor = contract
                   ? getContractStatusColor(contract.status, contract.yearsRemaining)

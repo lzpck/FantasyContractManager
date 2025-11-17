@@ -66,12 +66,12 @@ export async function GET(
     const contractChanges = activeContracts.map(contract => {
       const newYearsRemaining = contract.yearsRemaining - 1;
 
-      // Só aplicar aumento salarial se o contrato não chegar a zero anos
-      // Quando chega a zero, o jogador se torna free agent ou precisa de extensão/tag
+      // Aplicar aumento salarial apenas se o contrato não chegar a zero anos
+      // Ao chegar a zero anos, o salário é automaticamente redefinido para 0
       const newSalary =
         newYearsRemaining > 0
           ? contract.currentSalary * (1 + league.annualIncreasePercentage / 100)
-          : contract.currentSalary; // Mantém o salário atual se chegar a zero anos
+          : 0;
 
       // Determinar o novo status do contrato
       let newStatus: 'Elegível para Extensão' | 'Elegível para Tag' | 'Contrato Ativo';
