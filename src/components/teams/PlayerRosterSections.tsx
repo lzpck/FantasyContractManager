@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PlayerWithContract, PlayerRosterStatus, League, DeadMoneyConfig } from '@/types';
+import EditContractModal from './EditContractModal';
+import ExtensionModal from './ExtensionModal';
+import FranchiseTagModal from './FranchiseTagModal';
 import { formatCurrency } from '@/utils/formatUtils';
 import { getPositionTailwindClasses } from '@/utils/positionColors';
 import { PencilIcon, PlusIcon, ArrowPathIcon, TagIcon } from '@heroicons/react/24/outline';
@@ -61,6 +64,10 @@ export function PlayerRosterSections({
   isCommissioner = false,
   deadMoneyRecords = [],
 }: PlayerRosterSectionsProps) {
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showExtensionModal, setShowExtensionModal] = useState(false);
+  const [showTagModal, setShowTagModal] = useState(false);
   // Função para verificar se jogador é elegível para extensão
   const isEligibleForExtension = (contract: any) => {
     return contract && contract.yearsRemaining === 1 && !contract.hasBeenExtended;
@@ -284,11 +291,9 @@ export function PlayerRosterSections({
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Dead Money (Próx. Temp.)
                 </th>
-                {isCommissioner && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                    Ações
-                  </th>
-                )}
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody className="bg-slate-800 divide-y divide-slate-700">
@@ -396,16 +401,15 @@ export function PlayerRosterSections({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-100">
                       {deadMoneyNext > 0 ? formatCurrency(deadMoneyNext) : '--'}
                     </td>
-                    {isCommissioner && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2 relative z-10">
-                          {/* Adicionar/Editar Contrato */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-2 relative z-10">
+                        {isCommissioner && (
                           <button
                             onClick={e => {
                               e.preventDefault();
                               e.stopPropagation();
-
-                              onPlayerAction(playerWithContract, contract ? 'edit' : 'add');
+                              setSelectedPlayer(playerWithContract);
+                              setShowEditModal(true);
                             }}
                             className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-100 cursor-pointer relative z-20"
                             title={contract ? 'Editar Contrato' : 'Adicionar Contrato'}
@@ -416,41 +420,39 @@ export function PlayerRosterSections({
                               <PlusIcon className="h-4 w-4" />
                             )}
                           </button>
+                        )}
 
-                          {/* Extensão (se elegível) */}
-                          {isEligibleForExtension(contract) && (
-                            <button
-                              onClick={e => {
-                                e.preventDefault();
-                                e.stopPropagation();
+                        {isCommissioner && isEligibleForExtension(contract) && (
+                          <button
+                            onClick={e => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSelectedPlayer(playerWithContract);
+                              setShowExtensionModal(true);
+                            }}
+                            className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-100 cursor-pointer relative z-20"
+                            title="Extensão de Contrato"
+                          >
+                            <ArrowPathIcon className="h-4 w-4" />
+                          </button>
+                        )}
 
-                                onPlayerAction(playerWithContract, 'extend');
-                              }}
-                              className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-100 cursor-pointer relative z-20"
-                              title="Extensão de Contrato"
-                            >
-                              <ArrowPathIcon className="h-4 w-4" />
-                            </button>
-                          )}
-
-                          {/* Franchise Tag */}
-                          {isEligibleForTag(playerWithContract) && (
-                            <button
-                              onClick={e => {
-                                e.preventDefault();
-                                e.stopPropagation();
-
-                                onPlayerAction(playerWithContract, 'tag');
-                              }}
-                              className="text-purple-600 hover:text-purple-900 ml-2 p-1 rounded hover:bg-purple-100 cursor-pointer relative z-20"
-                              title="Franchise Tag"
-                            >
-                              <TagIcon className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    )}
+                        {isEligibleForTag(contract) && (
+                          <button
+                            onClick={e => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSelectedPlayer(playerWithContract);
+                              setShowTagModal(true);
+                            }}
+                            className="text-purple-600 hover:text-purple-900 ml-2 p-1 rounded hover:bg-purple-100 cursor-pointer relative z-20"
+                            title="Franchise Tag"
+                          >
+                            <TagIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
@@ -490,6 +492,28 @@ export function PlayerRosterSections({
         players={cutPlayers}
         emptyMessage="Nenhum jogador cortado."
       />
+      {selectedPlayer && (
+        <>
+          <EditContractModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            playerWithContract={selectedPlayer}
+            league={league}
+          />
+          <ExtensionModal
+            isOpen={showExtensionModal}
+            onClose={() => setShowExtensionModal(false)}
+            playerWithContract={selectedPlayer}
+            league={league}
+          />
+          <FranchiseTagModal
+            isOpen={showTagModal}
+            onClose={() => setShowTagModal(false)}
+            playerWithContract={selectedPlayer}
+            league={league}
+          />
+        </>
+      )}
     </div>
   );
 }

@@ -71,6 +71,13 @@ export async function POST(
 
     const body = await request.json();
 
+    if ((action === 'edit' || action === 'extend') && !isLeagueCommissioner) {
+      return NextResponse.json(
+        { error: 'Apenas o comissário da liga pode editar ou estender contratos' },
+        { status: 403 },
+      );
+    }
+
     switch (action) {
       case 'edit':
         return await handleEditContract(body, teamId);
