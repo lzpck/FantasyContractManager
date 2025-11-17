@@ -11,7 +11,6 @@
 import { useState, useEffect } from 'react';
 import { PlayerWithContract, Team, League, ContractStatus } from '@/types';
 import { PlayerContractsTable } from './PlayerContractsTable';
-import ContractActionsModal from './ContractActionsModal';
 import { useAuth } from '@/hooks/useAuth';
 import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/formatUtils';
@@ -54,7 +53,6 @@ export function PlayerContractsManager({
   const [filterStatus, setFilterStatus] = useState('all');
 
   // Estados para o modal de ações
-  const [isActionsModalOpen, setIsActionsModalOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
 
   // Hook de autenticação
@@ -138,7 +136,6 @@ export function PlayerContractsManager({
   // Função para lidar com ações de jogadores
   const handlePlayerAction = (playerWithContract: PlayerWithContract, action: string) => {
     setSelectedPlayer(playerWithContract);
-    setIsActionsModalOpen(true);
   };
 
   // Função para processar ações do modal
@@ -310,20 +307,6 @@ export function PlayerContractsManager({
         onFilterPositionChange={setFilterPosition}
         onFilterStatusChange={setFilterStatus}
         onPlayerAction={handlePlayerAction}
-        isCommissioner={isCommissioner}
-      />
-
-      {/* Modal de Ações */}
-      <ContractActionsModal
-        isOpen={isActionsModalOpen}
-        onClose={() => {
-          setIsActionsModalOpen(false);
-          setSelectedPlayer(null);
-        }}
-        player={selectedPlayer}
-        team={team}
-        league={league}
-        onAction={handleModalAction}
         isCommissioner={isCommissioner}
       />
     </div>
