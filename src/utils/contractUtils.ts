@@ -392,7 +392,7 @@ export function updateContractForNewSeason(
   const newYearsRemaining = Math.max(0, contract.yearsRemaining - 1);
 
   return {
-    currentSalary: newSalary,
+    currentSalary: newYearsRemaining === 0 ? 0 : newSalary,
     yearsRemaining: newYearsRemaining,
     status: newYearsRemaining === 0 ? ContractStatus.EXPIRED : contract.status,
   };

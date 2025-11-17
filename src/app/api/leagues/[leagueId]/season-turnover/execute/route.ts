@@ -76,12 +76,12 @@ export async function POST(
       for (const contract of activeContracts) {
         const newYearsRemaining = contract.yearsRemaining - 1;
 
-        // Só aplicar aumento salarial se o contrato não chegar a zero anos
-        // Quando chega a zero, o jogador se torna free agent ou precisa de extensão/tag
+        // Aplicar aumento salarial apenas se o contrato não chegar a zero anos
+        // Ao chegar a zero anos, o salário é automaticamente redefinido para 0
         const newSalary =
           newYearsRemaining > 0
             ? contract.currentSalary * (1 + league.annualIncreasePercentage / 100)
-            : contract.currentSalary; // Mantém o salário atual se chegar a zero anos
+            : 0;
 
         // Atualizar o contrato
         const updatedContract = await tx.contract.update({
@@ -113,6 +113,7 @@ export async function POST(
             where: { id: contract.id },
             data: {
               status: 'EXPIRED',
+              currentSalary: 0,
               updatedAt: new Date().toISOString(),
             },
           });
@@ -145,6 +146,7 @@ export async function POST(
         updatedContracts,
         expiredContracts,
         totalUpdated: updatedContracts.length,
+        newSeason: league.season + 1,
       };
     });
 
@@ -158,6 +160,44 @@ export async function POST(
       executedAt: new Date().toISOString(),
     });
 
+    const teams = await prisma.team.findMany({ where: { leagueId } });
+    const deadMoneyValidation = [] as Array<{
+      teamId: string;
+      currentDeadMoney: number;
+      sumForNewSeason: number;
+      nextSeasonDeadMoney: number;
+      sumForNextSeason: number;
+    }>;
+
+    for (const team of teams) {
+      const sumCurrent = await prisma.deadMoney.aggregate({
+        where: { teamId: team.id, year: result.newSeason },
+        _sum: { amount: true },
+      });
+      const sumNext = await prisma.deadMoney.aggregate({
+        where: { teamId: team.id, year: result.newSeason + 1 },
+        _sum: { amount: true },
+      });
+      const current = sumCurrent._sum.amount || 0;
+      const next = sumNext._sum.amount || 0;
+
+      await prisma.team.update({
+        where: { id: team.id },
+        data: {
+          currentDeadMoney: current,
+          nextSeasonDeadMoney: next,
+        },
+      });
+
+      deadMoneyValidation.push({
+        teamId: team.id,
+        currentDeadMoney: current,
+        sumForNewSeason: current,
+        nextSeasonDeadMoney: next,
+        sumForNextSeason: next,
+      });
+    }
+
     return NextResponse.json({
       message: 'Virada de temporada executada com sucesso',
       contractsUpdated: result.totalUpdated,
@@ -168,6 +208,7 @@ export async function POST(
         contractsExpired: result.expiredContracts.length,
         contractsActive: result.totalUpdated - result.expiredContracts.length,
       },
+      deadMoneyValidation,
     });
   } catch (error) {
     console.error('Erro ao executar virada de temporada:', error);

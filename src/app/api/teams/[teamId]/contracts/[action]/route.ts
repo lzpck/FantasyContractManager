@@ -254,21 +254,24 @@ async function handleReleasePlayer(body: any, teamId: string, team: any) {
   });
 
   // Calcular total de dead money para atualizar o time
-  const totalDeadMoney = deadMoneyRecords.reduce((sum, record) => sum + record.amount, 0);
+  const currentSeasonTotal = deadMoneyRecords
+    .filter(r => r.year === cutYear)
+    .reduce((sum, r) => sum + r.amount, 0);
+  const nextSeasonTotal = deadMoneyRecords
+    .filter(r => r.year === cutYear + 1)
+    .reduce((sum, r) => sum + r.amount, 0);
 
-  // Atualizar dead money do time
   await prisma.team.update({
     where: { id: teamId },
     data: {
-      currentDeadMoney: {
-        increment: totalDeadMoney,
-      },
+      currentDeadMoney: { increment: currentSeasonTotal },
+      nextSeasonDeadMoney: { increment: nextSeasonTotal },
     },
   });
 
   return NextResponse.json({
     contract: updatedContract,
-    deadMoney: totalDeadMoney,
+    deadMoney: currentSeasonTotal + nextSeasonTotal,
     deadMoneyRecords,
     message: 'Jogador liberado com sucesso',
   });
