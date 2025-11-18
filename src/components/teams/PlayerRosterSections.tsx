@@ -511,6 +511,7 @@ export function PlayerRosterSections({
             onClose={() => setShowTagModal(false)}
             playerWithContract={selectedPlayer}
             league={league}
+            isCommissioner={isCommissioner}
           />
         </>
       )}

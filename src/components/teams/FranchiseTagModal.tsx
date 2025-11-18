@@ -15,9 +15,16 @@ interface Props {
   onClose: () => void;
   playerWithContract: PlayerWithContract;
   league: League | null;
+  isCommissioner: boolean;
 }
 
-export default function FranchiseTagModal({ isOpen, onClose, playerWithContract, league }: Props) {
+export default function FranchiseTagModal({
+  isOpen,
+  onClose,
+  playerWithContract,
+  league,
+  isCommissioner,
+}: Props) {
   const [tagValue, setTagValue] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -56,7 +63,9 @@ export default function FranchiseTagModal({ isOpen, onClose, playerWithContract,
 
   const validate = () => {
     const next: Record<string, string> = {};
-    if (!tagValue || Number(tagValue) <= 0) next.tagValue = 'Informe o valor da tag';
+    if (isCommissioner) {
+      if (!tagValue || Number(tagValue) <= 0) next.tagValue = 'Informe o valor da tag';
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -65,12 +74,13 @@ export default function FranchiseTagModal({ isOpen, onClose, playerWithContract,
     if (!playerWithContract.contract) return;
     try {
       setLoading(true);
+      const valueToSend = isCommissioner ? tagValue : String(recommended);
       const res = await fetch(`/api/teams/${playerWithContract.contract.teamId}/contracts/tag`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contractId: playerWithContract.contract.id,
-          tagValue,
+          tagValue: valueToSend,
         }),
       });
       if (!res.ok) {
@@ -159,18 +169,22 @@ export default function FranchiseTagModal({ isOpen, onClose, playerWithContract,
                       </div>
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                      <div>
-                        <label className="block text-sm text-slate-300 mb-2">Valor da Tag *</label>
-                        <input
-                          type="number"
-                          value={tagValue}
-                          onChange={e => setTagValue(e.target.value)}
-                          className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 ${errors.tagValue ? 'border-red-500' : 'border-slate-600'}`}
-                        />
-                        {errors.tagValue && (
-                          <p className="text-red-400 text-xs mt-1">{errors.tagValue}</p>
-                        )}
-                      </div>
+                      {isCommissioner ? (
+                        <div>
+                          <label className="block text-sm text-slate-300 mb-2">
+                            Valor da Tag *
+                          </label>
+                          <input
+                            type="number"
+                            value={tagValue}
+                            onChange={e => setTagValue(e.target.value)}
+                            className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 ${errors.tagValue ? 'border-red-500' : 'border-slate-600'}`}
+                          />
+                          {errors.tagValue && (
+                            <p className="text-red-400 text-xs mt-1">{errors.tagValue}</p>
+                          )}
+                        </div>
+                      ) : null}
                       <div className="bg-yellow-900/20 border border-yellow-700 p-3 rounded-lg text-yellow-300 text-sm">
                         A franchise tag só pode ser usada uma vez por jogador e uma vez por
                         temporada.
