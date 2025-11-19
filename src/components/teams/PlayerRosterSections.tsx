@@ -422,35 +422,38 @@ export function PlayerRosterSections({
                           </button>
                         )}
 
-                        {isCommissioner && isEligibleForExtension(contract) && (
-                          <button
-                            onClick={e => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setSelectedPlayer(playerWithContract);
-                              setShowExtensionModal(true);
-                            }}
-                            className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-100 cursor-pointer relative z-20"
-                            title="Extensão de Contrato"
-                          >
-                            <ArrowPathIcon className="h-4 w-4" />
-                          </button>
-                        )}
+                        {isCommissioner &&
+                          isEligibleForExtension(contract) &&
+                          playerWithContract.rosterStatus !== 'cut' && (
+                            <button
+                              onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelectedPlayer(playerWithContract);
+                                setShowExtensionModal(true);
+                              }}
+                              className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-100 cursor-pointer relative z-20"
+                              title="Extensão de Contrato"
+                            >
+                              <ArrowPathIcon className="h-4 w-4" />
+                            </button>
+                          )}
 
-                        {isEligibleForTag(contract) && (
-                          <button
-                            onClick={e => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setSelectedPlayer(playerWithContract);
-                              setShowTagModal(true);
-                            }}
-                            className="text-purple-600 hover:text-purple-900 ml-2 p-1 rounded hover:bg-purple-100 cursor-pointer relative z-20"
-                            title="Franchise Tag"
-                          >
-                            <TagIcon className="h-4 w-4" />
-                          </button>
-                        )}
+                        {isEligibleForTag(contract) &&
+                          playerWithContract.rosterStatus !== 'cut' && (
+                            <button
+                              onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelectedPlayer(playerWithContract);
+                                setShowTagModal(true);
+                              }}
+                              className="text-purple-600 hover:text-purple-900 ml-2 p-1 rounded hover:bg-purple-100 cursor-pointer relative z-20"
+                              title="Franchise Tag"
+                            >
+                              <TagIcon className="h-4 w-4" />
+                            </button>
+                          )}
                       </div>
                     </td>
                   </tr>
