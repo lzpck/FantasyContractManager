@@ -28,6 +28,7 @@
 *.swp
 *.swo
 *~
+.agent/rules/fcm-rules.md
 
 # debug
 npm-debug.log*
