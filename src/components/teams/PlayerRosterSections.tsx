@@ -70,7 +70,7 @@ export function PlayerRosterSections({
   const [showTagModal, setShowTagModal] = useState(false);
   // Função para verificar se jogador é elegível para extensão
   const isEligibleForExtension = (contract: any) => {
-    return contract && contract.yearsRemaining === 1 && !contract.hasBeenExtended;
+    return contract && contract.yearsRemaining === 0 && !contract.hasBeenExtended;
   };
 
   // Contar quantas tags já estão em uso no time (status 'TAGGED')
@@ -86,12 +86,13 @@ export function PlayerRosterSections({
   };
 
   // Função para obter cor do status do contrato
+  // Função para obter cor do status do contrato
   const getContractStatusColor = (status: string, yearsRemaining: number) => {
     if (status === 'TAGGED') {
       return 'bg-purple-100 text-purple-800';
     }
 
-    if (status === 'ACTIVE') {
+    if (status === 'ACTIVE' || status === 'EXTENDED') {
       if (yearsRemaining <= 1) return 'bg-red-100 text-red-800'; // Último ano - vermelho
       if (yearsRemaining <= 2) return 'bg-yellow-100 text-yellow-800'; // Expira em breve - amarelo
       return 'bg-green-100 text-green-800';
@@ -109,7 +110,7 @@ export function PlayerRosterSections({
       return 'Franchise Tag';
     }
 
-    if (status === 'ACTIVE') {
+    if (status === 'ACTIVE' || status === 'EXTENDED') {
       if (yearsRemaining <= 1) return 'Último ano';
       if (yearsRemaining <= 2) return 'Expira em breve';
       return 'Ativo';

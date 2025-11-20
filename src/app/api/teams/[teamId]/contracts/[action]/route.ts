@@ -294,13 +294,13 @@ async function handleExtendContract(body: any, teamId: string) {
     return NextResponse.json({ error: 'Dados obrigatórios não fornecidos' }, { status: 400 });
   }
 
-  // Verificar se o contrato existe e está no último ano
+  // Verificar se o contrato existe e está expirado (yearsRemaining === 0)
   const contract = await prisma.contract.findFirst({
     where: {
       id: contractId,
       teamId,
-      status: 'ACTIVE',
-      yearsRemaining: 1, // Só pode estender no último ano
+      yearsRemaining: 0,
+      status: { not: 'CUT' },
     },
   });
 

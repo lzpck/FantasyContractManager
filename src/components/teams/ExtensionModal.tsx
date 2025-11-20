@@ -24,7 +24,7 @@ export default function ExtensionModal({ isOpen, onClose, playerWithContract, le
 
   const eligible =
     !!playerWithContract.contract &&
-    playerWithContract.contract.yearsRemaining === 1 &&
+    playerWithContract.contract.yearsRemaining === 0 &&
     !playerWithContract.contract.hasBeenExtended;
 
   useEffect(() => {
