@@ -68,6 +68,8 @@ export function PlayerRosterSections({
   const [showEditModal, setShowEditModal] = useState(false);
   const [showExtensionModal, setShowExtensionModal] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
+  const [showAllCutPlayers, setShowAllCutPlayers] = useState(false);
+
   // Função para verificar se jogador é elegível para extensão
   const isEligibleForExtension = (contract: any) => {
     return contract && contract.yearsRemaining === 0 && !contract.hasBeenExtended;
@@ -86,10 +88,13 @@ export function PlayerRosterSections({
   };
 
   // Função para obter cor do status do contrato
-  // Função para obter cor do status do contrato
   const getContractStatusColor = (status: string, yearsRemaining: number) => {
     if (status === 'TAGGED') {
       return 'bg-purple-100 text-purple-800';
+    }
+
+    if (status === 'CUT') {
+      return 'bg-red-100 text-red-800';
     }
 
     if (status === 'ACTIVE' || status === 'EXTENDED') {
@@ -108,6 +113,10 @@ export function PlayerRosterSections({
   const getContractStatusText = (status: string, yearsRemaining: number) => {
     if (status === 'TAGGED') {
       return 'Franchise Tag';
+    }
+
+    if (status === 'CUT') {
+      return 'Cortado';
     }
 
     if (status === 'ACTIVE' || status === 'EXTENDED') {
@@ -246,26 +255,44 @@ export function PlayerRosterSections({
     });
   };
 
+  // Função para obter a data de corte mais recente de um jogador
+  const getCutDate = (playerId: string) => {
+    const records = deadMoneyRecords.filter(r => r.playerId === playerId);
+    if (records.length === 0) return '';
+    // Ordena por data de criação decrescente
+    records.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return records[0].createdAt;
+  };
+
   // Separar jogadores por status e ordenar por posição
   const activePlayers = sortPlayersByPosition(players.filter(p => p.rosterStatus === 'active'));
   const irPlayers = sortPlayersByPosition(players.filter(p => p.rosterStatus === 'ir'));
   const taxiPlayers = sortPlayersByPosition(players.filter(p => p.rosterStatus === 'taxi'));
   const rosterCurrentYear = league?.season || new Date().getFullYear();
-  const cutPlayers = sortPlayersByPosition(
-    players
-      .filter(p => p.rosterStatus === 'cut')
-      .filter(p => hasDeadMoneyForSeasons(p.player.id, rosterCurrentYear)),
-  );
+
+  const allCutPlayers = players
+    .filter(p => p.rosterStatus === 'cut')
+    .filter(p => hasDeadMoneyForSeasons(p.player.id, rosterCurrentYear))
+    .sort((a, b) => {
+      const dateA = getCutDate(a.player.id);
+      const dateB = getCutDate(b.player.id);
+      // Ordena do mais recente para o mais antigo
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
+    });
+
+  const displayedCutPlayers = showAllCutPlayers ? allCutPlayers : allCutPlayers.slice(0, 5);
 
   // Componente para renderizar uma seção de jogadores
   const PlayerSection = ({
     title,
     players: sectionPlayers,
     emptyMessage,
+    footer,
   }: {
     title: string;
     players: PlayerWithContract[];
     emptyMessage: string;
+    footer?: React.ReactNode;
   }) => (
     <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
       <div className="bg-slate-900 px-6 py-4 border-b border-slate-700">
@@ -479,6 +506,7 @@ export function PlayerRosterSections({
           </table>
         </div>
       )}
+      {footer && <div className="bg-slate-900 px-6 py-3 border-t border-slate-700">{footer}</div>}
     </div>
   );
 
@@ -508,8 +536,18 @@ export function PlayerRosterSections({
       {/* Jogadores Cortados */}
       <PlayerSection
         title="Jogadores Cortados"
-        players={cutPlayers}
+        players={displayedCutPlayers}
         emptyMessage="Nenhum jogador cortado."
+        footer={
+          allCutPlayers.length > 5 ? (
+            <button
+              onClick={() => setShowAllCutPlayers(!showAllCutPlayers)}
+              className="text-sm text-blue-400 hover:text-blue-300 font-medium focus:outline-none"
+            >
+              {showAllCutPlayers ? 'Ver menos' : `Ver mais (${allCutPlayers.length - 5} restantes)`}
+            </button>
+          ) : undefined
+        }
       />
       {selectedPlayer && (
         <>
