@@ -75,7 +75,7 @@ export function PlayerRosterSections({
 
   // Função para verificar se jogador é elegível para franchise tag
   const isEligibleForTag = (contract: any) => {
-    return contract && contract.yearsRemaining === 1 && !contract.hasBeenTagged;
+    return contract && contract.yearsRemaining === 0 && !contract.hasBeenTagged;
   };
 
   // Função para obter cor do status do contrato

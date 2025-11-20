@@ -192,6 +192,14 @@ export function canExtendContract(contract: Contract): { canExtend: boolean; rea
     };
   }
 
+  // Verifica se já foi tagueado antes (jogador tagueado não pode ser estendido)
+  if (contract.hasBeenTagged) {
+    return {
+      canExtend: false,
+      reason: 'Jogador tagueado não pode receber extensão',
+    };
+  }
+
   // Verifica se está no último ano
   if (contract.yearsRemaining > 1) {
     return {
@@ -237,11 +245,11 @@ export function canApplyFranchiseTag(
     };
   }
 
-  // Verifica se contrato está no último ano ou expirado
-  if (contract.yearsRemaining > 1) {
+  // Verifica se contrato está expirado (yearsRemaining === 0)
+  if (contract.yearsRemaining > 0) {
     return {
       canTag: false,
-      reason: 'Só pode aplicar tag no último ano do contrato',
+      reason: 'Só pode aplicar tag em contrato expirado',
     };
   }
 
