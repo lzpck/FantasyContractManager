@@ -73,13 +73,24 @@ export function PlayerRosterSections({
     return contract && contract.yearsRemaining === 1 && !contract.hasBeenExtended;
   };
 
+  // Contar quantas tags já estão em uso no time (status 'TAGGED')
+  const usedTagsCount = players.filter(p => p.contract?.status === 'TAGGED').length;
+  const MAX_TAGS = league?.maxFranchiseTags ?? 1;
+
   // Função para verificar se jogador é elegível para franchise tag
   const isEligibleForTag = (contract: any) => {
+    // Se já atingiu o limite de tags, ninguém é elegível
+    if (usedTagsCount >= MAX_TAGS) return false;
+
     return contract && contract.yearsRemaining === 0 && !contract.hasBeenTagged;
   };
 
   // Função para obter cor do status do contrato
   const getContractStatusColor = (status: string, yearsRemaining: number) => {
+    if (status === 'TAGGED') {
+      return 'bg-purple-100 text-purple-800';
+    }
+
     if (status === 'ACTIVE') {
       if (yearsRemaining <= 1) return 'bg-red-100 text-red-800'; // Último ano - vermelho
       if (yearsRemaining <= 2) return 'bg-yellow-100 text-yellow-800'; // Expira em breve - amarelo
@@ -94,6 +105,10 @@ export function PlayerRosterSections({
 
   // Função para obter texto do status do contrato
   const getContractStatusText = (status: string, yearsRemaining: number) => {
+    if (status === 'TAGGED') {
+      return 'Franchise Tag';
+    }
+
     if (status === 'ACTIVE') {
       if (yearsRemaining <= 1) return 'Último ano';
       if (yearsRemaining <= 2) return 'Expira em breve';

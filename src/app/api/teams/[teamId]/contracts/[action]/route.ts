@@ -355,13 +355,13 @@ async function handleFranchiseTag(body: any, teamId: string, team: any) {
     return NextResponse.json({ error: 'Dados obrigatórios não fornecidos' }, { status: 400 });
   }
 
-  // Verificar se o contrato existe e está no último ano
+  // Verificar se o contrato existe e está expirado (yearsRemaining === 0)
   const contract = await prisma.contract.findFirst({
     where: {
       id: contractId,
       teamId,
-      status: 'ACTIVE',
-      yearsRemaining: 0, // Só pode aplicar tag em contrato expirado
+      yearsRemaining: 0,
+      status: { not: 'CUT' },
     },
   });
 
