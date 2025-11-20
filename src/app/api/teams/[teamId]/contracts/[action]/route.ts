@@ -316,6 +316,14 @@ async function handleExtendContract(body: any, teamId: string) {
     return NextResponse.json({ error: 'Contrato já foi estendido anteriormente' }, { status: 400 });
   }
 
+  // Verificar se já foi tagueado antes
+  if (contract.hasBeenTagged) {
+    return NextResponse.json(
+      { error: 'Jogador tagueado não pode receber extensão' },
+      { status: 400 },
+    );
+  }
+
   // Atualizar contrato
   const updatedContract = await prisma.contract.update({
     where: { id: contractId },
@@ -353,7 +361,7 @@ async function handleFranchiseTag(body: any, teamId: string, team: any) {
       id: contractId,
       teamId,
       status: 'ACTIVE',
-      yearsRemaining: 1, // Só pode aplicar tag no último ano
+      yearsRemaining: 0, // Só pode aplicar tag em contrato expirado
     },
   });
 

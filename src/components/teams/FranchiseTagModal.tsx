@@ -32,7 +32,7 @@ export default function FranchiseTagModal({
 
   const eligible =
     !!playerWithContract.contract &&
-    playerWithContract.contract.yearsRemaining === 1 &&
+    playerWithContract.contract.yearsRemaining === 0 &&
     !playerWithContract.contract.hasBeenTagged;
 
   const { contracts: leagueContracts } = useLeagueContracts(league?.id ?? '');
@@ -146,79 +146,64 @@ export default function FranchiseTagModal({
                     <XMarkIcon className="h-6 w-6" />
                   </button>
                 </div>
-                {!eligible ? (
-                  <div className="py-8 text-center text-slate-400">
-                    Jogador não elegível para franchise tag.
+                <div className="mb-4 text-slate-400 text-sm">
+                  {playerWithContract.player.name} • {playerWithContract.player.position}
+                  <span className="ml-2">
+                    • {formatCurrency(playerWithContract.contract!.currentSalary)} •{' '}
+                    {playerWithContract.contract!.yearsRemaining} ano(s)
+                  </span>
+                </div>
+                <div className="bg-slate-700 p-4 rounded-lg mb-4">
+                  <div className="text-sm text-slate-300">Valor recomendado</div>
+                  <div className="text-2xl font-bold text-green-400">
+                    {formatCurrency(recommended)}
                   </div>
-                ) : (
-                  <>
-                    <div className="mb-4 text-slate-400 text-sm">
-                      {playerWithContract.player.name} • {playerWithContract.player.position}
-                      <span className="ml-2">
-                        • {formatCurrency(playerWithContract.contract!.currentSalary)} •{' '}
-                        {playerWithContract.contract!.yearsRemaining} ano(s)
-                      </span>
+                  <div className="text-xs text-slate-400 mt-1">
+                    Maior entre salário +15% ou média top 10 da posição
+                  </div>
+                </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {isCommissioner ? (
+                    <div>
+                      <label className="block text-sm text-slate-300 mb-2">Valor da Tag *</label>
+                      <input
+                        type="number"
+                        value={tagValue}
+                        onChange={e => setTagValue(e.target.value)}
+                        className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 ${errors.tagValue ? 'border-red-500' : 'border-slate-600'}`}
+                      />
+                      {errors.tagValue && (
+                        <p className="text-red-400 text-xs mt-1">{errors.tagValue}</p>
+                      )}
                     </div>
-                    <div className="bg-slate-700 p-4 rounded-lg mb-4">
-                      <div className="text-sm text-slate-300">Valor recomendado</div>
-                      <div className="text-2xl font-bold text-green-400">
-                        {formatCurrency(recommended)}
-                      </div>
-                      <div className="text-xs text-slate-400 mt-1">
-                        Maior entre salário +15% ou média top 10 da posição
-                      </div>
-                    </div>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      {isCommissioner ? (
-                        <div>
-                          <label className="block text-sm text-slate-300 mb-2">
-                            Valor da Tag *
-                          </label>
-                          <input
-                            type="number"
-                            value={tagValue}
-                            onChange={e => setTagValue(e.target.value)}
-                            className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 ${errors.tagValue ? 'border-red-500' : 'border-slate-600'}`}
-                          />
-                          {errors.tagValue && (
-                            <p className="text-red-400 text-xs mt-1">{errors.tagValue}</p>
-                          )}
-                        </div>
-                      ) : null}
-                      <div className="bg-yellow-900/20 border border-yellow-700 p-3 rounded-lg text-yellow-300 text-sm">
-                        A franchise tag só pode ser usada uma vez por jogador e uma vez por
-                        temporada.
-                      </div>
-                      <div className="flex justify-end gap-3 pt-2">
-                        <button
-                          type="button"
-                          onClick={onClose}
-                          className="px-4 py-2 text-slate-300"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="submit"
-                          className="px-6 py-2 bg-yellow-600 text-white rounded-lg disabled:opacity-50"
-                          disabled={loading}
-                        >
-                          Aplicar Tag
-                        </button>
-                      </div>
-                    </form>
-                    <ConfirmationModal
-                      isOpen={confirmOpen}
-                      onClose={() => setConfirmOpen(false)}
-                      onConfirm={handleConfirm}
-                      title="Confirmar franchise tag"
-                      message="Confirma aplicar a franchise tag?"
-                      confirmText="Confirmar"
-                      cancelText="Cancelar"
-                      type="warning"
-                      loading={loading}
-                    />
-                  </>
-                )}
+                  ) : null}
+                  <div className="bg-yellow-900/20 border border-yellow-700 p-3 rounded-lg text-yellow-300 text-sm">
+                    A franchise tag só pode ser usada uma vez por jogador e uma vez por temporada.
+                  </div>
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button type="button" onClick={onClose} className="px-4 py-2 text-slate-300">
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2 bg-yellow-600 text-white rounded-lg disabled:opacity-50"
+                      disabled={loading}
+                    >
+                      Aplicar Tag
+                    </button>
+                  </div>
+                </form>
+                <ConfirmationModal
+                  isOpen={confirmOpen}
+                  onClose={() => setConfirmOpen(false)}
+                  onConfirm={handleConfirm}
+                  title="Confirmar franchise tag"
+                  message="Confirma aplicar a franchise tag?"
+                  confirmText="Confirmar"
+                  cancelText="Cancelar"
+                  type="warning"
+                  loading={loading}
+                />
               </Dialog.Panel>
             </Transition.Child>
           </div>
