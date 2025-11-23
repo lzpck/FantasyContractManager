@@ -155,7 +155,7 @@ export function useContractModal(): UseContractModalReturn {
         );
 
         // Não fechar automaticamente - deixar o componente pai decidir
-        // closeModal();
+        closeModal();
 
         // Mostrar feedback de sucesso
         console.log('🔵 Disparando toast de sucesso...');

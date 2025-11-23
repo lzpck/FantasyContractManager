@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { Player, Contract, AcquisitionType, League, Team } from '@/types';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/formatUtils';
@@ -143,223 +144,264 @@ export default function ContractModal({
   };
 
   // Não renderizar se não for comissário ou modal fechado
-  if (!isOpen || !isCommissioner || !player || !team || !league) {
+  if (!isCommissioner || !player || !team || !league) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-10 mx-auto p-6 border w-full max-w-3xl bg-slate-800 rounded-xl shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-700">
-          <div>
-            <h3 className="text-xl font-semibold text-slate-100">
-              {isEditMode ? 'Editar Contrato' : 'Adicionar Contrato'}
-            </h3>
-            <p className="text-sm text-slate-400 mt-1">
-              {player.name} • {player.fantasyPositions} • {team.name}
-            </p>
-            {isEditMode && contract && (
-              <p className="text-xs text-slate-500 mt-1">
-                Anos restantes: {contract.yearsRemaining} • Temporada assinada:{' '}
-                {contract.signedSeason}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-300 transition-colors"
-          >
-            <XMarkIcon className="h-6 w-6" />
-          </button>
-        </div>
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/50" />
+        </Transition.Child>
 
-        {/* Formulário */}
-        <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Anos de Contrato */}
-            <div>
-              <label className="block text-sm font-medium text-slate-100 mb-2">
-                Anos de Contrato *
-              </label>
-              <select
-                value={formData.contractYears}
-                onChange={e => handleInputChange('contractYears', parseInt(e.target.value))}
-                className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700 text-slate-100 ${
-                  errors.contractYears ? 'border-red-500' : 'border-slate-600'
-                }`}
-              >
-                <option value={1}>1 ano</option>
-                <option value={2}>2 anos</option>
-                <option value={3}>3 anos</option>
-                <option value={4}>4 anos</option>
-              </select>
-              {errors.contractYears && (
-                <p className="text-red-400 text-xs mt-1">{errors.contractYears}</p>
-              )}
-            </div>
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-3xl transform overflow-hidden rounded-2xl bg-slate-800 p-6 text-left align-middle shadow-xl transition-all border border-slate-700">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4 border-b border-slate-700 pb-4">
+                  <div>
+                    <Dialog.Title as="h3" className="text-xl font-semibold text-slate-100">
+                      {isEditMode ? 'Editar Contrato' : 'Adicionar Contrato'}
+                    </Dialog.Title>
+                    <p className="text-sm text-slate-400 mt-1">
+                      {player.name} • {player.fantasyPositions} • {team.name}
+                    </p>
+                    {isEditMode && contract && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        Anos restantes: {contract.yearsRemaining} • Temporada assinada:{' '}
+                        {contract.signedSeason}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={onClose}
+                    className="text-slate-400 hover:text-slate-300 transition-colors"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+                </div>
 
-            {/* Valor Anual Inicial */}
-            <div>
-              <label className="block text-sm font-medium text-slate-100 mb-2">
-                Valor Anual Inicial (milhões) *
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min={league.minimumSalary}
-                value={formData.annualSalary}
-                onChange={e => handleInputChange('annualSalary', parseFloat(e.target.value) || 0)}
-                className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700 text-slate-100 ${
-                  errors.annualSalary ? 'border-red-500' : 'border-slate-600'
-                }`}
-                placeholder={`Mínimo: ${league.minimumSalary}`}
-              />
-              {errors.annualSalary && (
-                <p className="text-red-400 text-xs mt-1">{errors.annualSalary}</p>
-              )}
-              <p className="text-xs text-slate-400 mt-1">
-                Salário mínimo da liga: {formatCurrency(league.minimumSalary)}
-              </p>
-            </div>
-          </div>
+                {/* Formulário */}
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Anos de Contrato */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-100 mb-2">
+                        Anos de Contrato *
+                      </label>
+                      <select
+                        value={formData.contractYears}
+                        onChange={e => handleInputChange('contractYears', parseInt(e.target.value))}
+                        className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700 text-slate-100 ${
+                          errors.contractYears ? 'border-red-500' : 'border-slate-600'
+                        }`}
+                      >
+                        <option value={1}>1 ano</option>
+                        <option value={2}>2 anos</option>
+                        <option value={3}>3 anos</option>
+                        <option value={4}>4 anos</option>
+                      </select>
+                      {errors.contractYears && (
+                        <p className="text-red-400 text-xs mt-1">{errors.contractYears}</p>
+                      )}
+                    </div>
 
-          {/* Tipo de Aquisição */}
-          <div>
-            <label className="block text-sm font-medium text-slate-100 mb-2">
-              Tipo de Aquisição *
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {Object.values(AcquisitionType).map(type => (
-                <label key={type} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="acquisitionType"
-                    value={type}
-                    checked={formData.acquisitionType === type}
-                    onChange={e =>
-                      handleInputChange('acquisitionType', e.target.value as AcquisitionType)
-                    }
-                    className="text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-300">
-                    {type === AcquisitionType.AUCTION && 'Leilão'}
-                    {type === AcquisitionType.FAAB && 'FAAB/Waiver'}
-                    {type === AcquisitionType.ROOKIE_DRAFT && 'Rookie Draft'}
-                    {type === AcquisitionType.TRADE && 'Trade'}
-                    {type === AcquisitionType.UNDISPUTED && 'Não Disputado'}
-                  </span>
-                </label>
-              ))}
-            </div>
-            {errors.acquisitionType && (
-              <p className="text-red-400 text-xs mt-1">{errors.acquisitionType}</p>
-            )}
-          </div>
-
-          {/* Opções específicas para Rookies */}
-          {isRookieAcquisition && (
-            <div className="bg-slate-700 p-4 rounded-xl">
-              <h4 className="text-sm font-medium text-slate-100 mb-3">Opções de Rookie</h4>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.hasFourthYearOption}
-                  onChange={e => handleInputChange('hasFourthYearOption', e.target.checked)}
-                  className="text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-slate-300">
-                  Tem opção de quarto ano (apenas para picks do 1º round)
-                </span>
-              </label>
-            </div>
-          )}
-
-          {/* Campos de Edição */}
-          {isEditMode && (
-            <div className="bg-slate-700 p-4 rounded-xl">
-              <h4 className="text-sm font-medium text-slate-100 mb-3">Opções do Comissário</h4>
-              <div className="space-y-3">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.hasBeenTagged}
-                    onChange={e => handleInputChange('hasBeenTagged', e.target.checked)}
-                    className="text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-300">Já foi tagueado (Franchise Tag)</span>
-                </label>
-
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.hasBeenExtended}
-                    onChange={e => handleInputChange('hasBeenExtended', e.target.checked)}
-                    className="text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-300">Já recebeu extensão de contrato</span>
-                </label>
-
-                {formData.hasFourthYearOption && (
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.fourthYearOptionActivated}
-                      onChange={e =>
-                        handleInputChange('fourthYearOptionActivated', e.target.checked)
-                      }
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-slate-300">Opção de quarto ano ativada</span>
-                  </label>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Projeção de Valores */}
-          {projectedValues.length > 0 && (
-            <div className="bg-slate-700 p-4 rounded-xl">
-              <h4 className="text-sm font-medium text-slate-100 mb-3">
-                Projeção de Valores (Aumento anual: {league.annualIncreasePercentage}%)
-              </h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {projectedValues.map((value, index) => (
-                  <div key={index} className="text-center">
-                    <div className="text-xs text-slate-400 mb-1">Ano {index + 1}</div>
-                    <div className="text-sm font-medium text-slate-100">
-                      {formatCurrency(value)}
+                    {/* Valor Anual Inicial */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-100 mb-2">
+                        Valor Anual Inicial (milhões) *
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min={league.minimumSalary}
+                        value={formData.annualSalary}
+                        onChange={e =>
+                          handleInputChange('annualSalary', parseFloat(e.target.value) || 0)
+                        }
+                        className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700 text-slate-100 ${
+                          errors.annualSalary ? 'border-red-500' : 'border-slate-600'
+                        }`}
+                        placeholder={`Mínimo: ${league.minimumSalary}`}
+                      />
+                      {errors.annualSalary && (
+                        <p className="text-red-400 text-xs mt-1">{errors.annualSalary}</p>
+                      )}
+                      <p className="text-xs text-slate-400 mt-1">
+                        Salário mínimo da liga: {formatCurrency(league.minimumSalary)}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-              <div className="mt-3 pt-3 border-t border-slate-600">
-                <div className="text-xs text-slate-400">Valor total do contrato:</div>
-                <div className="text-sm font-medium text-slate-100">
-                  {formatCurrency(projectedValues.reduce((sum, value) => sum + value, 0))}
-                </div>
-              </div>
-            </div>
-          )}
 
-          {/* Botões */}
-          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-700">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-slate-400 hover:text-slate-300 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
-            >
-              {isEditMode ? 'Atualizar Contrato' : 'Adicionar Contrato'}
-            </button>
+                  {/* Tipo de Aquisição */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-100 mb-2">
+                      Tipo de Aquisição *
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {Object.values(AcquisitionType).map(type => (
+                        <label key={type} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="acquisitionType"
+                            value={type}
+                            checked={formData.acquisitionType === type}
+                            onChange={e =>
+                              handleInputChange(
+                                'acquisitionType',
+                                e.target.value as AcquisitionType,
+                              )
+                            }
+                            className="text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-slate-300">
+                            {type === AcquisitionType.AUCTION && 'Leilão'}
+                            {type === AcquisitionType.FAAB && 'FAAB/Waiver'}
+                            {type === AcquisitionType.ROOKIE_DRAFT && 'Rookie Draft'}
+                            {type === AcquisitionType.TRADE && 'Trade'}
+                            {type === AcquisitionType.UNDISPUTED && 'Não Disputado'}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    {errors.acquisitionType && (
+                      <p className="text-red-400 text-xs mt-1">{errors.acquisitionType}</p>
+                    )}
+                  </div>
+
+                  {/* Opções específicas para Rookies */}
+                  {isRookieAcquisition && (
+                    <div className="bg-slate-700 p-4 rounded-xl border border-slate-600">
+                      <h4 className="text-sm font-medium text-slate-100 mb-3">Opções de Rookie</h4>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.hasFourthYearOption}
+                          onChange={e => handleInputChange('hasFourthYearOption', e.target.checked)}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-slate-300">
+                          Tem opção de quarto ano (apenas para picks do 1º round)
+                        </span>
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Campos de Edição */}
+                  {isEditMode && (
+                    <div className="bg-slate-700 p-4 rounded-xl border border-slate-600">
+                      <h4 className="text-sm font-medium text-slate-100 mb-3">
+                        Opções do Comissário
+                      </h4>
+                      <div className="space-y-3">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.hasBeenTagged}
+                            onChange={e => handleInputChange('hasBeenTagged', e.target.checked)}
+                            className="text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-slate-300">
+                            Já foi tagueado (Franchise Tag)
+                          </span>
+                        </label>
+
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.hasBeenExtended}
+                            onChange={e => handleInputChange('hasBeenExtended', e.target.checked)}
+                            className="text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-slate-300">
+                            Já recebeu extensão de contrato
+                          </span>
+                        </label>
+
+                        {formData.hasFourthYearOption && (
+                          <label className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.fourthYearOptionActivated}
+                              onChange={e =>
+                                handleInputChange('fourthYearOptionActivated', e.target.checked)
+                              }
+                              className="text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-slate-300">
+                              Opção de quarto ano ativada
+                            </span>
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Projeção de Valores */}
+                  {projectedValues.length > 0 && (
+                    <div className="bg-slate-700 p-4 rounded-xl border border-slate-600">
+                      <h4 className="text-sm font-medium text-slate-100 mb-3">
+                        Projeção de Valores (Aumento anual: {league.annualIncreasePercentage}%)
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {projectedValues.map((value, index) => (
+                          <div key={index} className="text-center">
+                            <div className="text-xs text-slate-400 mb-1">Ano {index + 1}</div>
+                            <div className="text-sm font-medium text-slate-100">
+                              {formatCurrency(value)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-slate-600">
+                        <div className="text-xs text-slate-400">Valor total do contrato:</div>
+                        <div className="text-sm font-medium text-slate-100">
+                          {formatCurrency(projectedValues.reduce((sum, value) => sum + value, 0))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Botões */}
+                  <div className="flex justify-end space-x-3 pt-4 border-t border-slate-700">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-4 py-2 text-slate-400 hover:text-slate-300 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      {isEditMode ? 'Atualizar Contrato' : 'Adicionar Contrato'}
+                    </button>
+                  </div>
+                </form>
+              </Dialog.Panel>
+            </Transition.Child>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </Dialog>
+    </Transition>
   );
 }
