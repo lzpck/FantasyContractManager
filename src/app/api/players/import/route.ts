@@ -127,35 +127,31 @@ async function importPlayersWithTimeout(): Promise<ImportResult> {
     console.log(`   - Jogadores para atualizar: ${playersToUpdate.length}`);
     console.log(`   - Jogadores inalterados: ${playersUnchanged}`);
 
-    // Executar operações em paralelo com lotes menores
+    // Executar operações sequencialmente para evitar exaustão do pool de conexões
+    // O erro "Timed out fetching a new connection" ocorre porque Promise.all tenta abrir
+    // muitas transações simultâneas (uma por lote), excedendo o limite do pool (padrão 5).
     const batchSize = 100;
-    const operations: Promise<any>[] = [];
 
     // Criar novos jogadores em lotes
     if (playersToCreate.length > 0) {
+      console.log(`🆕 Criando ${playersToCreate.length} novos jogadores...`);
       for (let i = 0; i < playersToCreate.length; i += batchSize) {
         const batch = playersToCreate.slice(i, i + batchSize);
-        operations.push(
-          prisma.player.createMany({
-            data: batch,
-            skipDuplicates: true,
-          }),
-        );
+        await prisma.player.createMany({
+          data: batch,
+          skipDuplicates: true,
+        });
       }
     }
 
     // Atualizar jogadores existentes em lotes
     if (playersToUpdate.length > 0) {
+      console.log(`🔄 Atualizando ${playersToUpdate.length} jogadores existentes...`);
       for (let i = 0; i < playersToUpdate.length; i += batchSize) {
         const batch = playersToUpdate.slice(i, i + batchSize);
-        operations.push(prisma.$transaction(batch.map(update => prisma.player.update(update))));
+        // Executa a transação para este lote e aguarda antes de ir para o próximo
+        await prisma.$transaction(batch.map(update => prisma.player.update(update)));
       }
-    }
-
-    // Executar todas as operações em paralelo
-    if (operations.length > 0) {
-      console.log(`⚡ Executando ${operations.length} operações de banco em paralelo...`);
-      await Promise.all(operations);
     }
 
     const dbOperationsTime = Date.now() - dbStartTime;
