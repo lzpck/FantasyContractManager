@@ -127,31 +127,62 @@ async function importPlayersWithTimeout(): Promise<ImportResult> {
     console.log(`   - Jogadores para atualizar: ${playersToUpdate.length}`);
     console.log(`   - Jogadores inalterados: ${playersUnchanged}`);
 
-    // Executar operações sequencialmente para evitar exaustão do pool de conexões
-    // O erro "Timed out fetching a new connection" ocorre porque Promise.all tenta abrir
-    // muitas transações simultâneas (uma por lote), excedendo o limite do pool (padrão 5).
-    const batchSize = 100;
+    // Configurações de otimização
+    // Pool limit é 5. Usamos 3 workers para deixar margem para overhead e outras requisições.
+    const CONCURRENCY_LIMIT = 3;
+    const BATCH_SIZE_CREATE = 500; // CreateMany é rápido, podemos usar lotes maiores
+    const BATCH_SIZE_UPDATE = 50; // Updates são mais pesados (transações), lotes menores
 
-    // Criar novos jogadores em lotes
+    // Helper para processamento com concorrência controlada
+    const processInBatches = async <T>(
+      items: T[],
+      batchSize: number,
+      processor: (batch: T[]) => Promise<void>,
+    ) => {
+      // Dividir em lotes
+      const batches: T[][] = [];
+      for (let i = 0; i < items.length; i += batchSize) {
+        batches.push(items.slice(i, i + batchSize));
+      }
+
+      console.log(
+        `⚡ Processando ${items.length} itens em ${batches.length} lotes com concorrência ${CONCURRENCY_LIMIT}...`,
+      );
+
+      // Processar batches com limite de concorrência
+      const queue = [...batches];
+      const workers = Array(Math.min(CONCURRENCY_LIMIT, batches.length))
+        .fill(null)
+        .map(async (_, workerId) => {
+          while (queue.length > 0) {
+            const batch = queue.shift();
+            if (batch) {
+              // console.log(`Worker ${workerId} processando lote de ${batch.length}...`);
+              await processor(batch);
+            }
+          }
+        });
+
+      await Promise.all(workers);
+    };
+
+    // Criar novos jogadores em lotes (Concorrente)
     if (playersToCreate.length > 0) {
       console.log(`🆕 Criando ${playersToCreate.length} novos jogadores...`);
-      for (let i = 0; i < playersToCreate.length; i += batchSize) {
-        const batch = playersToCreate.slice(i, i + batchSize);
+      await processInBatches(playersToCreate, BATCH_SIZE_CREATE, async batch => {
         await prisma.player.createMany({
           data: batch,
           skipDuplicates: true,
         });
-      }
+      });
     }
 
-    // Atualizar jogadores existentes em lotes
+    // Atualizar jogadores existentes em lotes (Concorrente)
     if (playersToUpdate.length > 0) {
       console.log(`🔄 Atualizando ${playersToUpdate.length} jogadores existentes...`);
-      for (let i = 0; i < playersToUpdate.length; i += batchSize) {
-        const batch = playersToUpdate.slice(i, i + batchSize);
-        // Executa a transação para este lote e aguarda antes de ir para o próximo
+      await processInBatches(playersToUpdate, BATCH_SIZE_UPDATE, async batch => {
         await prisma.$transaction(batch.map(update => prisma.player.update(update)));
-      }
+      });
     }
 
     const dbOperationsTime = Date.now() - dbStartTime;
