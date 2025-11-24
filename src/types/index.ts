@@ -182,6 +182,9 @@ export interface League {
   sleeperLeagueId?: string;
   /** ID do comissário da liga */
   commissionerId: string;
+  /** Dados do comissário (quando carregado) */
+  commissioner?: User;
+
   /** Número máximo de Franchise Tags por temporada */
   maxFranchiseTags: number;
   /** Percentual de aumento anual dos contratos */
