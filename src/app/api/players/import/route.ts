@@ -44,39 +44,39 @@ async function importPlayersWithTimeout(): Promise<ImportResult> {
   console.log('🚀 Iniciando importação de jogadores NFL...');
 
   try {
-    // Etapa 1: Buscar dados da API Sleeper (com cache)
-    const apiStartTime = Date.now();
-    console.log('📡 Buscando jogadores da API Sleeper...');
+    // Otimização: Buscar dados em paralelo (API + DB) para economizar tempo
+    const startFetchTime = Date.now();
+    console.log('📡 Buscando dados da API e do Banco em paralelo...');
 
-    const sleeperPlayers = await fetchSleeperPlayers();
+    const [sleeperPlayers, existingPlayers] = await Promise.all([
+      fetchSleeperPlayers(),
+      prisma.player.findMany({
+        select: {
+          id: true,
+          sleeperPlayerId: true,
+          name: true,
+          position: true,
+          fantasyPositions: true,
+          team: true,
+          isActive: true,
+        },
+      }),
+    ]);
+
     const allowed = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
     const players = transformSleeperPlayersToLocal(sleeperPlayers, allowed);
 
-    const apiCallTime = Date.now() - apiStartTime;
-    console.log(`✅ API Sleeper: ${players.length} jogadores obtidos em ${apiCallTime}ms`);
+    const apiCallTime = Date.now() - startFetchTime;
+    console.log(`✅ Dados obtidos em ${apiCallTime}ms`);
+    console.log(`   - Sleeper: ${players.length} jogadores`);
+    console.log(`   - DB Local: ${existingPlayers.length} jogadores`);
 
-    // Etapa 2: Operações de banco de dados otimizadas
     const dbStartTime = Date.now();
-    console.log('💾 Iniciando operações de banco de dados...');
-
-    // Buscar jogadores existentes de uma vez
-    const existingPlayers = await prisma.player.findMany({
-      select: {
-        id: true,
-        sleeperPlayerId: true,
-        name: true,
-        position: true,
-        fantasyPositions: true,
-        team: true,
-        isActive: true,
-      },
-    });
+    console.log('💾 Calculando diferenças...');
 
     const existingPlayersMap = new Map<string, ExistingPlayer>(
       existingPlayers.map(p => [p.sleeperPlayerId, p as ExistingPlayer]),
     );
-
-    console.log(`📊 Jogadores existentes no DB: ${existingPlayers.length}`);
 
     // Preparar operações em lote
     const playersToCreate: any[] = [];
@@ -128,10 +128,10 @@ async function importPlayersWithTimeout(): Promise<ImportResult> {
     console.log(`   - Jogadores inalterados: ${playersUnchanged}`);
 
     // Configurações de otimização
-    // Pool limit é 5. Usamos 3 workers para deixar margem para overhead e outras requisições.
-    const CONCURRENCY_LIMIT = 3;
-    const BATCH_SIZE_CREATE = 500; // CreateMany é rápido, podemos usar lotes maiores
-    const BATCH_SIZE_UPDATE = 50; // Updates são mais pesados (transações), lotes menores
+    // Aumentamos a concorrência para 4 (deixa 1 livre no pool de 5)
+    const CONCURRENCY_LIMIT = 4;
+    const BATCH_SIZE_CREATE = 1000;
+    const BATCH_SIZE_UPDATE = 100; // Aumentar lote para reduzir overhead de transações
 
     // Helper para processamento com concorrência controlada
     const processInBatches = async <T>(
