@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { DeadMoneyConfig, DEFAULT_DEAD_MONEY_CONFIG } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
 
-interface DeadMoneyConfigFormProps {
+export interface DeadMoneyConfigFormProps {
   /** Configuração atual de dead money */
   config: DeadMoneyConfig;
   /** Callback chamado quando a configuração é alterada */
@@ -12,6 +12,8 @@ interface DeadMoneyConfigFormProps {
   /** Se o formulário está em modo de edição */
   disabled?: boolean;
   compact?: boolean;
+  /** Variante de visualização: 'card' (padrão) usa cards com fundo, 'clean' usa apenas layout sem fundo */
+  variant?: 'card' | 'clean';
 }
 
 /**
@@ -22,6 +24,7 @@ export function DeadMoneyConfigForm({
   onChange,
   disabled = false,
   compact = false,
+  variant = 'card',
 }: DeadMoneyConfigFormProps) {
   const [localConfig, setLocalConfig] = useState<DeadMoneyConfig>(config);
   const [showPreview, setShowPreview] = useState(false);
@@ -61,6 +64,12 @@ export function DeadMoneyConfigForm({
     return { currentSeason, futureSeasons, total: currentSeason + futureSeasons };
   };
 
+  const containerClass = variant === 'card' ? 'bg-slate-800 rounded-lg p-4' : '';
+  const titleClass =
+    variant === 'card'
+      ? 'text-md font-medium text-slate-200 mb-3'
+      : 'text-sm font-medium text-slate-200 mb-3';
+
   return (
     <div className="space-y-6">
       {/* Cabeçalho - só mostra quando não está em modo compacto */}
@@ -83,7 +92,6 @@ export function DeadMoneyConfigForm({
           </button>
         </div>
       )}
-
       {/* Botão de resetar para modo compacto */}
       {compact && (
         <div className="flex justify-end mb-4">
@@ -99,8 +107,8 @@ export function DeadMoneyConfigForm({
       )}
 
       {/* Configuração da temporada atual */}
-      <div className="bg-slate-800 rounded-lg p-4">
-        <h4 className="text-md font-medium text-slate-200 mb-3">Temporada Atual</h4>
+      <div className={containerClass}>
+        <h4 className={titleClass}>Temporada Atual</h4>
         <div className="space-y-2">
           <label className="block text-sm text-slate-300">
             Percentual do salário atual que vira dead money
@@ -132,8 +140,8 @@ export function DeadMoneyConfigForm({
       </div>
 
       {/* Configuração de temporadas futuras */}
-      <div className="bg-slate-800 rounded-lg p-4">
-        <h4 className="text-md font-medium text-slate-200 mb-3">Temporadas Futuras</h4>
+      <div className={containerClass}>
+        <h4 className={titleClass}>Temporadas Futuras</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.entries(localConfig.futureSeasons).map(([years, percentage]) => (
             <div key={years} className="space-y-2">
@@ -187,8 +195,8 @@ export function DeadMoneyConfigForm({
 
       {/* Preview de impacto - apenas no modo não-compact */}
       {!compact && showPreview && (
-        <div className="bg-slate-800 rounded-lg p-4">
-          <h4 className="text-md font-medium text-slate-200 mb-3">Preview de Impacto</h4>
+        <div className={variant === 'card' ? 'bg-slate-800 rounded-lg p-4' : 'mt-4'}>
+          <h4 className={titleClass}>Preview de Impacto</h4>
           <p className="text-sm text-slate-400 mb-4">
             Exemplos de dead money para um jogador com salário de $10M:
           </p>
