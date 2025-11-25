@@ -5,8 +5,32 @@ import { z } from 'zod';
 /**
  * Função de cálculo e persistência de dead money
  */
-async function handlePlayerCut(contract: any, league: { deadMoneyConfig: any; season: number }) {
+async function handlePlayerCut(
+  contract: any,
+  league: { deadMoneyConfig: any; season: number },
+  rosterStatus?: string,
+) {
   const config = league.deadMoneyConfig;
+
+  // Regra específica para Taxi Squad: 25% na temporada atual, 0% na próxima
+  if (rosterStatus === 'taxi') {
+    const deadMoneyAtual = contract.currentSalary * 0.25;
+
+    const records = [
+      {
+        playerId: contract.playerId,
+        teamId: contract.teamId,
+        contractId: contract.id,
+        year: league.season,
+        amount: deadMoneyAtual,
+        reason: 'Jogador cortado do Taxi Squad (25% do salário)',
+      },
+    ];
+
+    // Persistir no banco
+    await prisma.deadMoney.createMany({ data: records });
+    return records;
+  }
 
   // 1. Dead money do ano atual
   const deadMoneyAtual = contract.currentSalary * (config.currentSeason ?? 1);
@@ -93,6 +117,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Jogador não encontrado' }, { status: 404 });
     }
 
+    // Buscar status do jogador no roster ANTES de remover
+    const rosterEntry = await prisma.teamRoster.findFirst({
+      where: {
+        teamId,
+        sleeperPlayerId,
+      },
+    });
+
+    const rosterStatus = rosterEntry?.status;
+
     // Buscar contrato ativo do jogador com o time
     const activeContract = await prisma.contract.findFirst({
       where: {
@@ -133,10 +167,14 @@ export async function POST(request: NextRequest) {
         };
 
         // Calcular e persistir dead money usando nossa função
-        deadMoneyRecords = await handlePlayerCut(contractWithEndYear, {
-          deadMoneyConfig,
-          season: league.season,
-        });
+        deadMoneyRecords = await handlePlayerCut(
+          contractWithEndYear,
+          {
+            deadMoneyConfig,
+            season: league.season,
+          },
+          rosterStatus, // Passar o status do roster
+        );
         calculatedDeadMoney = deadMoneyRecords.reduce((sum, record) => sum + record.amount, 0);
       } else {
         calculatedDeadMoney = activeContract.currentSalary || 0;
