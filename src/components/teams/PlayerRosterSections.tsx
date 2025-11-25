@@ -183,8 +183,17 @@ export function PlayerRosterSections({
     contract: any,
     leagueDeadMoneyConfig: DeadMoneyConfig | undefined,
     currentYear: number,
+    rosterStatus?: string,
   ) => {
     if (!contract) return { deadMoneyCurrent: 0, deadMoneyNext: 0 };
+
+    // Regra específica para Taxi Squad: 25% na temporada atual, 0% na próxima
+    if (rosterStatus === 'taxi') {
+      return {
+        deadMoneyCurrent: contract.currentSalary * 0.25,
+        deadMoneyNext: 0,
+      };
+    }
 
     // Dead money atual: salário atual × percentual da temporada atual
     const currentSeasonPercent = leagueDeadMoneyConfig?.currentSeason ?? 1;
@@ -359,6 +368,7 @@ export function PlayerRosterSections({
                       contract,
                       league?.deadMoneyConfig as DeadMoneyConfig | undefined,
                       currentYear,
+                      playerWithContract.rosterStatus,
                     )
                   : actualDeadMoney;
 
