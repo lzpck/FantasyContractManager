@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserTeams } from '@/hooks/useUserTeams';
 import { useCurrentLeague } from '@/hooks/useCurrentLeague';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { SidebarEventWidget } from './SidebarEventWidget';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 
 // Definição do tipo para itens de navegação
@@ -182,12 +183,12 @@ function Sidebar() {
     <>
       {/* Sidebar para desktop */}
       <div
-        className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300 ${
+        className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300 bg-slate-900 border-r border-slate-700 ${
           isCollapsed ? 'lg:w-20' : 'lg:w-64'
         }`}
       >
         <div
-          className={`flex grow flex-col gap-y-5 overflow-y-auto bg-slate-900 border-r border-slate-700 py-6 ${
+          className={`flex grow flex-col gap-y-5 overflow-y-auto py-6 ${
             isCollapsed ? 'px-2' : 'px-4'
           }`}
         >
@@ -305,6 +306,11 @@ function Sidebar() {
             </ul>
           </nav>
         </div>
+
+        {/* Widget de Eventos */}
+        {currentLeague && (
+          <SidebarEventWidget leagueId={currentLeague.id} isCollapsed={isCollapsed} />
+        )}
       </div>
 
       {/* Navegação mobile */}
@@ -351,7 +357,7 @@ function Sidebar() {
                 </div>
 
                 {/* Navegação mobile */}
-                <nav className="flex-1 px-4 py-6">
+                <nav className="flex-1 px-4 py-6 overflow-y-auto">
                   <ul className="space-y-2">
                     {navigationItems.map(item => {
                       const baseClasses =
@@ -428,6 +434,11 @@ function Sidebar() {
                     })}
                   </ul>
                 </nav>
+
+                {/* Widget de Eventos Mobile */}
+                {currentLeague && (
+                  <SidebarEventWidget leagueId={currentLeague.id} isCollapsed={false} />
+                )}
               </div>
             </div>
           </>
