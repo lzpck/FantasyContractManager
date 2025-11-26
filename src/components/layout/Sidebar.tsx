@@ -121,12 +121,6 @@ function Sidebar() {
         description: 'Eventos das ligas',
       },
       {
-        name: 'Relatórios',
-        href: '/reports',
-        icon: '📈',
-        description: 'Relatórios gerenciais',
-      },
-      {
         name: 'Informações',
         href: '/informacoes',
         icon: 'ℹ️',
@@ -135,12 +129,20 @@ function Sidebar() {
     );
 
     if (currentLeague && isCommissioner) {
-      baseItems.push({
-        name: 'Configurações',
-        href: `/leagues/${currentLeague.id}/settings`,
-        icon: '⚙️',
-        description: 'Configurações da Liga',
-      });
+      baseItems.push(
+        {
+          name: 'Relatórios',
+          href: '/reports',
+          icon: '📈',
+          description: 'Relatórios gerenciais',
+        },
+        {
+          name: 'Configurações',
+          href: `/leagues/${currentLeague.id}/settings`,
+          icon: '⚙️',
+          description: 'Configurações da Liga',
+        },
+      );
     }
 
     return baseItems;
