@@ -1,10 +1,36 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ActiveContractsReport } from '@/components/reports/ActiveContractsReport';
 import { FreeAgentsReport } from '@/components/reports/FreeAgentsReport';
+import { toast } from 'sonner';
 
 export default function ReportsPage() {
+  const { isCommissioner, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isCommissioner) {
+      toast.error('Acesso não autorizado. Apenas comissários podem acessar esta página.');
+      router.push('/');
+    }
+  }, [isCommissioner, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!isCommissioner) {
+    return null; // Return null while redirecting
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="px-4 sm:px-6 lg:px-8 py-8">
