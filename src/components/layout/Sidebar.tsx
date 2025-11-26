@@ -121,6 +121,12 @@ function Sidebar() {
         description: 'Eventos das ligas',
       },
       {
+        name: 'Relatórios',
+        href: '/reports',
+        icon: '📈',
+        description: 'Relatórios gerenciais',
+      },
+      {
         name: 'Informações',
         href: '/informacoes',
         icon: 'ℹ️',
