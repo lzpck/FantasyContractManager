@@ -16,7 +16,7 @@ export default function ReportsPage() {
         </div>
 
         <Tabs defaultValue="active-contracts" className="w-full">
-          <TabsList className="mb-6 bg-slate-800/50 p-1 rounded-lg inline-flex">
+          <TabsList className="mb-2 bg-slate-800/50 p-1 rounded-lg inline-flex">
             <TabsTrigger value="active-contracts">Contratos Ativos</TabsTrigger>
             <TabsTrigger value="free-agents">Free Agents</TabsTrigger>
           </TabsList>
