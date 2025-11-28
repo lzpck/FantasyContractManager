@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { PlayerWithContract, PlayerRosterStatus, League, DeadMoneyConfig } from '@/types';
 import EditContractModal from './EditContractModal';
 import ExtensionModal from './ExtensionModal';
@@ -34,6 +35,27 @@ interface DeadMoneyRecord {
     name: string;
   };
 }
+
+const PlayerAvatar = ({ sleeperId, name }: { sleeperId: string; name: string }) => {
+  const [error, setError] = useState(false);
+
+  return (
+    <div className="relative mr-3 h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-slate-700">
+      <Image
+        src={
+          error
+            ? 'https://sleepercdn.com/images/v2/icons/player_default.webp'
+            : `https://sleepercdn.com/content/nfl/players/${sleeperId}.jpg`
+        }
+        alt={name}
+        fill
+        className="object-cover"
+        unoptimized
+        onError={() => setError(true)}
+      />
+    </div>
+  );
+};
 
 interface PlayerRosterSectionsProps {
   /** Lista de jogadores com contratos */
@@ -421,11 +443,14 @@ export function PlayerRosterSections({
                 return (
                   <tr key={player.id} className="hover:bg-slate-700">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-slate-100">{player.name}</div>
-                        {player.jerseyNumber && (
-                          <div className="text-sm text-slate-400">#{player.jerseyNumber}</div>
-                        )}
+                      <div className="flex items-center">
+                        <PlayerAvatar sleeperId={player.sleeperPlayerId} name={player.name} />
+                        <div>
+                          <div className="text-sm font-medium text-slate-100">{player.name}</div>
+                          {player.jerseyNumber && (
+                            <div className="text-sm text-slate-400">#{player.jerseyNumber}</div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

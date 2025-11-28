@@ -1,5 +1,8 @@
 'use client';
 
+import Image from 'next/image';
+import { useState } from 'react';
+
 import { PlayerWithContract, ContractStatus, Contract } from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
 import { getPositionTailwindClasses } from '@/utils/positionColors';
@@ -38,6 +41,27 @@ interface PlayerContractsTableProps {
   /** Se o usuário é comissário (pode editar contratos) */
   isCommissioner: boolean;
 }
+
+const PlayerAvatar = ({ sleeperId, name }: { sleeperId: string; name: string }) => {
+  const [error, setError] = useState(false);
+
+  return (
+    <div className="relative mr-3 h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-slate-700">
+      <Image
+        src={
+          error
+            ? 'https://sleepercdn.com/images/v2/icons/player_default.webp'
+            : `https://sleepercdn.com/content/nfl/players/${sleeperId}.jpg`
+        }
+        alt={name}
+        fill
+        className="object-cover"
+        unoptimized
+        onError={() => setError(true)}
+      />
+    </div>
+  );
+};
 
 /**
  * Componente de tabela de jogadores com contratos
@@ -263,11 +287,14 @@ export function PlayerContractsTable({
                 return (
                   <tr key={player.id} className="hover:bg-slate-700">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-slate-100">{player.name}</div>
-                        {player.jerseyNumber && (
-                          <div className="text-sm text-slate-400">#{player.jerseyNumber}</div>
-                        )}
+                      <div className="flex items-center">
+                        <PlayerAvatar sleeperId={player.sleeperPlayerId} name={player.name} />
+                        <div>
+                          <div className="text-sm font-medium text-slate-100">{player.name}</div>
+                          {player.jerseyNumber && (
+                            <div className="text-sm text-slate-400">#{player.jerseyNumber}</div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

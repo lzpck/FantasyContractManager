@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import { AuthNavigation } from './AuthNavigation';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { AgentChatModal } from '@/components/agent/AgentChatModal';
 
 /**
  * Componente que renderiza condicionalmente o layout baseado na rota atual
@@ -48,6 +49,9 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
         {/* Conteúdo principal */}
         <main className="bg-[#0f172a] min-h-screen">{children}</main>
       </div>
+
+      {/* Agente de IA */}
+      <AgentChatModal />
     </>
   );
 }
