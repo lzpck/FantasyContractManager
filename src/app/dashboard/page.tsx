@@ -160,6 +160,7 @@ function DashboardContent() {
         .slice(0, 5)
         .map(contract => ({
           id: contract.player.id,
+          sleeperPlayerId: contract.player.sleeperPlayerId,
           name: contract.player.name,
           position: contract.player.position,
           fantasyPositions: contract.player.fantasyPositions,
@@ -183,6 +184,7 @@ function DashboardContent() {
           }
           positionGroups[position].push({
             id: contract.player.id,
+            sleeperPlayerId: contract.player.sleeperPlayerId,
             name: contract.player.name,
             position: contract.player.position,
             fantasyPositions: contract.player.fantasyPositions,

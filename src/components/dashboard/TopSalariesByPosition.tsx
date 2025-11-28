@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { UserGroupIcon } from '@heroicons/react/24/outline';
 import { getPositionTailwindClasses } from '@/utils/positionColors';
 
 interface Player {
   id: string;
+  sleeperPlayerId: string;
   name: string;
   position: string;
   fantasyPositions?: string[];
@@ -46,6 +48,27 @@ export function TopSalariesByPosition({
   title = 'Top 3 por Posição',
   maxPlayersPerPosition = 3,
 }: TopSalariesByPositionProps) {
+  const PlayerAvatar = ({ sleeperId, name }: { sleeperId: string; name: string }) => {
+    const [error, setError] = useState(false);
+
+    return (
+      <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-slate-700 border border-slate-600">
+        <Image
+          src={
+            error
+              ? 'https://sleepercdn.com/images/v2/icons/player_default.webp'
+              : `https://sleepercdn.com/content/nfl/players/${sleeperId}.jpg`
+          }
+          alt={name}
+          fill
+          className="object-cover"
+          unoptimized
+          onError={() => setError(true)}
+        />
+      </div>
+    );
+  };
+
   // Ordem padrão das posições
   const positionOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
 
@@ -143,7 +166,7 @@ export function TopSalariesByPosition({
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`flex items-center justify-center w-7 h-7 rounded-full text-sm font-bold ${
+                            className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
                               index === 0
                                 ? 'bg-yellow-500 text-slate-900'
                                 : index === 1
@@ -155,6 +178,7 @@ export function TopSalariesByPosition({
                           >
                             {index + 1}
                           </div>
+                          <PlayerAvatar sleeperId={player.sleeperPlayerId} name={player.name} />
                           <div>
                             <div className="font-medium text-foreground">{player.name}</div>
                             <div className="text-sm text-slate-400">
