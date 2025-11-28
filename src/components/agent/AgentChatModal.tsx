@@ -34,8 +34,10 @@ type Player = {
   avatarUrl: string;
 };
 
+import { useAgent } from '@/contexts/AgentContext';
+
 export function AgentChatModal() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, setIsOpen } = useAgent();
   const [view, setView] = useState<'selection' | 'chat'>('selection');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);

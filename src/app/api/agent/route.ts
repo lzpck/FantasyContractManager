@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { prisma } from '@/lib/prisma';
-import { PDFDocument, StandardFonts, rgb, PDFFont } from 'pdf-lib';
-import { generateUserIdentifier } from '@/utils/identifierUtils';
+import { PDFDocument, StandardFonts, rgb, PDFFont, degrees } from 'pdf-lib';
+import { generateUserIdentifier, getNameVariations } from '@/utils/identifierUtils';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 // OpenAI client initialized inside handler to avoid build-time errors if env is missing
 // System Prompt
@@ -16,9 +18,11 @@ REGRA #0: INTENÇÃO VS OFERTA (CRÍTICO):
 - Se não houver número na mensagem do usuário, pergunte: "Qual é a sua oferta?" ou apresente seus termos.
 - SÓ considere que houve uma oferta se o usuário citar um valor numérico.
 
-REGRA #1: USO DA FRANCHISE TAG:
+REGRA #1: USO DA FRANCHISE TAG E VALOR DE MERCADO:
 - Use o valor \`franchiseTagValue\` retornado pela ferramenta como sua "âncora".
-- Se a oferta for menor que a Tag, use isso como insulto: "A Tag da posição é $15M. Por que eu aceitaria menos?"
+- Se a oferta for MENOR que a Tag, use isso como insulto: "A Tag da posição é $15M. Por que eu aceitaria menos?"
+- Se a oferta for MAIOR que a Tag (OVERPAY), ACEITE IMEDIATAMENTE com entusiasmo. NÃO negocie para baixar o valor. Seu dever é maximizar o lucro do cliente.
+- Exemplo de Overpay: Se a Tag é $12M e oferecem $15M -> "Uau, $15M é uma oferta que respeita o talento dele. Aceitamos!"
 - Use a Tag para recusar renovações baratas de estrelas.
 
 REGRA #2: USO DE ESTATÍSTICAS (STATS REAIS):
@@ -57,6 +61,7 @@ REGRA #5: FECHAMENTO E CONTRATO (PDF):
 FONTES DE DADOS:
 1. Tank01 (Stats): Se vier vazio, assuma stats baixos/college.
 2. Mercado: Use o teto da posição e a Franchise Tag como referências obrigatórias.
+3. CONTEXTO DO USUÁRIO: O usuário representa o time "{{USER_TEAM_NAME}}". Use esse nome exato no contrato.
 `;
 
 // Tool Definitions
@@ -218,6 +223,10 @@ async function getPlayerDataInternal(playerName: string) {
   }
 }
 
+// Cache em memória para evitar rate limit da Tank01
+const statsCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 horas
+
 // Helper function to get external player stats
 async function getPlayerStatsExternal(playerName: string) {
   const apiKey = process.env.RAPIDAPI_KEY;
@@ -225,33 +234,10 @@ async function getPlayerStatsExternal(playerName: string) {
     return JSON.stringify({ error: 'RAPIDAPI_KEY não configurada.' });
   }
 
-  // Helper para gerar variações de nome (ex: "A.J." vs "AJ")
-  const getNameVariations = (name: string): string[] => {
-    const variations = new Set<string>();
-    variations.add(name);
-
-    // Remove pontos
-    const noDots = name.replace(/\./g, '');
-    variations.add(noDots);
-
-    // Adiciona pontos se for sigla de 2 letras (ex: AJ -> A.J.)
-    const parts = noDots.split(' ');
-    if (parts.length > 0 && parts[0].length === 2 && /^[A-Z]+$/.test(parts[0])) {
-      const withDots = `${parts[0][0]}.${parts[0][1]}. ${parts.slice(1).join(' ')}`;
-      variations.add(withDots);
-    }
-
-    return Array.from(variations);
-  };
-
-  const fetchStats = async (name: string, season?: string) => {
-    let url = `https://tank01-nfl-live-in-game-real-time-statistics-nfl.p.rapidapi.com/getNFLPlayerInfo?playerName=${encodeURIComponent(
+  const fetchStats = async (name: string) => {
+    const url = `https://tank01-nfl-live-in-game-real-time-statistics-nfl.p.rapidapi.com/getNFLPlayerInfo?playerName=${encodeURIComponent(
       name,
     )}&getStats=true`;
-
-    if (season) {
-      url += `&season=${season}`;
-    }
 
     try {
       console.log('[AGENT] Tank01 Request URL:', url);
@@ -284,19 +270,29 @@ async function getPlayerStatsExternal(playerName: string) {
     const variations = getNameVariations(playerName);
     let data = null;
 
-    // Tenta cada variação até achar
-    for (const nameVariant of variations) {
-      console.log(`[AGENT] Tentando variação: ${nameVariant} com season=2025`);
-      // Tentativa 1: Com season 2025
-      data = await fetchStats(nameVariant, '2025');
-
-      if (!data) {
-        console.log(`[AGENT] Falha com season=2025. Tentando sem season...`);
-        // Tentativa 2: Sem season (fallback)
-        data = await fetchStats(nameVariant);
+    // 1. Verifica Cache
+    for (const variant of variations) {
+      const cached = statsCache.get(variant);
+      if (cached) {
+        const now = Date.now();
+        if (now - cached.timestamp < CACHE_TTL) {
+          console.log(`[AGENT] Cache HIT para: ${variant}`);
+          return JSON.stringify(cached.data);
+        } else {
+          statsCache.delete(variant);
+        }
       }
+    }
 
-      if (data) break;
+    // 2. Busca na API se não achar no cache
+    for (const nameVariant of variations) {
+      console.log(`[AGENT] Tentando variação: ${nameVariant}`);
+      data = await fetchStats(nameVariant);
+
+      if (data) {
+        statsCache.set(nameVariant, { data, timestamp: Date.now() });
+        break;
+      }
     }
 
     if (!data) {
@@ -405,15 +401,31 @@ async function generateContractPdf(
     const pdfDoc = await PDFDocument.create();
     const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
     const timesRomanBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+    const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
     let page = pdfDoc.addPage();
     const { width, height } = page.getSize();
-    let yPosition = height - 50;
+    const margin = 50;
+    let yPosition = height - margin;
+
+    // Helper to draw border
+    const drawBorder = () => {
+      page.drawRectangle({
+        x: 20,
+        y: 20,
+        width: width - 40,
+        height: height - 40,
+        borderColor: rgb(0, 0, 0),
+        borderWidth: 2,
+      });
+    };
+    drawBorder();
 
     const checkPageBreak = (neededSpace: number) => {
-      if (yPosition - neededSpace < 50) {
+      if (yPosition - neededSpace < margin) {
         page = pdfDoc.addPage();
-        yPosition = height - 50;
+        drawBorder();
+        yPosition = height - margin;
       }
     };
 
@@ -422,35 +434,45 @@ async function generateContractPdf(
       size: number,
       font = timesRomanFont,
       align: 'left' | 'center' | 'right' = 'left',
+      color = rgb(0, 0, 0),
     ) => {
       const cleanText = sanitizeText(text);
       checkPageBreak(size + 10);
       const textWidth = font.widthOfTextAtSize(cleanText, size);
-      let xPosition = 50;
+      let xPosition = margin;
 
       if (align === 'center') xPosition = (width - textWidth) / 2;
-      if (align === 'right') xPosition = width - 50 - textWidth;
+      if (align === 'right') xPosition = width - margin - textWidth;
 
       page.drawText(cleanText, {
         x: xPosition,
         y: yPosition,
         size: size,
         font: font,
-        color: rgb(0, 0, 0),
+        color: color,
       });
-      yPosition -= size + 10;
+      yPosition -= size + 8;
     };
 
-    const drawWrappedText = (text: string, size: number, font: PDFFont) => {
+    const drawLine = () => {
+      checkPageBreak(10);
+      page.drawLine({
+        start: { x: margin, y: yPosition + 5 },
+        end: { x: width - margin, y: yPosition + 5 },
+        thickness: 1,
+        color: rgb(0.8, 0.8, 0.8),
+      });
+      yPosition -= 15;
+    };
+
+    const drawWrappedText = (text: string, size: number, font: PDFFont, lineHeight = 1.2) => {
       const cleanText = sanitizeText(text);
-      const maxWidth = width - 100;
+      const maxWidth = width - margin * 2;
       const paragraphs = cleanText.split('\n');
 
       for (const paragraph of paragraphs) {
-        // Handle empty lines (newlines)
         if (!paragraph.trim()) {
-          checkPageBreak(size);
-          yPosition -= size;
+          yPosition -= size * 0.5; // Smaller gap for empty lines
           continue;
         }
 
@@ -462,76 +484,154 @@ async function generateContractPdf(
           const testWidth = font.widthOfTextAtSize(testLine, size);
 
           if (testWidth > maxWidth) {
-            // Draw current line
-            checkPageBreak(size + 5);
+            checkPageBreak(size * lineHeight);
             page.drawText(line, {
-              x: 50,
+              x: margin,
               y: yPosition,
               size: size,
               font: font,
               color: rgb(0, 0, 0),
             });
-            yPosition -= size + 5;
-            // Start new line with current word
+            yPosition -= size * lineHeight;
             line = word + ' ';
           } else {
             line = testLine;
           }
         }
-        // Draw remaining line of the paragraph
         if (line.trim()) {
-          checkPageBreak(size + 5);
+          checkPageBreak(size * lineHeight);
           page.drawText(line, {
-            x: 50,
+            x: margin,
             y: yPosition,
             size: size,
             font: font,
             color: rgb(0, 0, 0),
           });
-          yPosition -= size + 5;
+          yPosition -= size * lineHeight;
         }
       }
     };
 
-    // Title
-    drawText('CONTRATO DE JOGADOR - FANTASY LEAGUE', 20, timesRomanBold, 'center');
+    // --- HEADER ---
+    drawText('CONTRATO OFICIAL DE JOGADOR', 24, helveticaBold, 'center');
+    drawText('FANTASY FOOTBALL LEAGUE', 14, timesRomanFont, 'center', rgb(0.4, 0.4, 0.4));
+    yPosition -= 20;
+    drawLine();
+
+    // --- PARTIES ---
+    drawText('1. PARTES CONTRATANTES', 14, timesRomanBold);
+    yPosition -= 5;
+    drawText(`CONTRATANTE (TIME): ${teamName}`, 12);
+    drawText(`CONTRATADO (JOGADOR): ${playerName}`, 12);
+    drawText(`REPRESENTANTE: Jordan Spencer (Apex Dynasty Management)`, 12);
+    yPosition -= 15;
+
+    // --- TERMS ---
+    drawText('2. TERMOS DO ACORDO', 14, timesRomanBold);
+    yPosition -= 5;
+
+    // Box for terms
+    const boxHeight = 60;
+    page.drawRectangle({
+      x: margin,
+      y: yPosition - boxHeight + 12,
+      width: width - margin * 2,
+      height: boxHeight,
+      borderColor: rgb(0.8, 0.8, 0.8),
+      borderWidth: 1,
+      color: rgb(0.97, 0.97, 0.97),
+    });
+
+    yPosition -= 15;
+    drawText(`   SALÁRIO POR TEMPORADA: ${salary}`, 12, timesRomanBold);
+    drawText(`   DURAÇÃO DO VÍNCULO: ${duration}`, 12, timesRomanBold);
+    yPosition -= 30;
+
+    // --- LEGAL CLAUSE ---
+    drawText('3. CLÁUSULAS GERAIS', 14, timesRomanBold);
+    yPosition -= 5;
+    const legalText = `Este acordo formaliza o vínculo entre as partes acima citadas para a disputa da liga de Fantasy Football. O jogador compromete-se a desempenhar suas funções atléticas com total dedicação, enquanto o time compromete-se a honrar os pagamentos virtuais estipulados. Este contrato substitui quaisquer acordos verbais anteriores e é irrevogável até o fim de sua vigência, salvo cláusulas de rescisão previstas no regulamento da liga.`;
+    drawWrappedText(legalText, 10, timesRomanFont);
     yPosition -= 20;
 
+    // --- SIGNATURES ---
+    checkPageBreak(150);
+    drawText('4. ASSINATURAS', 14, timesRomanBold);
+    yPosition -= 40;
+
+    const sigLineY = yPosition;
+
+    // Team Signature
+    page.drawLine({
+      start: { x: margin, y: sigLineY },
+      end: { x: margin + 200, y: sigLineY },
+      thickness: 1,
+    });
+    page.drawText(`${teamName}`, { x: margin, y: sigLineY - 15, size: 10, font: timesRomanFont });
+    page.drawText(`(Representante do Time)`, {
+      x: margin,
+      y: sigLineY - 25,
+      size: 8,
+      font: timesRomanFont,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+
+    // Player Signature
+    page.drawLine({
+      start: { x: width - margin - 200, y: sigLineY },
+      end: { x: width - margin, y: sigLineY },
+      thickness: 1,
+    });
+    // Simulated signature font for player
+    page.drawText(`${playerName}`, {
+      x: width - margin - 180,
+      y: sigLineY + 5,
+      size: 16,
+      font: timesRomanFont,
+      rotate: degrees(-5),
+      color: rgb(0, 0, 0.5),
+    });
+    page.drawText(`${playerName}`, {
+      x: width - margin - 200,
+      y: sigLineY - 15,
+      size: 10,
+      font: timesRomanFont,
+    });
+    page.drawText(`(Atleta Profissional)`, {
+      x: width - margin - 200,
+      y: sigLineY - 25,
+      size: 8,
+      font: timesRomanFont,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+
+    yPosition -= 60;
+
     // Date
-    drawText(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 12, timesRomanFont, 'right');
+    drawText(
+      `Firmado em: ${new Date().toLocaleDateString('pt-BR')}`,
+      10,
+      timesRomanFont,
+      'center',
+      rgb(0.5, 0.5, 0.5),
+    );
     yPosition -= 30;
+    drawLine();
 
-    // Parties
-    drawText('PARTES ENVOLVIDAS', 14, timesRomanBold);
-    drawText(`JOGADOR: ${playerName}`, 12);
-    drawText(`TIME/REPRESENTANTE: ${teamName}`, 12);
-    drawText(`AGENTE: Jordan Spencer (Apex Dynasty Management)`, 12);
-    yPosition -= 30;
+    // --- HISTORY ---
+    page = pdfDoc.addPage();
+    drawBorder();
+    yPosition = height - margin;
 
-    // Terms
-    drawText('TERMOS DO ACORDO', 14, timesRomanBold);
-    drawText(`SALÁRIO ANUAL: ${salary}`, 12);
-    drawText(`DURAÇÃO: ${duration}`, 12);
-    yPosition -= 30;
-
-    // Signatures
-    drawText('ASSINATURAS', 14, timesRomanBold);
-    yPosition -= 30;
-    drawText('_______________________________', 12);
-    drawText(`${playerName} (Assinatura Digital)`, 12);
-    yPosition -= 30;
-    drawText('_______________________________', 12);
-    drawText(`${teamName} (Assinatura Digital)`, 12);
-    yPosition -= 50;
-
-    // History
-    drawText('HISTÓRICO COMPLETO DA NEGOCIAÇÃO', 14, timesRomanBold);
-    drawWrappedText(fullHistory, 10, timesRomanFont);
+    drawText('ANEXO: HISTÓRICO DA NEGOCIAÇÃO', 12, timesRomanBold, 'left', rgb(0.3, 0.3, 0.3));
+    yPosition -= 10;
+    // Compact history
+    drawWrappedText(fullHistory, 9, timesRomanFont, 1.1);
 
     const pdfBytes = await pdfDoc.save();
     const base64 = Buffer.from(pdfBytes).toString('base64');
 
-    return `[📄 Baixar Contrato Assinado](data:application/pdf;base64,${base64})`;
+    return `[📄 Baixar Contrato Oficial (${playerName})](data:application/pdf;base64,${base64})`;
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
     return 'Erro ao gerar o contrato PDF.';
@@ -546,8 +646,27 @@ export async function POST(req: Request) {
 
     const { messages } = await req.json();
 
+    // Fetch user team for context
+    const session = await getServerSession(authOptions);
+    let userTeamName = 'Time do Usuário';
+
+    if (session?.user?.email) {
+      const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+      if (user) {
+        const team = await prisma.team.findFirst({
+          where: { ownerId: user.id, league: { status: 'ACTIVE' } },
+        });
+        if (team) {
+          userTeamName = team.name;
+        }
+      }
+    }
+
+    // Inject Team Name into System Prompt
+    const dynamicSystemPrompt = SYSTEM_PROMPT.replace('{{USER_TEAM_NAME}}', userTeamName);
+
     // Add system prompt if it's the start of conversation or ensure it's there
-    const messagesWithSystem = [{ role: 'system', content: SYSTEM_PROMPT }, ...messages];
+    const messagesWithSystem = [{ role: 'system', content: dynamicSystemPrompt }, ...messages];
 
     // First call to OpenAI to decide if tools are needed
     const response = await openai.chat.completions.create({
@@ -580,7 +699,7 @@ export async function POST(req: Request) {
           const fullHistory = messages
             .filter((m: any) => m.role === 'user' || m.role === 'assistant')
             .map((m: any) => `${m.role === 'user' ? 'Usuário' : 'Jordan Spencer'}: ${m.content}`)
-            .join('\n\n');
+            .join('\n'); // Single line break for compactness
 
           functionResult = await generateContractPdf(
             functionArgs.playerName,
