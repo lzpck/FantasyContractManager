@@ -47,11 +47,19 @@ export async function GET() {
     }
 
     // Busca jogadores com contrato expirado (0 anos restantes) neste time
+    // Filtra apenas jogadores que ainda estão no roster (não foram removidos do Sleeper)
     const expiredContracts = await prisma.contract.findMany({
       where: {
         teamId: team.id,
         status: 'EXPIRED',
         yearsRemaining: 0,
+        player: {
+          teamRosters: {
+            some: {
+              teamId: team.id,
+            },
+          },
+        },
       },
       include: {
         player: true,
