@@ -34,6 +34,8 @@ const mockPlayers = [
   { id: 'p1', name: 'Free Agent 1', position: 'QB', nflTeam: 'ARI', isActive: true },
   { id: 'p2', name: 'Taken Player', position: 'RB', nflTeam: 'BAL', isActive: true },
   { id: 'p3', name: 'Free Agent 2', position: 'WR', nflTeam: 'CLE', isActive: false },
+  { id: 'p4', name: 'Tagged Player', position: 'TE', nflTeam: 'DEN', isActive: true },
+  { id: 'p5', name: 'Extended Player', position: 'K', nflTeam: 'DET', isActive: true },
 ];
 
 const mockContracts = [
@@ -42,6 +44,18 @@ const mockContracts = [
     status: ContractStatus.ACTIVE,
     playerId: 'p2',
     player: { id: 'p2', name: 'Taken Player' },
+  },
+  {
+    id: 'c2',
+    status: ContractStatus.TAGGED,
+    playerId: 'p4',
+    player: { id: 'p4', name: 'Tagged Player' },
+  },
+  {
+    id: 'c3',
+    status: ContractStatus.EXTENDED,
+    playerId: 'p5',
+    player: { id: 'p5', name: 'Extended Player' },
   },
 ];
 
@@ -57,12 +71,17 @@ describe('FreeAgentsReport', () => {
     });
   });
 
-  it('renders free agents only', () => {
+  it('renders free agents only (excludes ACTIVE, TAGGED, and EXTENDED)', () => {
     render(<FreeAgentsReport />);
 
+    // Free agents should be visible
     expect(screen.getByText('Free Agent 1')).toBeInTheDocument();
     expect(screen.getByText('Free Agent 2')).toBeInTheDocument();
+
+    // Players with ACTIVE, TAGGED, or EXTENDED contracts should NOT appear
     expect(screen.queryByText('Taken Player')).not.toBeInTheDocument();
+    expect(screen.queryByText('Tagged Player')).not.toBeInTheDocument();
+    expect(screen.queryByText('Extended Player')).not.toBeInTheDocument();
   });
 
   it('displays correct columns', () => {

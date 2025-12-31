@@ -11,6 +11,9 @@ export function FreeAgentsReport() {
   const { players, loading: playersLoading } = usePlayers();
   const { contracts, loading: contractsLoading } = useContracts();
 
+  // State for filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [positionFilter, setPositionFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [showOnlyActive, setShowOnlyActive] = useState(false);
   const itemsPerPage = 20;
@@ -19,22 +22,42 @@ export function FreeAgentsReport() {
   const freeAgents = useMemo(() => {
     if (playersLoading || contractsLoading) return [];
 
-    // Get IDs of players with active contracts
-    const activePlayerIds = new Set(
+    // Get IDs of players with valid contracts (ACTIVE, TAGGED, EXTENDED)
+    // Only players with EXPIRED or CUT (or no contract) should be considered free agents
+    const validContractStatuses = [
+      ContractStatus.ACTIVE,
+      ContractStatus.TAGGED,
+      ContractStatus.EXTENDED,
+    ];
+
+    const playersWithValidContracts = new Set(
       contracts
-        .filter((c: ContractWithPlayer) => c.status === ContractStatus.ACTIVE)
+        .filter((c: ContractWithPlayer) => validContractStatuses.includes(c.status))
         .map((c: ContractWithPlayer) => c.playerId),
     );
 
-    // Filter players who are NOT in the active contracts list
+    // Filter players who do NOT have valid contracts
     return players
       .filter((player: Player) => {
-        const isFreeAgent = !activePlayerIds.has(player.id);
+        const isFreeAgent = !playersWithValidContracts.has(player.id);
         const matchesActiveFilter = showOnlyActive ? player.isActive : true;
-        return isFreeAgent && matchesActiveFilter;
+        const matchesSearch = searchTerm
+          ? player.name.toLowerCase().includes(searchTerm.toLowerCase())
+          : true;
+        const matchesPosition =
+          positionFilter !== 'all' ? player.position === positionFilter : true;
+        return isFreeAgent && matchesActiveFilter && matchesSearch && matchesPosition;
       })
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [players, contracts, playersLoading, contractsLoading, showOnlyActive]);
+  }, [
+    players,
+    contracts,
+    playersLoading,
+    contractsLoading,
+    showOnlyActive,
+    searchTerm,
+    positionFilter,
+  ]);
 
   // Pagination
   const totalPages = Math.ceil(freeAgents.length / itemsPerPage);
@@ -102,23 +125,62 @@ export function FreeAgentsReport() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-800 p-4 rounded-lg border border-slate-700">
-        <div className="flex items-center gap-6">
-          <div className="text-slate-300">
-            Total de Free Agents: <span className="font-bold text-white">{freeAgents.length}</span>
-          </div>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-800 p-4 rounded-lg border border-slate-700">
+        <div className="flex-1 w-full md:w-auto grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Search */}
+          <input
+            type="text"
+            placeholder="Buscar por nome..."
+            value={searchTerm}
+            onChange={e => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="bg-slate-900 border border-slate-700 text-slate-100 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Buscar por nome"
+          />
 
+          {/* Position Filter */}
+          <select
+            value={positionFilter}
+            onChange={e => {
+              setPositionFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="bg-slate-900 border border-slate-700 text-slate-100 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Filtrar por posição"
+          >
+            <option value="all">Todas as Posições</option>
+            <option value="QB">QB</option>
+            <option value="RB">RB</option>
+            <option value="WR">WR</option>
+            <option value="TE">TE</option>
+            <option value="K">K</option>
+            <option value="DL">DL</option>
+            <option value="LB">LB</option>
+            <option value="DB">DB</option>
+          </select>
+
+          {/* Active Filter */}
           <div className="flex items-center">
             <input
               id="active-filter"
               type="checkbox"
               checked={showOnlyActive}
-              onChange={e => setShowOnlyActive(e.target.checked)}
+              onChange={e => {
+                setShowOnlyActive(e.target.checked);
+                setCurrentPage(1);
+              }}
               className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
             />
             <label htmlFor="active-filter" className="ml-2 text-sm font-medium text-slate-300">
               Apenas Jogadores Ativos
             </label>
+          </div>
+
+          {/* Results Count */}
+          <div className="text-slate-300 flex items-center">
+            Total: <span className="font-bold text-white ml-1">{freeAgents.length}</span>
           </div>
         </div>
 
