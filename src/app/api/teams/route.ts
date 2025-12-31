@@ -47,12 +47,31 @@ export async function GET() {
     ];
 
     // Buscar todos os times das ligas acessíveis
-    const teams = await prisma.team.findMany({
-      where: {
+    // Também incluir explicitamente o time associado via user.teamId
+    const teamWhereConditions: { leagueId?: { in: string[] }; id?: string }[] = [];
+
+    if (allAccessibleLeagueIds.length > 0) {
+      teamWhereConditions.push({
         leagueId: {
           in: allAccessibleLeagueIds,
         },
-      },
+      });
+    }
+
+    // Incluir time associado diretamente ao usuário via teamId
+    if (user.teamId) {
+      teamWhereConditions.push({
+        id: user.teamId,
+      });
+    }
+
+    const teams = await prisma.team.findMany({
+      where:
+        teamWhereConditions.length > 0
+          ? {
+              OR: teamWhereConditions,
+            }
+          : {},
       include: {
         league: true,
         contracts: {

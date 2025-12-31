@@ -20,14 +20,27 @@ export async function GET() {
     }
 
     // Busca o time do usuário na liga ativa
-    const team = await prisma.team.findFirst({
-      where: {
-        ownerId: user.id,
-        league: {
-          status: 'ACTIVE',
+    // Prioridade 1: Pelo teamId associado no perfil do usuário
+    // Prioridade 2: Pelo ownerId (times que o usuário possui)
+    let team = null;
+
+    if (user.teamId) {
+      team = await prisma.team.findUnique({
+        where: { id: user.teamId },
+        include: { league: true },
+      });
+    }
+
+    if (!team) {
+      team = await prisma.team.findFirst({
+        where: {
+          ownerId: user.id,
+          league: {
+            status: 'ACTIVE',
+          },
         },
-      },
-    });
+      });
+    }
 
     if (!team) {
       return NextResponse.json([]);

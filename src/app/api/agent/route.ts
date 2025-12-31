@@ -653,9 +653,23 @@ export async function POST(req: Request) {
     if (session?.user?.email) {
       const user = await prisma.user.findUnique({ where: { email: session.user.email } });
       if (user) {
-        const team = await prisma.team.findFirst({
-          where: { ownerId: user.id, league: { status: 'ACTIVE' } },
-        });
+        let team = null;
+
+        // Prioridade 1: Buscar pelo teamId associado no perfil do usuário
+        if (user.teamId) {
+          team = await prisma.team.findUnique({
+            where: { id: user.teamId },
+            include: { league: true },
+          });
+        }
+
+        // Prioridade 2: Buscar pelo ownerId (times que o usuário possui)
+        if (!team) {
+          team = await prisma.team.findFirst({
+            where: { ownerId: user.id, league: { status: 'ACTIVE' } },
+          });
+        }
+
         if (team) {
           userTeamName = team.name;
         }
