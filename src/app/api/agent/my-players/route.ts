@@ -46,21 +46,19 @@ export async function GET() {
       return NextResponse.json([]);
     }
 
-    // Busca jogadores com contrato ativo neste time que estão expirando (<= 1 ano)
-    const activeContracts = await prisma.contract.findMany({
+    // Busca jogadores com contrato expirado (0 anos restantes) neste time
+    const expiredContracts = await prisma.contract.findMany({
       where: {
         teamId: team.id,
-        status: 'ACTIVE',
-        yearsRemaining: {
-          lte: 1,
-        },
+        status: 'EXPIRED',
+        yearsRemaining: 0,
       },
       include: {
         player: true,
       },
     });
 
-    const players = activeContracts.map(contract => {
+    const players = expiredContracts.map(contract => {
       const { player } = contract;
       return {
         id: player.id,
