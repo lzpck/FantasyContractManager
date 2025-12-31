@@ -73,6 +73,7 @@ export async function GET() {
         name: player.name,
         position: player.position,
         avatarUrl: `https://sleepercdn.com/content/nfl/players/${player.sleeperPlayerId}.jpg`,
+        originalSalary: contract.originalSalary,
       };
     });
 
