@@ -66,6 +66,8 @@ interface PlayerRosterSectionsProps {
   league: League | null;
   /** Se o usuário é comissário (pode editar contratos) */
   isCommissioner?: boolean;
+  /** Se o usuário é dono do time (pode aplicar franchise tag no próprio time) */
+  isTeamOwner?: boolean;
   /** Registros de dead money reais do banco de dados */
   deadMoneyRecords?: DeadMoneyRecord[];
 }
@@ -84,6 +86,7 @@ export function PlayerRosterSections({
   onPlayerAction,
   league,
   isCommissioner = false,
+  isTeamOwner = false,
   deadMoneyRecords = [],
 }: PlayerRosterSectionsProps) {
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
@@ -517,7 +520,8 @@ export function PlayerRosterSections({
                             </button>
                           )}
 
-                        {isEligibleForTag(contract) &&
+                        {(isCommissioner || isTeamOwner) &&
+                          isEligibleForTag(contract) &&
                           playerWithContract.rosterStatus !== 'cut' && (
                             <button
                               onClick={e => {

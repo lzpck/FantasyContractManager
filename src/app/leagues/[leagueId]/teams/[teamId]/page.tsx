@@ -46,6 +46,8 @@ export default function TeamDetailsPage() {
   const contractModal = useContractModal();
   const { user } = useAuth();
   const isCommissioner = user?.role === 'COMMISSIONER';
+  // Verifica se o usuário é dono do time sendo visualizado
+  const isTeamOwner = user?.teamId === teamId;
 
   // Carregar dados do time
   useEffect(() => {
@@ -316,6 +318,7 @@ export default function TeamDetailsPage() {
             onPlayerAction={handlePlayerAction}
             league={league}
             isCommissioner={isCommissioner}
+            isTeamOwner={isTeamOwner}
             deadMoneyRecords={deadMoneyRecords}
           />
         </div>
