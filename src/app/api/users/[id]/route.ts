@@ -187,6 +187,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           },
         });
 
+        // Atualizar o teamId no perfil do usuário com o primeiro time da lista
+        // Isso garante que a busca por user.teamId funcione corretamente
+        updateData.teamId = teamIds[0];
+
         // Garantir que o usuário seja membro de todas as novas ligas
         const leagueIds = [...new Set(newTeams.map(team => team.leagueId))];
         for (const leagueId of leagueIds) {
@@ -210,6 +214,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         console.log(
           `[AUDIT] Usuário ${userId} (${existingUser.name}) associado às equipes: ${teamNames}`,
         );
+      } else {
+        // Se nenhum time foi associado, limpar o teamId
+        updateData.teamId = null;
       }
     }
 

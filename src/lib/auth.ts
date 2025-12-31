@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.role = user.role;
         token.login = user.login;
@@ -76,6 +76,23 @@ export const authOptions: NextAuthOptions = {
         token.team = user.team;
         token.teams = user.teams; // Incluir array de teams que o usuário possui
       }
+
+      // Sempre re-buscar o teamId do banco para garantir sincronização
+      // Isso é executado em cada renovação do token (ex: mudança de página)
+      if (token.sub) {
+        try {
+          const currentUser = await prisma.user.findUnique({
+            where: { id: token.sub },
+            select: { teamId: true },
+          });
+          if (currentUser) {
+            token.teamId = currentUser.teamId;
+          }
+        } catch {
+          // Em caso de erro, mantém o valor existente do token
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
