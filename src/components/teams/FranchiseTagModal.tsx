@@ -163,20 +163,26 @@ export default function FranchiseTagModal({
                   </div>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {isCommissioner ? (
-                    <div>
-                      <label className="block text-sm text-slate-300 mb-2">Valor da Tag *</label>
-                      <input
-                        type="number"
-                        value={tagValue}
-                        onChange={e => setTagValue(e.target.value)}
-                        className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 ${errors.tagValue ? 'border-red-500' : 'border-slate-600'}`}
-                      />
-                      {errors.tagValue && (
-                        <p className="text-red-400 text-xs mt-1">{errors.tagValue}</p>
-                      )}
-                    </div>
-                  ) : null}
+                  <div>
+                    <label className="block text-sm text-slate-300 mb-2">Valor da Tag *</label>
+                    <input
+                      type="number"
+                      value={tagValue}
+                      onChange={e => setTagValue(e.target.value)}
+                      disabled={!isCommissioner}
+                      className={`w-full px-3 py-2 bg-slate-700 border rounded-lg text-slate-100 ${
+                        errors.tagValue ? 'border-red-500' : 'border-slate-600'
+                      } ${!isCommissioner ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    />
+                    {errors.tagValue && (
+                      <p className="text-red-400 text-xs mt-1">{errors.tagValue}</p>
+                    )}
+                    {!isCommissioner && (
+                      <p className="text-slate-400 text-[10px] mt-1 italic">
+                        * O valor da tag é calculado automaticamente para usuários comuns.
+                      </p>
+                    )}
+                  </div>
                   <div className="bg-yellow-900/20 border border-yellow-700 p-3 rounded-lg text-yellow-300 text-sm">
                     A franchise tag só pode ser usada uma vez por jogador e uma vez por temporada.
                   </div>
