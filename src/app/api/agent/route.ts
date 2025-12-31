@@ -32,6 +32,15 @@ REGRA #2: USO DE ESTATÍSTICAS (STATS REAIS):
 - Se as stats forem ruins (ex: < 500 jardas, 0 TDs), admita que foi um ano fraco, mas use o potencial ou a média da liga para defender seu cliente.
 - Se as stats forem nulas/zeradas, assuma que ele é um rookie ou reserva e negocie com base no potencial.
 
+REGRA #2.5: SALÁRIO ANTERIOR (PISO MÍNIMO ABSOLUTO):
+- A ferramenta \`get_player_data_internal\` retorna \`previousSalary\` (salário do contrato anterior) e \`franchiseTagValue\`.
+- O PISO MÍNIMO é o MAIOR entre \`previousSalary\` e \`franchiseTagValue\`.
+- Se \`previousSalary\` > \`franchiseTagValue\`: O jogador JÁ PROVOU que vale mais que o mercado. NÃO aceite menos que o salário anterior.
+  - Exemplo: previousSalary = $17M, Tag = $6M -> Piso = $17M. Contraproposta deve ser >= $17M.
+- Se \`franchiseTagValue\` > \`previousSalary\`: Use a Franchise Tag como referência.
+- CRÍTICO: Sua contraproposta DEVE ser coerente com o argumento usado. Se você citar o salário anterior de $17M para recusar uma oferta, NÃO faça uma contraproposta de $8M. Isso é contraditório.
+- Exceção: Se as stats da temporada foram DESASTROSAS (lesão grave, 0 jardas, suspensão), você pode aceitar um corte e justificar.
+
 REGRA #3: NEGOCIAÇÃO DE TEMPO (DURAÇÃO):
 - Não negocie apenas salário. O tempo de contrato (anos) é crucial.
 - Se o usuário oferecer um salário baixo, exija um contrato curto (1 ano) para "provar valor".
@@ -137,9 +146,6 @@ async function getPlayerDataInternal(playerName: string) {
       },
       include: {
         contracts: {
-          where: {
-            status: 'ACTIVE',
-          },
           include: {
             team: true,
           },
@@ -156,11 +162,14 @@ async function getPlayerDataInternal(playerName: string) {
       return JSON.stringify({ error: 'Jogador não encontrado no banco de dados interno.' });
     }
 
-    const activeContract = player.contracts[0];
+    // Busca contrato ativo ou expirado (para negociação)
+    const activeContract = player.contracts.find(c => c.status === 'ACTIVE');
+    const expiredContract = player.contracts.find(c => c.status === 'EXPIRED');
+    const relevantContract = activeContract || expiredContract;
     const currentTeam = player.teamRosters[0]?.team?.name || 'Free Agent';
 
-    // Tenta identificar a liga pelo contrato ativo ou pelo time atual
-    const leagueId = activeContract?.leagueId || player.teamRosters[0]?.team?.leagueId;
+    // Tenta identificar a liga pelo contrato ativo/expirado ou pelo time atual
+    const leagueId = relevantContract?.leagueId || player.teamRosters[0]?.team?.leagueId;
 
     let franchiseTagValue = 0;
     let marketContext: { name: string; salary: number }[] = [];
@@ -201,6 +210,8 @@ async function getPlayerDataInternal(playerName: string) {
     }
 
     const yearsLeft = activeContract ? activeContract.yearsRemaining : 0;
+    // Salário anterior (do contrato expirado) para usar como piso mínimo
+    const previousSalary = expiredContract ? expiredContract.originalSalary : 0;
     const canRenegotiate = yearsLeft <= 1;
 
     return JSON.stringify({
@@ -208,13 +219,15 @@ async function getPlayerDataInternal(playerName: string) {
         name: player.name,
         identifier: generateUserIdentifier(player.name),
         position: player.position,
-        salary: activeContract ? activeContract.currentSalary : 0,
+        salary: relevantContract ? relevantContract.currentSalary : 0,
+        previousSalary: previousSalary,
         yearsLeft: yearsLeft,
         team: currentTeam,
-        contractStatus: activeContract ? activeContract.status : 'Sem contrato',
+        contractStatus: relevantContract ? relevantContract.status : 'Sem contrato',
       },
       marketContext,
       franchiseTagValue,
+      previousSalary,
       canRenegotiate,
     });
   } catch (error) {
