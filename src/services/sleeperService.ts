@@ -54,6 +54,7 @@ export interface SleeperLeague {
     keeper_deadline?: string;
     [key: string]: string | number | boolean | undefined;
   };
+  previous_league_id?: string;
 }
 
 /**
@@ -123,6 +124,68 @@ export interface SleeperUser {
   metadata?: {
     team_name?: string;
     [key: string]: string | number | boolean | undefined;
+  };
+}
+
+/**
+ * Estrutura de um confronto (Matchup) na Sleeper
+ */
+export interface SleeperMatchup {
+  matchup_id: number;
+  roster_id: number;
+  points: number;
+  custom_points?: number;
+  starters: string[];
+  players: string[];
+}
+
+/**
+ * Estrutura de uma partida no bracket de playoffs
+ */
+export interface SleeperBracketMatch {
+  r: number; // round
+  m: number; // match id
+  t1: number | { w: number } | { l: number }; // team 1 (roster_id or ref to match)
+  t2: number | { w: number } | { l: number }; // team 2
+  w: number; // winner (roster_id)
+  l: number; // loser (roster_id)
+  p?: number; // place (ex: 1 for champ, 3 for 3rd place)
+}
+
+/**
+ * Estrutura de dados consolidada para o histórico de uma temporada
+ */
+export interface SeasonHistory {
+  year: number;
+  leagueId: string;
+  champion?: {
+    rosterId: number;
+    ownerId: string;
+    teamName: string;
+    avatar?: string;
+  };
+  runnerUp?: {
+    rosterId: number;
+    ownerId: string;
+    teamName: string;
+    avatar?: string;
+  };
+  standings: {
+    rosterId: number;
+    ownerId: string;
+    teamName: string;
+    wins: number;
+    losses: number;
+    ties: number;
+    pointsFor: number;
+    pointsAgainst: number;
+    rank: number;
+    avatar?: string;
+    ownerDisplayName?: string;
+  }[];
+  matchups: Record<number, SleeperMatchup[]>;
+  settings?: {
+    playoffWeekStart?: number;
   };
 }
 
@@ -221,6 +284,125 @@ export async function fetchSleeperPlayers(): Promise<Record<string, SleeperPlaye
   const players = await response.json();
 
   return players;
+}
+
+/**
+ * Busca os confrontos (matchups) de uma semana específica
+ */
+export async function fetchSleeperMatchups(
+  leagueId: string,
+  week: number,
+): Promise<SleeperMatchup[]> {
+  const response = await fetch(`${SLEEPER_API_BASE}/league/${leagueId}/matchups/${week}`);
+  if (!response.ok) return [];
+  return response.json();
+}
+
+/**
+ * Busca o bracket dos vencedores (playoffs)
+ */
+export async function fetchSleeperWinnersBracket(leagueId: string): Promise<SleeperBracketMatch[]> {
+  const response = await fetch(`${SLEEPER_API_BASE}/league/${leagueId}/winners_bracket`);
+  if (!response.ok) return [];
+  return response.json();
+}
+
+/**
+ * Busca todo o histórico de ligas recursivamente
+ */
+export async function fetchLeagueHistoryRecursive(
+  currentLeagueId: string,
+): Promise<SeasonHistory[]> {
+  const history: SeasonHistory[] = [];
+  let leagueId: string | undefined = currentLeagueId;
+  const visited = new Set<string>();
+
+  while (leagueId && !visited.has(leagueId)) {
+    visited.add(leagueId);
+
+    try {
+      const league = await fetchSleeperLeague(leagueId);
+      const year = parseInt(league.season);
+
+      const [rosters, users, bracket] = await Promise.all([
+        fetchSleeperRosters(leagueId),
+        fetchSleeperUsers(leagueId),
+        fetchSleeperWinnersBracket(leagueId),
+      ]);
+
+      let championRosterId: number | undefined;
+      let runnerUpRosterId: number | undefined;
+
+      const finalMatch = bracket.find(m => m.p === 1);
+      if (finalMatch) {
+        championRosterId = finalMatch.w;
+        runnerUpRosterId = finalMatch.l;
+      } else {
+        const maxRound = Math.max(...bracket.map(m => m.r));
+        const finals = bracket.find(m => m.r === maxRound);
+        if (finals) {
+          championRosterId = finals.w;
+          runnerUpRosterId = finals.l;
+        }
+      }
+
+      const getTeamData = (rId: number) => {
+        const roster = rosters.find(r => r.roster_id === rId);
+        if (!roster) return undefined;
+        const user = users.find(u => u.user_id === roster.owner_id);
+        const teamName =
+          user?.metadata?.team_name || `Time sem nome (${user?.display_name || roster.roster_id})`;
+        return {
+          rosterId: rId,
+          ownerId: roster.owner_id,
+          teamName,
+          avatar: user?.avatar,
+        };
+      };
+
+      const sortedRosters = [...rosters].sort((a, b) => {
+        if (a.settings.wins !== b.settings.wins) return b.settings.wins - a.settings.wins;
+        return b.settings.fpts - a.settings.fpts;
+      });
+
+      const seasonStandings = sortedRosters.map((r, index) => {
+        const user = users.find(u => u.user_id === r.owner_id);
+        return {
+          rosterId: r.roster_id,
+          ownerId: r.owner_id,
+          teamName:
+            user?.metadata?.team_name || `Time sem nome (${user?.display_name || r.roster_id})`,
+          wins: r.settings.wins,
+          losses: r.settings.losses,
+          ties: r.settings.ties,
+          pointsFor: r.settings.fpts,
+          pointsAgainst: r.settings.fpts_against,
+          rank: index + 1,
+          avatar: user?.avatar,
+          ownerDisplayName: user?.display_name,
+        };
+      });
+
+      history.push({
+        year,
+        leagueId,
+        champion: championRosterId ? getTeamData(championRosterId) : undefined,
+        runnerUp: runnerUpRosterId ? getTeamData(runnerUpRosterId) : undefined,
+        standings: seasonStandings,
+        matchups: {},
+        settings: {
+          playoffWeekStart: league.settings.playoff_week_start,
+        },
+      });
+
+      leagueId = (league as any).previous_league_id;
+    } catch (error) {
+      console.error(`Erro ao processar histórico para liga ${leagueId}:`, error);
+      break;
+    }
+  }
+
+  return history.sort((a, b) => b.year - a.year);
 }
 
 // ============================================================================
@@ -744,5 +926,33 @@ export class SleeperService {
    */
   static async syncLeague(league: League) {
     return syncLeagueWithSleeper(league);
+  }
+
+  /**
+   * Busca histórico completo da liga
+   */
+  static async fetchHistory(currentLeagueId: string): Promise<SeasonHistory[]> {
+    return fetchLeagueHistoryRecursive(currentLeagueId);
+  }
+
+  /**
+   * Busca matchups (H2H) para todas as semanas de uma liga
+   */
+  static async fetchAllSeasonMatchups(leagueId: string): Promise<Record<number, SleeperMatchup[]>> {
+    const result: Record<number, SleeperMatchup[]> = {};
+    // Assumindo max 18 semanas para segurança, ou buscar settings.playoff_week_start
+    // Mas 18 cobre a maioria das ligas atuais
+    const weeks = Array.from({ length: 18 }, (_, i) => i + 1);
+
+    // Paralelizar (cuidado com rate limit em loops grandes, mas 18reqs usually ok)
+    const promises = weeks.map(async w => {
+      const matchups = await fetchSleeperMatchups(leagueId, w);
+      if (matchups && matchups.length > 0) {
+        result[w] = matchups;
+      }
+    });
+
+    await Promise.all(promises);
+    return result;
   }
 }
