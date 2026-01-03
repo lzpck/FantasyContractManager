@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { SeasonHistory } from '@/services/sleeperService';
-import { TrophyIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { Trophy } from 'lucide-react';
+import { Trophy, ChevronUp, ChevronDown, Filter, Medal, TrendingUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface AnnualStandingsProps {
   history: SeasonHistory[];
@@ -12,8 +13,20 @@ interface AnnualStandingsProps {
 
 type SortField = 'position' | 'name' | 'wins' | 'losses' | 'pct' | 'pointsFor' | 'pointsAgainst';
 
-function TeamAvatar({ avatar, teamName }: { avatar: string; teamName: string }) {
-  const [src, setSrc] = useState(`https://sleepercdn.com/avatars/thumbs/${avatar}`);
+function TeamAvatar({
+  avatar,
+  teamName,
+  className,
+}: {
+  avatar?: string;
+  teamName: string;
+  className?: string;
+}) {
+  const [src, setSrc] = useState(
+    avatar
+      ? `https://sleepercdn.com/avatars/thumbs/${avatar}`
+      : 'https://sleepercdn.com/images/v2/icons/player_default.webp',
+  );
 
   return (
     <Image
@@ -21,7 +34,7 @@ function TeamAvatar({ avatar, teamName }: { avatar: string; teamName: string }) 
       alt={teamName}
       width={40}
       height={40}
-      className="h-10 w-10 rounded-full object-cover"
+      className={cn('bg-slate-800', className)}
       onError={() => {
         setSrc('https://sleepercdn.com/images/v2/icons/player_default.webp');
       }}
@@ -104,12 +117,12 @@ export function AnnualStandings({ history }: AnnualStandingsProps) {
 
   const renderSortIcon = (column: SortField) => {
     if (sortBy !== column) {
-      return <ChevronUpIcon className="w-4 h-4 text-slate-500" />;
+      return <div className="w-4 h-4" />;
     }
     return sortOrder === 'asc' ? (
-      <ChevronUpIcon className="w-4 h-4 text-blue-400" />
+      <ChevronUp className="w-3 h-3 text-blue-400" />
     ) : (
-      <ChevronDownIcon className="w-4 h-4 text-blue-400" />
+      <ChevronDown className="w-3 h-3 text-blue-400" />
     );
   };
 
@@ -117,16 +130,29 @@ export function AnnualStandings({ history }: AnnualStandingsProps) {
     column,
     children,
     className = '',
+    align = 'left',
   }: {
     column: SortField;
     children: React.ReactNode;
     className?: string;
+    align?: 'left' | 'center' | 'right';
   }) => (
     <th
-      className={`px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider cursor-pointer hover:text-slate-100 transition-colors ${className}`}
+      className={cn(
+        'px-4 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-slate-200 hover:bg-slate-800/50 transition-colors select-none',
+        align === 'center' && 'text-center',
+        align === 'right' && 'text-right',
+        className,
+      )}
       onClick={() => handleSort(column)}
     >
-      <div className="flex items-center space-x-1">
+      <div
+        className={cn(
+          'flex items-center gap-1.5',
+          align === 'center' && 'justify-center',
+          align === 'right' && 'justify-end',
+        )}
+      >
         <span>{children}</span>
         {renderSortIcon(column)}
       </div>
@@ -134,17 +160,23 @@ export function AnnualStandings({ history }: AnnualStandingsProps) {
   );
 
   return (
-    <div className="space-y-0">
-      {/* Card do Filtro de Ano */}
-      <div className="bg-slate-800 border border-slate-700 rounded-t-2xl p-4 border-b-0">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex items-center gap-2">
-            <TrophyIcon className="h-6 w-6 text-yellow-500" />
-            <h2 className="text-xl font-bold text-slate-100">Classificação Histórica</h2>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Filters & Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center shadow-lg">
+            <Trophy className="h-6 w-6 text-yellow-500" />
           </div>
           <div>
+            <h2 className="text-xl font-bold text-slate-100 leading-tight">Classificação</h2>
+            <p className="text-sm text-slate-500">Histórico anual detalhado</p>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-3 w-full md:w-auto">
+          <div className="relative w-full md:w-[200px]">
             <select
-              className="h-10 rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full appearance-none h-11 pl-11 pr-4 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all cursor-pointer"
               value={selectedYear.toString()}
               onChange={e => setSelectedYear(parseInt(e.target.value))}
             >
@@ -154,31 +186,48 @@ export function AnnualStandings({ history }: AnnualStandingsProps) {
                 </option>
               ))}
             </select>
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
           </div>
         </div>
       </div>
-      {/* Tabela */}
-      <div className="bg-slate-800 border border-slate-700 border-t-0 rounded-b-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-600">
-            <thead className="bg-slate-700">
-              <tr>
-                <SortableHeader column="position">Pos</SortableHeader>
-                <SortableHeader column="name">Time</SortableHeader>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+
+      {/* Table Card */}
+      <div className="w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/30 shadow-xl shadow-black/20">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+          <table className="w-full divide-y divide-slate-800">
+            <thead>
+              <tr className="bg-slate-900/80">
+                <SortableHeader column="position" className="pl-6 w-16" align="center">
+                  Pos
+                </SortableHeader>
+                <SortableHeader column="name" className="pl-6">
+                  Time
+                </SortableHeader>
+                <th className="px-4 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider w-[20%] hidden md:table-cell">
                   Manager
                 </th>
-                <SortableHeader column="wins">V</SortableHeader>
-                <SortableHeader column="losses">D</SortableHeader>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                <SortableHeader column="wins" align="center" className="w-[8%]">
+                  V
+                </SortableHeader>
+                <SortableHeader column="losses" align="center" className="w-[8%]">
+                  D
+                </SortableHeader>
+                <th className="px-4 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider w-[8%]">
                   E
                 </th>
-                <SortableHeader column="pct">PCT</SortableHeader>
-                <SortableHeader column="pointsFor">PF</SortableHeader>
-                <SortableHeader column="pointsAgainst">PA</SortableHeader>
+                <SortableHeader column="pct" align="center" className="w-[10%]">
+                  PCT
+                </SortableHeader>
+                <SortableHeader column="pointsFor" align="right">
+                  PF
+                </SortableHeader>
+                <SortableHeader column="pointsAgainst" align="right" className="pr-6">
+                  PA
+                </SortableHeader>
               </tr>
             </thead>
-            <tbody className="bg-slate-800 divide-y divide-slate-600">
+            <tbody className="divide-y divide-slate-800/50">
               {sortedStandings.map(standing => {
                 const isChampion = championRosterId === standing.rosterId;
                 const isRunnerUp = runnerUpRosterId === standing.rosterId;
@@ -186,25 +235,32 @@ export function AnnualStandings({ history }: AnnualStandingsProps) {
                 return (
                   <tr
                     key={standing.rosterId}
-                    className={`
-                      hover:bg-slate-700 transition-colors
-                      ${isChampion ? 'bg-yellow-500/10 hover:bg-yellow-500/20' : ''}
-                      ${isRunnerUp ? 'bg-slate-500/10 hover:bg-slate-500/20' : ''}
-                    `}
+                    className={cn(
+                      'group transition-all duration-200 hover:bg-slate-800/60',
+                      isChampion ? 'bg-yellow-500/5 hover:bg-yellow-500/10' : '',
+                      isRunnerUp ? 'bg-slate-700/5 hover:bg-slate-700/10' : '',
+                    )}
                   >
                     {/* Pos */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col items-center justify-center gap-1">
                         {isChampion ? (
-                          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-yellow-500/20 text-yellow-500">
-                            <Trophy className="h-5 w-5" />
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500/10 ring-1 ring-yellow-500/50 shadow-[0_0_10px_-3px_rgba(234,179,8,0.3)]">
+                            <Trophy className="h-4 w-4 text-yellow-500" />
                           </div>
                         ) : isRunnerUp ? (
-                          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-400/20 text-slate-400">
-                            <Trophy className="h-5 w-5" />
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700/30 ring-1 ring-slate-500/50">
+                            <Medal className="h-4 w-4 text-slate-400" />
                           </div>
                         ) : (
-                          <span className="text-lg font-bold text-slate-300 pl-2">
+                          <span
+                            className={cn(
+                              'text-sm font-bold w-8 h-8 flex items-center justify-center rounded-full',
+                              standing.rank <= 4
+                                ? 'bg-blue-500/10 text-blue-400'
+                                : 'text-slate-500',
+                            )}
+                          >
                             {standing.rank}
                           </span>
                         )}
@@ -212,95 +268,114 @@ export function AnnualStandings({ history }: AnnualStandingsProps) {
                     </td>
 
                     {/* Time: Avatar + Nome */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
+                    <td className="px-4 py-4 whitespace-nowrap pl-6">
+                      <div className="flex items-center gap-4">
                         <div
-                          className={`flex-shrink-0 h-10 w-10 ${
+                          className={cn(
+                            'relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-2 transition-all group-hover:scale-105',
                             isChampion
-                              ? 'ring-2 ring-yellow-500 rounded-full'
+                              ? 'ring-yellow-500 shadow-lg shadow-yellow-500/20'
                               : isRunnerUp
-                                ? 'ring-2 ring-slate-400 rounded-full'
-                                : ''
-                          }`}
-                        >
-                          {standing.avatar ? (
-                            <TeamAvatar avatar={standing.avatar} teamName={standing.teamName} />
-                          ) : (
-                            <div className="h-10 w-10 rounded-full bg-blue-900/30 flex items-center justify-center">
-                              <span className="text-sm font-medium text-blue-200">
-                                {standing.teamName.substring(0, 2).toUpperCase()}
-                              </span>
-                            </div>
+                                ? 'ring-slate-400'
+                                : 'ring-slate-700 group-hover:ring-slate-600',
                           )}
+                        >
+                          <TeamAvatar
+                            avatar={standing.avatar}
+                            teamName={standing.teamName}
+                            className="h-full w-full object-cover"
+                          />
                         </div>
-                        <div className="ml-4">
+                        <div className="flex flex-col">
                           <div className="flex items-center gap-2">
-                            <div
-                              className={`text-sm font-medium ${
+                            <span
+                              className={cn(
+                                'font-bold text-sm',
                                 isChampion
-                                  ? 'text-yellow-400'
+                                  ? 'text-yellow-500'
                                   : isRunnerUp
-                                    ? 'text-slate-300'
-                                    : 'text-slate-100'
-                              }`}
+                                    ? 'text-slate-200'
+                                    : 'text-slate-200',
+                              )}
                             >
                               {standing.teamName}
-                            </div>
+                            </span>
                             {isChampion && (
-                              <span className="inline-flex items-center rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs font-medium text-yellow-500">
-                                Campeão
-                              </span>
+                              <Badge
+                                variant="secondary"
+                                className="bg-yellow-500/20 text-yellow-500 border-0 text-[10px] h-4 px-1"
+                              >
+                                CAMPEÃO
+                              </Badge>
                             )}
                             {isRunnerUp && (
-                              <span className="inline-flex items-center rounded-full bg-slate-400/10 px-2 py-0.5 text-xs font-medium text-slate-400">
-                                Vice
-                              </span>
+                              <Badge
+                                variant="outline"
+                                className="border-slate-600 text-slate-400 text-[10px] h-4 px-1"
+                              >
+                                VICE
+                              </Badge>
                             )}
                           </div>
+                          {/* Mobile Manager Name */}
+                          <span className="text-xs text-slate-500 md:hidden">
+                            {standing.ownerDisplayName || 'N/A'}
+                          </span>
                         </div>
                       </div>
                     </td>
 
-                    {/* Manager */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-300">
+                    {/* Manager (Desktop) */}
+                    <td className="px-4 py-4 whitespace-nowrap hidden md:table-cell">
+                      <div className="text-sm font-medium text-slate-400 group-hover:text-slate-300 transition-colors">
                         {standing.ownerDisplayName || 'N/A'}
                       </div>
                     </td>
 
                     {/* Wins */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-medium text-green-400">{standing.wins}</span>
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <span className="text-sm font-bold text-slate-200">{standing.wins}</span>
                     </td>
 
                     {/* Losses */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-medium text-red-400">{standing.losses}</span>
-                    </td>
-
-                    {/* Ties */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-slate-400">{standing.ties}</span>
-                    </td>
-
-                    {/* PCT */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-medium text-blue-400">
-                        {(standing.pct * 100).toFixed(1)}%
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <span className="text-sm font-semibold text-slate-500">
+                        {standing.losses}
                       </span>
                     </td>
 
+                    {/* Ties */}
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <span className="text-xs font-medium text-slate-600">
+                        {standing.ties > 0 ? standing.ties : '-'}
+                      </span>
+                    </td>
+
+                    {/* PCT */}
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <span
+                          className={cn(
+                            'text-sm font-bold tabular-nums',
+                            standing.pct >= 0.5 ? 'text-green-400' : 'text-red-400',
+                          )}
+                        >
+                          {(standing.pct * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    </td>
+
                     {/* PF */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-medium text-slate-100">
-                        {standing.pointsFor.toFixed(2)}
+                    <td className="px-4 py-4 whitespace-nowrap text-right">
+                      <span className="text-sm font-medium text-slate-300 tabular-nums font-mono">
+                        {standing.pointsFor.toFixed(1)}
                       </span>
                     </td>
 
                     {/* PA */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-slate-300">
-                        {standing.pointsAgainst.toFixed(2)}
+                    <td className="px-4 py-4 whitespace-nowrap text-right pr-6">
+                      <span className="text-sm text-slate-500 tabular-nums font-mono group-hover:text-slate-400 transition-colors">
+                        {standing.pointsAgainst.toFixed(1)}
                       </span>
                     </td>
                   </tr>
@@ -309,12 +384,19 @@ export function AnnualStandings({ history }: AnnualStandingsProps) {
 
               {sortedStandings.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center">
-                    <div className="text-4xl mb-4">📊</div>
-                    <h3 className="text-lg font-medium text-slate-100 mb-2">
-                      Nenhum dado encontrado
-                    </h3>
-                    <p className="text-slate-400">Não há dados para esta temporada ou filtro.</p>
+                  <td colSpan={9} className="px-6 py-24 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="h-16 w-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
+                        <TrendingUp className="h-8 w-8 text-slate-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-300 mb-2">
+                        Nenhum dado encontrado
+                      </h3>
+                      <p className="text-slate-500 max-w-sm">
+                        Não encontramos registros de classificação para a temporada ou filtros
+                        selecionados.
+                      </p>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -322,26 +404,24 @@ export function AnnualStandings({ history }: AnnualStandingsProps) {
           </table>
         </div>
 
-        {/* Legenda (Simplificada) */}
-        <div className="p-4 bg-slate-700/50 border-t border-slate-600">
-          <h4 className="text-sm font-medium text-slate-200 mb-2">Legenda:</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 text-xs text-slate-400">
-            <div className="flex items-center gap-1">
+        {/* Footer / Legend */}
+        <div className="bg-slate-900/80 border-t border-slate-800 px-6 py-4">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
+            <span className="font-medium text-slate-400 uppercase tracking-wider">Legenda:</span>
+            <div className="flex items-center gap-1.5">
               <Trophy className="h-3 w-3 text-yellow-500" />
-              <span>Campeão da Temporada</span>
+              <span>Campeão</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Trophy className="h-3 w-3 text-slate-400" />
-              <span>Vice-campeão</span>
+            <div className="flex items-center gap-1.5">
+              <Medal className="h-3 w-3 text-slate-400" />
+              <span>Vice-Campeão</span>
             </div>
-            <div>
-              <strong>PF/PA:</strong> Pontos Feitos/Pontos Contra
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-green-400">PCT</span>
+              <span>Aproveitamento {'>'}= 50%</span>
             </div>
-            <div>
-              <strong>PCT:</strong> Porcentagem de Vitórias
-            </div>
-            <div className="col-span-full mt-2 pt-2 border-t border-slate-600/50 text-slate-500 italic">
-              * Estatísticas e classificação consideram apenas a Temporada Regular.
+            <div className="ml-auto flex items-center gap-1 italic text-slate-600">
+              <span>* Apenas Temp. Regular</span>
             </div>
           </div>
         </div>
