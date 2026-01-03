@@ -121,6 +121,12 @@ function Sidebar() {
         description: 'Eventos das ligas',
       },
       {
+        name: 'Histórico',
+        href: '/history',
+        icon: '🏛️',
+        description: 'Hall da Fama e Recordes',
+      },
+      {
         name: 'Informações',
         href: '/informacoes',
         icon: 'ℹ️',
