@@ -4,15 +4,10 @@ import { useState } from 'react';
 import { Event, EventStatus } from '@/types';
 import { formatDistanceToNow, format, isToday, isTomorrow, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import {
-  CalendarIcon,
-  ClockIcon,
-  MapPinIcon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  TrashIcon,
-  UserIcon,
-} from '@heroicons/react/24/outline';
+import { Calendar, Clock, User, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 /**
  * Props do componente EventCard
@@ -35,20 +30,18 @@ export function EventCard({ event, isCommissioner, onEdit, onDelete }: EventCard
   const [showMenu, setShowMenu] = useState(false);
 
   /**
-   * Retorna as classes CSS para o badge de status
+   * Retorna classes customizadas para o badge
    */
-  const getStatusBadgeClasses = (status: EventStatus) => {
-    const baseClasses = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium';
-
+  const getStatusBadgeClassName = (status: EventStatus) => {
     switch (status) {
       case EventStatus.UPCOMING:
-        return `${baseClasses} bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200`;
+        return 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border-blue-500/50';
       case EventStatus.ONGOING:
-        return `${baseClasses} bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`;
+        return 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/50';
       case EventStatus.COMPLETED:
-        return `${baseClasses} bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300`;
+        return 'bg-slate-700 text-slate-400 border-slate-600';
       default:
-        return `${baseClasses} bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300`;
+        return '';
     }
   };
 
@@ -116,7 +109,6 @@ export function EventCard({ event, isCommissioner, onEdit, onDelete }: EventCard
    */
   const getRelativeTime = () => {
     const startDate = new Date(event.startDate);
-    const now = new Date();
 
     if (event.status === EventStatus.UPCOMING) {
       return `em ${formatDistanceToNow(startDate, { locale: ptBR })}`;
@@ -130,88 +122,92 @@ export function EventCard({ event, isCommissioner, onEdit, onDelete }: EventCard
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow duration-200">
-      {/* Header do card */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{event.name}</h3>
-            <span className={getStatusBadgeClasses(event.status || EventStatus.UPCOMING)}>
+    <div className="group relative rounded-lg border border-slate-800 bg-slate-900/50 p-6 transition-all hover:bg-slate-800/80 hover:border-slate-700 hover:shadow-lg">
+      <div className="flex items-start justify-between">
+        <div className="flex-1 space-y-1">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-bold text-slate-100 group-hover:text-white transition-colors">
+              {event.name}
+            </h3>
+            <Badge
+              variant="outline"
+              className={cn(
+                'border-0 font-medium',
+                getStatusBadgeClassName(event.status || EventStatus.UPCOMING),
+              )}
+            >
               {getStatusText(event.status || EventStatus.UPCOMING)}
-            </span>
+            </Badge>
           </div>
 
           {event.description && (
-            <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">
-              {event.description}
-            </p>
+            <p className="text-sm text-slate-400 line-clamp-2 max-w-2xl">{event.description}</p>
           )}
+
+          <div className="flex flex-wrap items-center gap-4 pt-3 text-sm text-slate-500">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-4 w-4 text-slate-400" />
+              <span className="text-slate-300 font-medium">{formatEventPeriod()}</span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4 text-slate-400" />
+              <span>{getRelativeTime()}</span>
+            </div>
+
+            {event.creator && (
+              <div className="flex items-center gap-1.5">
+                <User className="h-4 w-4 text-slate-400" />
+                <span>por {event.creator.name}</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Menu de ações (apenas para comissários) */}
         {isCommissioner && (
           <div className="relative">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-slate-400 hover:text-slate-100"
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              aria-label="Opções do evento"
             >
-              <EllipsisVerticalIcon className="h-5 w-5" />
-            </button>
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">Ações</span>
+            </Button>
 
             {showMenu && (
-              <div className="absolute right-0 top-8 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
-                <button
-                  onClick={() => {
-                    onEdit?.(event);
-                    setShowMenu(false);
-                  }}
-                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <PencilIcon className="h-4 w-4" />
-                  Editar evento
-                </button>
-                <button
-                  onClick={() => {
-                    onDelete?.(event);
-                    setShowMenu(false);
-                  }}
-                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                >
-                  <TrashIcon className="h-4 w-4" />
-                  Excluir evento
-                </button>
-              </div>
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                <div className="absolute right-0 top-10 z-20 w-32 overflow-hidden rounded-md border border-slate-700 bg-slate-900 shadow-xl ring-1 ring-black ring-opacity-5">
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        onEdit?.(event);
+                        setShowMenu(false);
+                      }}
+                      className="flex w-full items-center px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
+                    >
+                      <Pencil className="mr-3 h-3.5 w-3.5 text-slate-400" />
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => {
+                        onDelete?.(event);
+                        setShowMenu(false);
+                      }}
+                      className="flex w-full items-center px-4 py-2 text-sm text-red-400 hover:bg-slate-800"
+                    >
+                      <Trash2 className="mr-3 h-3.5 w-3.5 text-red-500" />
+                      Excluir
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}
       </div>
-
-      {/* Informações do evento */}
-      <div className="space-y-2">
-        {/* Data e hora */}
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-          <CalendarIcon className="h-4 w-4 flex-shrink-0" />
-          <span>{formatEventPeriod()}</span>
-        </div>
-
-        {/* Tempo relativo */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <ClockIcon className="h-4 w-4 flex-shrink-0" />
-          <span>{getRelativeTime()}</span>
-        </div>
-
-        {/* Criador do evento */}
-        {event.creator && (
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <UserIcon className="h-4 w-4 flex-shrink-0" />
-            <span>Criado por {event.creator.name}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Overlay para fechar menu */}
-      {showMenu && <div className="fixed inset-0 z-0" onClick={() => setShowMenu(false)} />}
     </div>
   );
 }
