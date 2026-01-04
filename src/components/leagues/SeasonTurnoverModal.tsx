@@ -121,207 +121,206 @@ export function SeasonTurnoverModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 transition-opacity"
+        className="fixed inset-0 bg-slate-950/80 transition-opacity"
         onClick={isProcessing || isConfirming ? undefined : onClose}
       />
 
-      {/* Modal - Estrutura com 3 blocos: cabeçalho fixo, área de scroll, rodapé fixo */}
-      <div className="relative bg-slate-800 rounded-xl border border-slate-700 shadow-xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden z-10">
+      {/* Modal - Estrutura com 3 blocos */}
+      <div className="relative bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden z-10 ring-1 ring-slate-700/50">
         {/* BLOCO 1: CABEÇALHO FIXO - Header + Aviso + Filtros */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 bg-slate-900">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-slate-700">
+          <div className="flex items-center justify-between p-6 border-b border-slate-800 bg-gradient-to-r from-slate-900 to-slate-800/50">
             <div>
-              <h2 className="text-xl font-bold text-slate-100">
-                Pré-visualização da Virada de Temporada
+              <h2 className="text-2xl font-bold tracking-tight text-slate-100">
+                Virada de Temporada
               </h2>
-              <p className="text-sm text-slate-400 mt-1">
-                Aumento anual de {annualIncreasePercentage}% será aplicado aos contratos com mais de
-                0 anos restantes
-              </p>
+              <div className="flex items-center gap-2 mt-1.5">
+                <span className="inline-flex items-center rounded-md bg-blue-400/10 px-2 py-1 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/20">
+                  Aumento Anual +{annualIncreasePercentage}%
+                </span>
+                <span className="text-sm text-slate-500">
+                  Aplicado a contratos com &gt;0 anos restantes
+                </span>
+              </div>
             </div>
             <button
               onClick={onClose}
               disabled={isProcessing || isConfirming}
-              className="p-2 text-slate-400 hover:text-slate-200 transition-colors disabled:opacity-50"
+              className="p-2 text-slate-400 hover:text-slate-100 transition-colors disabled:opacity-50 rounded-lg hover:bg-slate-800"
             >
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
 
           {/* Aviso */}
-          <div className="p-6 border-b border-slate-700">
-            <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h3 className="text-sm font-medium text-yellow-200">Atenção</h3>
-                  <p className="text-sm text-yellow-100 mt-1">
-                    Esta ação é irreversível. Todos os contratos ativos terão seus anos reduzidos em
-                    1. Contratos com mais de 1 ano restante terão salários aumentados em{' '}
-                    {annualIncreasePercentage}%. Contratos que chegarem a 0 anos terão o salário
-                    redefinido para $0. Verifique cuidadosamente as alterações abaixo.
-                  </p>
-                </div>
+          <div className="px-6 py-4 border-b border-slate-800">
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 flex gap-4">
+              <div className="p-2 bg-yellow-500/10 rounded-lg h-fit">
+                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-yellow-500">Ação Irreversível</h3>
+                <p className="text-sm text-slate-400 mt-1 leading-relaxed">
+                  Todos os contratos ativos serão reduzidos em 1 ano. Contratos restantes receberão
+                  aumento de {annualIncreasePercentage}%. Contratos zerados terão salário resetado.
+                  <span className="text-slate-300 font-medium ml-1">
+                    Verifique as alterações abaixo.
+                  </span>
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Filtro por time e Resumo */}
-          <div className="p-6 border-b border-slate-700">
-            <div className="mb-4">
-              <label
-                htmlFor="team-filter"
-                className="block text-sm font-medium text-slate-300 mb-2"
-              >
-                Filtrar por time:
-              </label>
-              <select
-                id="team-filter"
-                value={selectedTeam}
-                onChange={e => handleTeamChange(e.target.value)}
-                className="bg-slate-700 border border-slate-600 text-slate-100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full max-w-xs p-2.5"
-              >
-                <option value="all">Todos os times ({contractChanges.length} contratos)</option>
-                {teams.map(team => {
-                  const teamCount = contractChanges.filter(
-                    change => change.teamName === team,
-                  ).length;
-                  return (
+          {/* Filtro e Resumo */}
+          <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/50">
+            <div className="flex flex-col md:flex-row gap-6 items-end justify-between">
+              <div className="w-full md:w-64 space-y-2">
+                <label
+                  htmlFor="team-filter"
+                  className="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                >
+                  Filtrar por Time
+                </label>
+                <select
+                  id="team-filter"
+                  value={selectedTeam}
+                  onChange={e => handleTeamChange(e.target.value)}
+                  className="w-full bg-slate-800 border-slate-700 text-slate-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5"
+                >
+                  <option value="all">Todos os Times ({contractChanges.length})</option>
+                  {teams.map(team => (
                     <option key={team} value={team}>
-                      {team} ({teamCount} contratos)
+                      {team} ({contractChanges.filter(c => c.teamName === team).length})
                     </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            {/* Resumo - 3 categorias consolidadas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Contratos Afetados */}
-              <div className="bg-slate-700 rounded-lg p-4 border-l-4 border-blue-400">
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">✅</div>
-                  <div>
-                    <div className="text-2xl font-bold text-blue-400">
-                      {summary?.contractsAffected || filteredContracts.length}
-                    </div>
-                    <div className="text-sm text-slate-400">Contratos Afetados</div>
-                  </div>
-                </div>
+                  ))}
+                </select>
               </div>
 
-              {/* Elegíveis para Extensão */}
-              <div className="bg-slate-700 rounded-lg p-4 border-l-4 border-yellow-400">
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">🟨</div>
-                  <div>
-                    <div className="text-2xl font-bold text-yellow-400">
-                      {summary?.eligibleForExtension ||
-                        filteredContracts.filter(
-                          c => c.newYearsRemaining === 0 && !c.hasBeenExtended,
-                        ).length}
-                    </div>
-                    <div className="text-sm text-slate-400">Elegíveis para Extensão</div>
-                  </div>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-3 gap-3 w-full md:w-auto flex-1 md:ml-6">
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50 flex flex-col items-center justify-center text-center">
+                  <span className="text-2xl font-bold text-slate-200 block mb-1">
+                    {summary?.contractsAffected || filteredContracts.length}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">
+                    Contratos
+                  </span>
                 </div>
-              </div>
-
-              {/* Elegíveis para Tag */}
-              <div className="bg-slate-700 rounded-lg p-4 border-l-4 border-red-400">
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">🟥</div>
-                  <div>
-                    <div className="text-2xl font-bold text-red-400">
-                      {summary?.eligibleForFranchiseTag ||
-                        filteredContracts.filter(c => c.newYearsRemaining === 0 && !c.hasBeenTagged)
-                          .length}
-                    </div>
-                    <div className="text-sm text-slate-400">Elegíveis para Tag</div>
-                  </div>
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-yellow-500/20 flex flex-col items-center justify-center text-center">
+                  <span className="text-2xl font-bold text-yellow-500 block mb-1">
+                    {summary?.eligibleForExtension ||
+                      filteredContracts.filter(c => c.newYearsRemaining === 0 && !c.hasBeenExtended)
+                        .length}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">
+                    Extensões
+                  </span>
+                </div>
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-red-500/20 flex flex-col items-center justify-center text-center">
+                  <span className="text-2xl font-bold text-red-400 block mb-1">
+                    {summary?.eligibleForFranchiseTag ||
+                      filteredContracts.filter(c => c.newYearsRemaining === 0 && !c.hasBeenTagged)
+                        .length}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">
+                    Tags
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* BLOCO 2: ÁREA DE SCROLL PARA CONTRATOS - Altura flexível e otimizada */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        {/* BLOCO 2: SCROLL */}
+        <div className="flex-1 min-h-0 overflow-hidden bg-slate-900/30">
           {contractChanges.length === 0 ? (
-            <div className="p-8 text-center">
-              <CheckCircleIcon className="h-12 w-12 text-green-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-100 mb-2">
-                Nenhum contrato ativo encontrado
-              </h3>
-              <p className="text-slate-400">
-                Não há contratos ativos para processar na virada de temporada.
-              </p>
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center text-slate-500">
+              <CheckCircleIcon className="h-16 w-16 text-slate-700 mb-4" />
+              <h3 className="text-lg font-medium text-slate-300">Nenhum contrato ativo</h3>
+              <p>Não há alterações previstas para esta virada.</p>
             </div>
           ) : (
             <div
-              className="h-full overflow-y-auto overflow-x-hidden px-6 py-2 
-                        scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-600 
-                        hover:scrollbar-thumb-slate-500 scrollbar-thumb-rounded-md"
+              className="h-full overflow-y-auto overflow-x-hidden
+                        scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700 hover:scrollbar-thumb-slate-600"
             >
-              <table className="w-full table-fixed">
-                <thead className="bg-slate-700 sticky top-0 z-20 shadow-lg border-b-2 border-slate-600">
-                  <tr className="bg-slate-700">
-                    <th className="w-1/5 px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider bg-slate-700 border-b border-slate-600">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 z-20 bg-slate-900 shadow-sm">
+                  <tr>
+                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-900 border-b border-slate-800">
                       Jogador
                     </th>
-                    <th className="w-1/5 px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider bg-slate-700 border-b border-slate-600">
+                    <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-900 border-b border-slate-800">
                       Time
                     </th>
-                    <th className="w-1/5 px-4 py-3 text-center text-xs font-medium text-slate-300 uppercase tracking-wider bg-slate-700 border-b border-slate-600">
-                      Anos Restantes
+                    <th className="py-3 px-6 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-900 border-b border-slate-800">
+                      Anos
                     </th>
-                    <th className="w-1/5 px-4 py-3 text-center text-xs font-medium text-slate-300 uppercase tracking-wider bg-slate-700 border-b border-slate-600">
+                    <th className="py-3 px-6 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-900 border-b border-slate-800">
                       Salário
                     </th>
-                    <th className="w-1/5 px-4 py-3 text-center text-xs font-medium text-slate-300 uppercase tracking-wider bg-slate-700 border-b border-slate-600">
+                    <th className="py-3 px-6 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-900 border-b border-slate-800">
                       Novo Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700 bg-slate-800">
+                <tbody className="divide-y divide-slate-800/50">
                   {paginatedContracts.map(change => (
-                    <tr key={change.id} className="hover:bg-slate-700/50 transition-colors">
-                      <td className="w-1/5 px-4 py-4 text-sm font-medium text-slate-100 truncate">
-                        {change.playerName}
+                    <tr key={change.id} className="hover:bg-slate-800/40 transition-colors group">
+                      <td className="px-6 py-4">
+                        <span className="block text-sm font-medium text-slate-200 group-hover:text-blue-400 transition-colors">
+                          {change.playerName}
+                        </span>
                       </td>
-                      <td className="w-1/5 px-4 py-4 text-sm text-slate-300 truncate">
-                        {change.teamName}
-                      </td>
-                      <td className="w-1/5 px-4 py-4 text-center">
-                        <div className="flex items-center justify-center space-x-2">
-                          <span className="text-sm text-slate-400">
+                      <td className="px-6 py-4 text-sm text-slate-400">{change.teamName}</td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700">
+                          <span className="text-sm text-slate-400 w-3 text-center">
                             {change.currentYearsRemaining}
                           </span>
-                          <span className="text-slate-500">→</span>
-                          <span className="text-sm font-medium text-slate-100">
+                          <span className="text-slate-600">→</span>
+                          <span
+                            className={
+                              change.newYearsRemaining === 0
+                                ? 'text-red-400 font-bold'
+                                : 'text-slate-200 font-bold'
+                            }
+                          >
                             {change.newYearsRemaining}
                           </span>
                         </div>
                       </td>
-                      <td className="w-1/5 px-4 py-4 text-center">
-                        <div className="flex items-center justify-center space-x-2">
-                          <span className="text-sm text-slate-400">
-                            {formatCurrency(change.currentSalary)}
-                          </span>
-                          <span className="text-slate-500">→</span>
+                      <td className="px-6 py-4 text-center">
+                        <div className="flex flex-col items-center">
                           <span
-                            className={`text-sm font-medium ${change.newYearsRemaining === 0 ? 'text-red-400' : 'text-slate-100'}`}
+                            className={
+                              change.newYearsRemaining === 0
+                                ? 'text-sm font-bold text-red-400'
+                                : 'text-sm font-medium text-slate-200'
+                            }
                           >
                             {formatCurrency(change.newSalary)}
                           </span>
+                          {change.newSalary !== change.currentSalary && (
+                            <span className="text-xs text-slate-500 line-through">
+                              {formatCurrency(change.currentSalary)}
+                            </span>
+                          )}
                         </div>
                       </td>
-                      <td className="w-1/5 px-4 py-4 text-center">
+                      <td className="px-6 py-4 text-center">
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(change.newStatus)}`}
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            change.newStatus === 'Contrato Ativo'
+                              ? 'bg-green-500/10 text-green-400 ring-1 ring-inset ring-green-500/20'
+                              : change.newStatus === 'Elegível para Tag'
+                                ? 'bg-red-400/10 text-red-400 ring-1 ring-inset ring-red-400/20'
+                                : 'bg-yellow-400/10 text-yellow-500 ring-1 ring-inset ring-yellow-400/20'
+                          }`}
                         >
                           {change.newStatus}
                         </span>
@@ -334,69 +333,63 @@ export function SeasonTurnoverModal({
           )}
         </div>
 
-        {/* BLOCO 3: RODAPÉ FIXO - Paginação + Botões de Ação */}
-        <div className="flex-shrink-0">
-          {/* Paginação */}
-          {filteredContracts.length > itemsPerPage && (
-            <div className="flex items-center justify-between p-4 border-t border-slate-700">
-              <div className="flex items-center space-x-4">
-                <div className="text-sm text-slate-400">
-                  {showAll
-                    ? `Mostrando todos os ${filteredContracts.length} contratos`
-                    : `Mostrando ${startIndex + 1} a ${Math.min(endIndex, filteredContracts.length)} de ${filteredContracts.length} contratos`}
-                  {selectedTeam !== 'all' && ` (filtrado por ${selectedTeam})`}
-                </div>
-                <button
-                  onClick={() => setShowAll(!showAll)}
-                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  {showAll ? 'Paginar' : 'Ver Todos'}
-                </button>
-              </div>
-
-              {!showAll && (
-                <div className="flex items-center space-x-2">
+        {/* BLOCO 3: FOOTER */}
+        <div className="flex-shrink-0 border-t border-slate-800 bg-slate-900 p-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Pagination Controls */}
+            {filteredContracts.length > itemsPerPage && (
+              <div className="flex items-center gap-4 w-full md:w-auto justify-center md:justify-start">
+                <div className="flex items-center rounded-lg bg-slate-800 p-1 border border-slate-700">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 disabled:opacity-30"
                   >
-                    <ChevronLeftIcon className="h-5 w-5" />
+                    <ChevronLeftIcon className="h-4 w-4" />
                   </button>
-                  <span className="text-sm text-slate-300">
-                    Página {currentPage} de {totalPages}
+                  <span className="text-xs font-medium text-slate-400 px-3 tabular-nums">
+                    {currentPage} / {totalPages}
                   </span>
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 disabled:opacity-30"
                   >
-                    <ChevronRightIcon className="h-5 w-5" />
+                    <ChevronRightIcon className="h-4 w-4" />
                   </button>
                 </div>
-              )}
-            </div>
-          )}
+                <button
+                  onClick={() => setShowAll(!showAll)}
+                  className="text-xs font-medium text-blue-400 hover:text-blue-300"
+                >
+                  {showAll ? 'Ver por Página' : 'Ver Todos'}
+                </button>
+              </div>
+            )}
 
-          {/* Footer - Botões de Ação */}
-          <div className="flex items-center justify-end space-x-4 p-6 border-t border-slate-700 bg-slate-800/50">
-            <button
-              onClick={onClose}
-              disabled={isProcessing || isConfirming}
-              className="px-4 py-2 text-slate-400 hover:text-slate-200 transition-colors disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleConfirm}
-              disabled={isProcessing || isConfirming || contractChanges.length === 0}
-              className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-            >
-              {(isProcessing || isConfirming) && (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              )}
-              <span>{isProcessing || isConfirming ? 'Processando...' : 'Aplicar Alterações'}</span>
-            </button>
+            <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+              <button
+                onClick={onClose}
+                disabled={isProcessing || isConfirming}
+                className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirm}
+                disabled={isProcessing || isConfirming || contractChanges.length === 0}
+                className="flex items-center gap-2 px-5 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-lg shadow-lg shadow-red-900/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isProcessing || isConfirming ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                    <span>Processando...</span>
+                  </>
+                ) : (
+                  <span>Confirmar Virada</span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
