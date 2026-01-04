@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Event, CreateEventData, UpdateEventData } from '@/types';
 import { format } from 'date-fns';
-import { XMarkIcon, CalendarIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { X, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 /**
  * Props do componente EventForm
@@ -146,23 +147,23 @@ export function EventForm({ event, isOpen, onClose, onSubmit, loading = false }:
       {/* Overlay */}
       <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
           onClick={onClose}
         />
 
         {/* Modal */}
-        <div className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+        <div className="relative transform overflow-hidden rounded-xl border border-slate-700 bg-slate-900 px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-xl font-bold text-slate-100">
               {event ? 'Editar Evento' : 'Novo Evento'}
             </h3>
             <button
               onClick={onClose}
-              className="rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 p-1 transition-colors"
+              className="rounded-full bg-slate-800 p-2 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
               disabled={loading}
             >
-              <XMarkIcon className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
@@ -170,10 +171,7 @@ export function EventForm({ event, isOpen, onClose, onSubmit, loading = false }:
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Nome do evento */}
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
+              <label htmlFor="name" className="block text-sm font-medium text-slate-400 mb-1">
                 Nome do evento *
               </label>
               <input
@@ -181,23 +179,21 @@ export function EventForm({ event, isOpen, onClose, onSubmit, loading = false }:
                 id="name"
                 value={formData.name}
                 onChange={e => handleInputChange('name', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 bg-slate-800 border rounded-lg shadow-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  errors.name ? 'border-red-500' : 'border-slate-700'
                 }`}
                 placeholder="Ex: Draft de Calouros 2024"
                 disabled={loading}
                 required
               />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
-              )}
+              {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
             </div>
 
             {/* Descrição */}
             <div>
               <label
                 htmlFor="description"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-slate-400 mb-1"
               >
                 Descrição
               </label>
@@ -206,7 +202,7 @@ export function EventForm({ event, isOpen, onClose, onSubmit, loading = false }:
                 rows={3}
                 value={formData.description}
                 onChange={e => handleInputChange('description', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg shadow-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Descreva os detalhes do evento..."
                 disabled={loading}
               />
@@ -214,10 +210,7 @@ export function EventForm({ event, isOpen, onClose, onSubmit, loading = false }:
 
             {/* Data de início */}
             <div>
-              <label
-                htmlFor="startDate"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
+              <label htmlFor="startDate" className="block text-sm font-medium text-slate-400 mb-1">
                 Data e hora de início *
               </label>
               <div className="relative">
@@ -226,25 +219,20 @@ export function EventForm({ event, isOpen, onClose, onSubmit, loading = false }:
                   id="startDate"
                   value={formData.startDate}
                   onChange={e => handleInputChange('startDate', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                    errors.startDate ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-3 py-2 bg-slate-800 border rounded-lg shadow-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all [color-scheme:dark] ${
+                    errors.startDate ? 'border-red-500' : 'border-slate-700'
                   }`}
                   disabled={loading}
                   required
                 />
-                <CalendarIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none" />
+                <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-slate-500 pointer-events-none" />
               </div>
-              {errors.startDate && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.startDate}</p>
-              )}
+              {errors.startDate && <p className="mt-1 text-sm text-red-500">{errors.startDate}</p>}
             </div>
 
             {/* Data de fim */}
             <div>
-              <label
-                htmlFor="endDate"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
+              <label htmlFor="endDate" className="block text-sm font-medium text-slate-400 mb-1">
                 Data e hora de fim (opcional)
               </label>
               <div className="relative">
@@ -253,35 +241,34 @@ export function EventForm({ event, isOpen, onClose, onSubmit, loading = false }:
                   id="endDate"
                   value={formData.endDate}
                   onChange={e => handleInputChange('endDate', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                    errors.endDate ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-3 py-2 bg-slate-800 border rounded-lg shadow-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all [color-scheme:dark] ${
+                    errors.endDate ? 'border-red-500' : 'border-slate-700'
                   }`}
                   disabled={loading}
                 />
-                <CalendarIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none" />
+                <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-slate-500 pointer-events-none" />
               </div>
-              {errors.endDate && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.endDate}</p>
-              )}
+              {errors.endDate && <p className="mt-1 text-sm text-red-500">{errors.endDate}</p>}
             </div>
 
             {/* Botões */}
             <div className="flex gap-3 pt-4">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
                 disabled={loading}
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={loading}
               >
                 {loading ? 'Salvando...' : event ? 'Atualizar' : 'Criar Evento'}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
