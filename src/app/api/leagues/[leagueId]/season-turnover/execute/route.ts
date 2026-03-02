@@ -69,86 +69,84 @@ export async function POST(
     }
 
     // Executar a virada de temporada em uma transação
-    const result = await prisma.$transaction(async tx => {
-      const updatedContracts = [];
-      const expiredContracts = [];
+    const result = await prisma.$transaction(
+      async tx => {
+        const updatedContracts = [];
+        const expiredContracts = [];
 
-      for (const contract of activeContracts) {
-        const newYearsRemaining = contract.yearsRemaining - 1;
+        for (const contract of activeContracts) {
+          const newYearsRemaining = contract.yearsRemaining - 1;
+          const isExpired = newYearsRemaining === 0;
 
-        // Aplicar aumento salarial apenas se o contrato não chegar a zero anos
-        // Ao chegar a zero anos, o salário é automaticamente redefinido para 0
-        const newSalary =
-          newYearsRemaining > 0
-            ? contract.currentSalary * (1 + league.annualIncreasePercentage / 100)
-            : 0;
+          // Aplicar aumento salarial apenas se o contrato não chegar a zero anos
+          // Ao chegar a zero anos, o salário é automaticamente redefinido para 0
+          const newSalary = isExpired
+            ? 0
+            : contract.currentSalary * (1 + league.annualIncreasePercentage / 100);
 
-        // Atualizar o contrato
-        const updatedContract = await tx.contract.update({
-          where: { id: contract.id },
+          // Atualizar o contrato (uma única query)
+          const updatedContract = await tx.contract.update({
+            where: { id: contract.id },
+            data: {
+              yearsRemaining: newYearsRemaining,
+              currentSalary: newSalary,
+              status: isExpired ? 'EXPIRED' : 'ACTIVE',
+              updatedAt: new Date().toISOString(),
+            },
+            include: {
+              player: {
+                select: {
+                  name: true,
+                },
+              },
+              team: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          });
+
+          updatedContracts.push(updatedContract);
+
+          if (isExpired) {
+            expiredContracts.push(updatedContract);
+          }
+        }
+
+        // Atualizar a temporada da liga
+        await tx.league.update({
+          where: { id: leagueId },
           data: {
-            yearsRemaining: newYearsRemaining,
-            currentSalary: newSalary,
+            season: league.season + 1,
             updatedAt: new Date().toISOString(),
-          },
-          include: {
-            player: {
-              select: {
-                name: true,
-              },
-            },
-            team: {
-              select: {
-                name: true,
-              },
-            },
           },
         });
 
-        updatedContracts.push(updatedContract);
+        // Resetar flags de franchise tag para a nova temporada
+        await tx.contract.updateMany({
+          where: {
+            leagueId,
+            status: 'ACTIVE',
+          },
+          data: {
+            hasBeenTagged: false,
+            updatedAt: new Date().toISOString(),
+          },
+        });
 
-        // Se o contrato expirou (0 anos restantes), marcar como expirado
-        if (newYearsRemaining === 0) {
-          await tx.contract.update({
-            where: { id: contract.id },
-            data: {
-              status: 'EXPIRED',
-              currentSalary: 0,
-              updatedAt: new Date().toISOString(),
-            },
-          });
-          expiredContracts.push(updatedContract);
-        }
-      }
-
-      // Atualizar a temporada da liga
-      await tx.league.update({
-        where: { id: leagueId },
-        data: {
-          season: league.season + 1,
-          updatedAt: new Date().toISOString(),
-        },
-      });
-
-      // Resetar flags de franchise tag para a nova temporada
-      await tx.contract.updateMany({
-        where: {
-          leagueId,
-          status: 'ACTIVE',
-        },
-        data: {
-          hasBeenTagged: false,
-          updatedAt: new Date().toISOString(),
-        },
-      });
-
-      return {
-        updatedContracts,
-        expiredContracts,
-        totalUpdated: updatedContracts.length,
-        newSeason: league.season + 1,
-      };
-    });
+        return {
+          updatedContracts,
+          expiredContracts,
+          totalUpdated: updatedContracts.length,
+          newSeason: league.season + 1,
+        };
+      },
+      {
+        maxWait: 10000, // 10 segundos
+        timeout: 60000, // 60 segundos
+      },
+    );
 
     // Log da operação para auditoria
     console.log(`Virada de temporada executada para liga ${league.name}:`, {
