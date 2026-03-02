@@ -71,92 +71,74 @@ export async function POST(
       });
     }
 
-    // Executar a virada de temporada em uma transação
-    const result = await prisma.$transaction(
-      async tx => {
-        const updatedContracts = [];
-        const expiredContracts = [];
+    // Executar a virada de temporada em LOTE (Batch Transaction), evitando timeout
+    const transactionQueries = [];
+    let updatedContractsCount = 0;
+    let expiredContractsCount = 0;
 
-        for (const contract of activeContracts) {
-          const newYearsRemaining = contract.yearsRemaining - 1;
-          const isExpired = newYearsRemaining === 0;
+    for (const contract of activeContracts) {
+      const newYearsRemaining = contract.yearsRemaining - 1;
+      const isExpired = newYearsRemaining === 0;
 
-          // Aplicar aumento salarial apenas se o contrato não chegar a zero anos
-          // Ao chegar a zero anos, o salário é automaticamente redefinido para 0
-          const newSalary = isExpired
-            ? 0
-            : contract.currentSalary * (1 + league.annualIncreasePercentage / 100);
+      const newSalary = isExpired
+        ? 0
+        : contract.currentSalary * (1 + league.annualIncreasePercentage / 100);
 
-          // Atualizar o contrato (uma única query)
-          const updatedContract = await tx.contract.update({
-            where: { id: contract.id },
-            data: {
-              yearsRemaining: newYearsRemaining,
-              currentSalary: newSalary,
-              status: isExpired ? 'EXPIRED' : 'ACTIVE',
-              updatedAt: new Date().toISOString(),
-            },
-            include: {
-              player: {
-                select: {
-                  name: true,
-                },
-              },
-              team: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          });
-
-          updatedContracts.push(updatedContract);
-
-          if (isExpired) {
-            expiredContracts.push(updatedContract);
-          }
-        }
-
-        // Atualizar a temporada da liga
-        await tx.league.update({
-          where: { id: leagueId },
+      // Empilhando as promessas, SEM aguardar individualmente
+      transactionQueries.push(
+        prisma.contract.update({
+          where: { id: contract.id },
           data: {
-            season: league.season + 1,
+            yearsRemaining: newYearsRemaining,
+            currentSalary: newSalary,
+            status: isExpired ? 'EXPIRED' : 'ACTIVE',
             updatedAt: new Date().toISOString(),
           },
-        });
+        }),
+      );
 
-        // Resetar flags de franchise tag para a nova temporada
-        await tx.contract.updateMany({
-          where: {
-            leagueId,
-            status: 'ACTIVE',
-          },
-          data: {
-            hasBeenTagged: false,
-            updatedAt: new Date().toISOString(),
-          },
-        });
+      updatedContractsCount++;
+      if (isExpired) {
+        expiredContractsCount++;
+      }
+    }
 
-        return {
-          updatedContracts,
-          expiredContracts,
-          totalUpdated: updatedContracts.length,
-          newSeason: league.season + 1,
-        };
-      },
-      {
-        maxWait: 10000, // 10 segundos
-        timeout: 60000, // 60 segundos
-      },
+    // Atualizar a temporada da liga
+    transactionQueries.push(
+      prisma.league.update({
+        where: { id: leagueId },
+        data: {
+          season: league.season + 1,
+          updatedAt: new Date().toISOString(),
+        },
+      }),
     );
+
+    // Resetar flags de franchise tag para a nova temporada
+    transactionQueries.push(
+      prisma.contract.updateMany({
+        where: {
+          leagueId,
+          status: 'ACTIVE',
+        },
+        data: {
+          hasBeenTagged: false,
+          updatedAt: new Date().toISOString(),
+        },
+      }),
+    );
+
+    // Dispara todas as queries de uma só vez em uma única requisição ao banco
+    await prisma.$transaction(transactionQueries);
+
+    const newSeason = league.season + 1;
 
     // Log da operação para auditoria
     console.log(`Virada de temporada executada para liga ${league.name}:`, {
       leagueId,
-      season: league.season + 1,
-      contractsUpdated: result.totalUpdated,
-      expiredContracts: result.expiredContracts.length,
+      season: newSeason,
+      contractsUpdated: updatedContractsCount,
+      expiredContracts: expiredContractsCount,
       executedBy: session.user.email,
       executedAt: new Date().toISOString(),
     });
@@ -166,11 +148,11 @@ export async function POST(
     // Paraleliza as queries de Dead Money para acelerar a execução fora da transação
     const deadMoneyPromises = teams.map(async team => {
       const sumCurrent = await prisma.deadMoney.aggregate({
-        where: { teamId: team.id, year: result.newSeason },
+        where: { teamId: team.id, year: newSeason },
         _sum: { amount: true },
       });
       const sumNext = await prisma.deadMoney.aggregate({
-        where: { teamId: team.id, year: result.newSeason + 1 },
+        where: { teamId: team.id, year: newSeason + 1 },
         _sum: { amount: true },
       });
 
@@ -198,13 +180,13 @@ export async function POST(
 
     return NextResponse.json({
       message: 'Virada de temporada executada com sucesso',
-      contractsUpdated: result.totalUpdated,
-      expiredContracts: result.expiredContracts.length,
-      newSeason: league.season + 1,
+      contractsUpdated: updatedContractsCount,
+      expiredContracts: expiredContractsCount,
+      newSeason,
       summary: {
-        totalProcessed: result.totalUpdated,
-        contractsExpired: result.expiredContracts.length,
-        contractsActive: result.totalUpdated - result.expiredContracts.length,
+        totalProcessed: updatedContractsCount,
+        contractsExpired: expiredContractsCount,
+        contractsActive: updatedContractsCount - expiredContractsCount,
       },
       deadMoneyValidation,
     });
