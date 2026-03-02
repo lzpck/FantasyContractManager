@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+// Aumenta o tempo máximo de execução na Vercel para 60 segundos (limite do plano Hobby)
+export const maxDuration = 60;
+
 /**
  * POST /api/leagues/[leagueId]/season-turnover/execute
  * Executa a virada de temporada aplicando todas as alterações contratuais
@@ -159,15 +162,9 @@ export async function POST(
     });
 
     const teams = await prisma.team.findMany({ where: { leagueId } });
-    const deadMoneyValidation = [] as Array<{
-      teamId: string;
-      currentDeadMoney: number;
-      sumForNewSeason: number;
-      nextSeasonDeadMoney: number;
-      sumForNextSeason: number;
-    }>;
 
-    for (const team of teams) {
+    // Paraleliza as queries de Dead Money para acelerar a execução fora da transação
+    const deadMoneyPromises = teams.map(async team => {
       const sumCurrent = await prisma.deadMoney.aggregate({
         where: { teamId: team.id, year: result.newSeason },
         _sum: { amount: true },
@@ -176,6 +173,7 @@ export async function POST(
         where: { teamId: team.id, year: result.newSeason + 1 },
         _sum: { amount: true },
       });
+
       const current = sumCurrent._sum.amount || 0;
       const next = sumNext._sum.amount || 0;
 
@@ -187,14 +185,16 @@ export async function POST(
         },
       });
 
-      deadMoneyValidation.push({
+      return {
         teamId: team.id,
         currentDeadMoney: current,
         sumForNewSeason: current,
         nextSeasonDeadMoney: next,
         sumForNextSeason: next,
-      });
-    }
+      };
+    });
+
+    const deadMoneyValidation = await Promise.all(deadMoneyPromises);
 
     return NextResponse.json({
       message: 'Virada de temporada executada com sucesso',
