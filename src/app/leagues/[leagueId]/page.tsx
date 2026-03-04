@@ -432,12 +432,19 @@ export default function LeagueDetailsPage() {
   };
 
   // Função para adicionar dead money para jogador removido
-  const handleAddDeadMoney = async (sleeperPlayerId: string, teamId: string) => {
+  const handleAddDeadMoney = async (
+    sleeperPlayerId: string,
+    teamId: string,
+    rosterStatus?: string,
+  ) => {
     try {
       const deadMoneyData = {
         sleeperPlayerId,
         teamId,
         notes: 'Jogador cortado via transação de roster',
+        // Passa o status do roster para que a API aplique a regra correta
+        // mesmo quando o registro já foi deletado pela sincronização do Sleeper.
+        rosterStatus,
       };
 
       const response = await fetch('/api/roster-transactions/add-dead-money', {

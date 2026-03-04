@@ -85,6 +85,12 @@ const addDeadMoneySchema = z.object({
   teamId: z.string().min(1, 'ID do time é obrigatório'),
   deadMoneyAmount: z.number().min(0, 'Valor do dead money deve ser positivo').optional(),
   notes: z.string().optional(),
+  /**
+   * Status do roster do jogador no momento do corte (ex.: 'taxi', 'ir', 'active').
+   * Necessário como fallback quando o registro já foi deletado da tabela team_rosters
+   * pela sincronização antes da chamada desta API.
+   */
+  rosterStatus: z.string().optional(),
 });
 
 /**
@@ -96,7 +102,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = addDeadMoneySchema.parse(body);
 
-    const { sleeperPlayerId, teamId, deadMoneyAmount, notes } = validatedData;
+    const {
+      sleeperPlayerId,
+      teamId,
+      deadMoneyAmount,
+      notes,
+      rosterStatus: rosterStatusFromBody,
+    } = validatedData;
 
     // Verificar se o time existe
     const team = await prisma.team.findUnique({
@@ -117,7 +129,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Jogador não encontrado' }, { status: 404 });
     }
 
-    // Buscar status do jogador no roster ANTES de remover
+    // Buscar status do jogador no roster ANTES de remover.
+    // Caso já tenha sido deletado pela sincronização, usa o status recebido no body como fallback.
     const rosterEntry = await prisma.teamRoster.findFirst({
       where: {
         teamId,
@@ -125,7 +138,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const rosterStatus = rosterEntry?.status;
+    const rosterStatus = rosterEntry?.status ?? rosterStatusFromBody;
 
     // Buscar contrato ativo do jogador com o time
     const activeContract = await prisma.contract.findFirst({
@@ -222,28 +235,20 @@ export async function POST(request: NextRequest) {
 
       const currentSeason = team.league.season;
       const nextSeason = currentSeason + 1;
-      const currentSeasonTotal = deadMoneyRecords
-        .filter(r => r.year === currentSeason)
-        .reduce((sum, r) => sum + r.amount, 0);
-      const nextSeasonTotal = deadMoneyRecords
-        .filter(r => r.year === nextSeason)
-        .reduce((sum, r) => sum + r.amount, 0);
 
+      // Se handlePlayerCut já persistiu os registros, deadMoneyRecords já está populado.
+      // Se não (caminho manual), adiciona o registro criado manualmente à lista.
       if (deadMoneyRecord) {
-        if (deadMoneyRecord.year === currentSeason) {
-          deadMoneyRecords = [...deadMoneyRecords, deadMoneyRecord];
-        }
-        if (deadMoneyRecord.year === nextSeason) {
-          deadMoneyRecords = [...deadMoneyRecords, deadMoneyRecord];
-        }
+        deadMoneyRecords = [...deadMoneyRecords, deadMoneyRecord];
       }
 
+      // Calcula os totais a partir da lista final (sem dupla iteração)
       const finalCurrentTotal = deadMoneyRecords
         .filter(r => r.year === currentSeason)
-        .reduce((sum, r) => sum + r.amount, currentSeasonTotal);
+        .reduce((sum, r) => sum + r.amount, 0);
       const finalNextTotal = deadMoneyRecords
         .filter(r => r.year === nextSeason)
-        .reduce((sum, r) => sum + r.amount, nextSeasonTotal);
+        .reduce((sum, r) => sum + r.amount, 0);
 
       await tx.team.update({
         where: { id: teamId },

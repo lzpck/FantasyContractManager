@@ -31,7 +31,7 @@ interface RosterTransactionsProps {
   teams: Team[];
   league: League;
   onAddContract: (sleeperPlayerId: string, teamId: string) => Promise<void>;
-  onAddDeadMoney: (sleeperPlayerId: string, teamId: string) => Promise<void>;
+  onAddDeadMoney: (sleeperPlayerId: string, teamId: string, rosterStatus?: string) => Promise<void>;
   onProcessTrade?: (
     contractId: string,
     fromTeam: string,
@@ -170,7 +170,7 @@ export default function RosterTransactions({
     setLoadingStates(prev => ({ ...prev, [actionKey]: true }));
 
     try {
-      await onAddDeadMoney(player.sleeperPlayerId, player.teamId);
+      await onAddDeadMoney(player.sleeperPlayerId, player.teamId, player.status);
       toast.success(`Dead money adicionado para ${player.name || player.sleeperPlayerId}`);
     } catch (error) {
       console.error('Erro ao adicionar dead money:', error);
