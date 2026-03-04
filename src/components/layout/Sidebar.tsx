@@ -115,6 +115,12 @@ function Sidebar() {
         description: 'Base de jogadores',
       },
       {
+        name: 'Drafts',
+        href: '/drafts',
+        icon: '📝',
+        description: 'Status e picks do Draft',
+      },
+      {
         name: 'Eventos',
         href: '/events',
         icon: '📅',
