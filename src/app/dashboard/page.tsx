@@ -154,29 +154,42 @@ function DashboardContent() {
         console.warn('Nenhum contrato ativo encontrado para a liga selecionada');
       }
 
+      // Função auxiliar para normalizar posições (evita repetição)
+      const getNormalizedPositions = (p: any) => {
+        const rawFP = p.fantasyPositions as unknown as string | string[];
+        const parsed =
+          typeof rawFP === 'string' && rawFP.trim() !== ''
+            ? rawFP
+                .split(',')
+                .map(s => s.trim())
+                .filter(s => s !== '')
+            : Array.isArray(rawFP)
+              ? rawFP
+              : [];
+        return parsed.length > 0 ? parsed : [p.position];
+      };
+
       // Top 5 Maiores Salários
       const topSalaries = leagueContracts
         .sort((a, b) => b.currentSalary - a.currentSalary)
         .slice(0, 5)
-        .map(contract => ({
-          id: contract.player.id,
-          sleeperPlayerId: contract.player.sleeperPlayerId,
-          name: contract.player.name,
-          position: contract.player.position,
-          fantasyPositions: contract.player.fantasyPositions,
-          team: contract.team?.name || 'N/A',
-          salary: contract.currentSalary,
-        }));
+        .map(contract => {
+          const positions = getNormalizedPositions(contract.player);
+          return {
+            id: contract.player.id,
+            sleeperPlayerId: contract.player.sleeperPlayerId,
+            name: contract.player.name,
+            position: positions.join(', '), // Exibe posições de fantasy
+            fantasyPositions: positions,
+            team: contract.team?.name || 'N/A',
+            salary: contract.currentSalary,
+          };
+        });
 
       // Top 3 por Posição
       const positionGroups: Record<string, any[]> = {};
       leagueContracts.forEach(contract => {
-        // Garantir que positions seja sempre um array
-        const fantasyPositions = contract.player.fantasyPositions;
-        const positions =
-          Array.isArray(fantasyPositions) && fantasyPositions.length > 0
-            ? fantasyPositions
-            : [contract.player.position];
+        const positions = getNormalizedPositions(contract.player);
 
         positions.forEach(position => {
           if (!positionGroups[position]) {
@@ -186,8 +199,8 @@ function DashboardContent() {
             id: contract.player.id,
             sleeperPlayerId: contract.player.sleeperPlayerId,
             name: contract.player.name,
-            position: contract.player.position,
-            fantasyPositions: contract.player.fantasyPositions,
+            position: positions.join(', '), // Exibe as posições de fantasy no card
+            fantasyPositions: positions,
             team: contract.team?.name || 'N/A',
             salary: contract.currentSalary || 0,
           });
