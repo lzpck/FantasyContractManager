@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { usePlayers } from '@/hooks/usePlayers';
 import { useAuth } from '@/hooks/useAuth';
 import { PlayersTable } from '@/components/players/PlayersTable';
@@ -228,14 +228,11 @@ export default function PlayersPage() {
           )}
 
           {/* Barra de Filtros */}
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+          <div className="bg-slate-800 shadow rounded-lg p-6 mb-6 border border-slate-700">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               {/* Busca por texto */}
               <div>
-                <label
-                  htmlFor="search"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
-                >
+                <label htmlFor="search" className="block text-sm font-medium text-slate-300 mb-2">
                   Buscar
                 </label>
                 <input
@@ -244,36 +241,26 @@ export default function PlayersPage() {
                   value={filterText}
                   onChange={e => setFilterText(e.target.value)}
                   placeholder="Nome do jogador..."
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
+                  className="w-full px-3 py-2 border border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-slate-100 bg-slate-700 placeholder-slate-400"
                 />
               </div>
 
               {/* Filtro por posição fantasy */}
               <div>
-                <label
-                  htmlFor="position"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
-                >
+                <label htmlFor="position" className="block text-sm font-medium text-slate-300 mb-2">
                   Posição Fantasy
                 </label>
                 <select
                   id="position"
                   value={positionFilter}
                   onChange={e => setPositionFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  className="w-full px-3 py-2 border border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-slate-100 bg-slate-700"
                 >
-                  <option
-                    value="all"
-                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
-                  >
+                  <option value="all" className="text-slate-100 bg-slate-700">
                     Todas as posições fantasy
                   </option>
                   {uniquePositions.map(position => (
-                    <option
-                      key={position}
-                      value={position}
-                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
-                    >
+                    <option key={position} value={position} className="text-slate-100 bg-slate-700">
                       {position}
                     </option>
                   ))}
@@ -282,34 +269,22 @@ export default function PlayersPage() {
 
               {/* Filtro por status */}
               <div>
-                <label
-                  htmlFor="status"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
-                >
+                <label htmlFor="status" className="block text-sm font-medium text-slate-300 mb-2">
                   Status
                 </label>
                 <select
                   id="status"
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                  className="w-full px-3 py-2 border border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-slate-100 bg-slate-700"
                 >
-                  <option
-                    value="all"
-                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
-                  >
+                  <option value="all" className="text-slate-100 bg-slate-700">
                     Todos
                   </option>
-                  <option
-                    value="active"
-                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
-                  >
+                  <option value="active" className="text-slate-100 bg-slate-700">
                     Ativos
                   </option>
-                  <option
-                    value="inactive"
-                    className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
-                  >
+                  <option value="inactive" className="text-slate-100 bg-slate-700">
                     Inativos
                   </option>
                 </select>
@@ -317,10 +292,7 @@ export default function PlayersPage() {
 
               {/* Ordenação */}
               <div>
-                <label
-                  htmlFor="sort"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
-                >
+                <label htmlFor="sort" className="block text-sm font-medium text-slate-300 mb-2">
                   Ordenar por
                 </label>
                 <div className="flex gap-2">
@@ -328,30 +300,21 @@ export default function PlayersPage() {
                     id="sort"
                     value={sortBy}
                     onChange={e => setSortBy(e.target.value as 'name' | 'position' | 'nflTeam')}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    className="flex-1 px-3 py-2 border border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-slate-100 bg-slate-700"
                   >
-                    <option
-                      value="name"
-                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
-                    >
+                    <option value="name" className="text-slate-100 bg-slate-700">
                       Nome
                     </option>
-                    <option
-                      value="position"
-                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
-                    >
+                    <option value="position" className="text-slate-100 bg-slate-700">
                       Posição Fantasy
                     </option>
-                    <option
-                      value="nflTeam"
-                      className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
-                    >
+                    <option value="nflTeam" className="text-slate-100 bg-slate-700">
                       Time NFL
                     </option>
                   </select>
                   <button
                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    className="px-3 py-2 border border-slate-600 rounded-md shadow-sm hover:bg-slate-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-slate-100 bg-slate-700"
                   >
                     {sortOrder === 'asc' ? '↑' : '↓'}
                   </button>
@@ -370,7 +333,7 @@ export default function PlayersPage() {
                   setSortOrder('asc');
                   setCurrentPage(1);
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-700 border border-slate-600 rounded-md shadow-sm hover:bg-slate-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 Limpar Filtros
               </button>
@@ -432,7 +395,7 @@ export default function PlayersPage() {
                           .map((page, index, array) => {
                             const showEllipsis = index > 0 && array[index - 1] !== page - 1;
                             return (
-                              <div key={page}>
+                              <Fragment key={page}>
                                 {showEllipsis && (
                                   <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200">
                                     ...
@@ -448,7 +411,7 @@ export default function PlayersPage() {
                                 >
                                   {page}
                                 </button>
-                              </div>
+                              </Fragment>
                             );
                           })}
                         <button

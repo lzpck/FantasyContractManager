@@ -195,6 +195,36 @@ export interface SeasonHistory {
 
 const SLEEPER_API_BASE = 'https://api.sleeper.app/v1';
 
+/**
+ * Posições de fantasia relevantes para a liga.
+ * Apenas jogadores que possuem ao menos uma dessas posições no campo
+ * `fantasy_positions` da Sleeper API serão importados/sincronizados.
+ */
+const LEAGUE_FANTASY_POSITIONS = ['QB', 'RB', 'WR', 'TE', 'K', 'DL', 'LB', 'DB'];
+
+/**
+ * Status válidos de jogadores segundo a Sleeper API.
+ * Jogadores com status `Inactive` ou sem status (null) são
+ * considerados aposentados ou sem vínculo com a NFL e devem
+ * ser ignorados na importação.
+ *
+ * Valores possíveis confirmados via API:
+ * - "Active"                    → importar
+ * - "Injured Reserve"           → importar
+ * - "Physically Unable to Perform" → importar
+ * - "Non Football Injury"       → importar
+ * - "Practice Squad"            → importar
+ * - "Inactive"                  → ignorar (aposentado / fora da liga)
+ * - null                        → ignorar (sem vínculo com a NFL)
+ */
+const VALID_PLAYER_STATUSES = new Set([
+  'Active',
+  'Injured Reserve',
+  'Physically Unable to Perform',
+  'Non Football Injury',
+  'Practice Squad',
+]);
+
 // ============================================================================
 // FUNÇÕES DE BUSCA NA SLEEPER API
 // ============================================================================
@@ -633,6 +663,7 @@ export function transformSleeperPlayersToLocal(
   allowedPositions: string[],
 ): Omit<Player, 'id' | 'createdAt' | 'updatedAt'>[] {
   return Object.values(sleeperPlayers)
+    .filter(p => p.status != null && VALID_PLAYER_STATUSES.has(p.status))
     .filter(p => p.fantasy_positions?.some(pos => allowedPositions.includes(pos)))
     .map(p => {
       const fantasyPositions = (p.fantasy_positions || [])
@@ -641,12 +672,15 @@ export function transformSleeperPlayersToLocal(
 
       return {
         name: p.full_name || `${p.first_name} ${p.last_name}`,
-        position: mapSleeperPositionToLocal(p.position),
+        // Usa a posição de fantasia primária como position principal no banco.
+        // Isso evita que a posição técnica da NFL (ex: "DE", "NT", "OLB") seja
+        // mapeada incorretamente pelo fallback de mapSleeperPositionToLocal.
+        position: fantasyPositions[0] ?? mapSleeperPositionToLocal(p.position),
         fantasyPositions,
         nflTeam: p.team || 'FA',
         age: p.age,
         sleeperPlayerId: p.player_id,
-        isActive: p.status !== 'Inactive',
+        isActive: p.status != null && VALID_PLAYER_STATUSES.has(p.status),
       };
     });
 }
@@ -672,24 +706,42 @@ function mapSleeperStatusToLocal(sleeperStatus: string): LeagueStatus {
 }
 
 /**
- * Mapeia posições da Sleeper para o modelo local
+ * Mapeia posições da Sleeper para o modelo local.
+ *
+ * Inclui todos os códigos de posição técnica da NFL usados pela Sleeper API,
+ * além das posições de fantasia usadas em `fantasy_positions`.
  */
 function mapSleeperPositionToLocal(sleeperPosition: string): PlayerPosition {
   const positionMap: Record<string, PlayerPosition> = {
+    // Posições de fantasia (fantasy_positions)
     QB: PlayerPosition.QB,
     RB: PlayerPosition.RB,
     WR: PlayerPosition.WR,
     TE: PlayerPosition.TE,
     K: PlayerPosition.K,
-    DEF: PlayerPosition.DL, // Mapeamento aproximado
     DL: PlayerPosition.DL,
     LB: PlayerPosition.LB,
     DB: PlayerPosition.DB,
-    CB: PlayerPosition.DB,
-    S: PlayerPosition.DB,
+    // Posições técnicas da NFL → DL
+    DE: PlayerPosition.DL, // Defensive End
+    DT: PlayerPosition.DL, // Defensive Tackle
+    NT: PlayerPosition.DL, // Nose Tackle
+    DEF: PlayerPosition.DL, // Defense (time inteiro, IDP)
+    // Posições técnicas da NFL → LB
+    OLB: PlayerPosition.LB, // Outside Linebacker
+    ILB: PlayerPosition.LB, // Inside Linebacker
+    MLB: PlayerPosition.LB, // Middle Linebacker
+    // Posições técnicas da NFL → DB
+    CB: PlayerPosition.DB, // Cornerback
+    FS: PlayerPosition.DB, // Free Safety
+    SS: PlayerPosition.DB, // Strong Safety
+    S: PlayerPosition.DB, // Safety (genérico)
+    // Posições técnicas ofensivas extras
+    FB: PlayerPosition.RB, // Fullback
+    P: PlayerPosition.K, // Punter
   };
 
-  return positionMap[sleeperPosition] || PlayerPosition.DB; // Valor padrão para posições desconhecidas
+  return positionMap[sleeperPosition] ?? PlayerPosition.DB;
 }
 
 // ============================================================================
@@ -710,9 +762,7 @@ export async function importLeagueFromSleeper(leagueId: string, commissionerId: 
       fetchSleeperPlayers(),
     ]);
 
-    const allowedPositions = sleeperLeague.roster_positions.filter(
-      pos => pos !== 'FLEX' && pos !== 'BN',
-    );
+    const allowedPositions = LEAGUE_FANTASY_POSITIONS;
 
     // Transformar dados para o modelo local
     const league = transformSleeperLeagueToLocal(sleeperLeague, commissionerId);
@@ -827,9 +877,7 @@ export async function syncLeagueWithSleeper(league: League) {
     console.log('🔄 Processando transformações de dados...');
     const transformStartTime = Date.now();
 
-    const allowedPositions = sleeperLeague.roster_positions.filter(
-      pos => pos !== 'FLEX' && pos !== 'BN',
-    );
+    const allowedPositions = LEAGUE_FANTASY_POSITIONS;
 
     // Executar transformações em paralelo
     const [updatedLeagueData, updatedTeams, updatedPlayers] = await Promise.all([
