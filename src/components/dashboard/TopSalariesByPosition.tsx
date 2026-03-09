@@ -183,13 +183,6 @@ export function TopSalariesByPosition({
                             <div className="font-medium text-foreground">{player.name}</div>
                             <div className="text-sm text-slate-400">
                               {player.team} • {player.position}
-                              {player.fantasyPositions &&
-                                Array.isArray(player.fantasyPositions) &&
-                                player.fantasyPositions.length > 1 && (
-                                  <span className="ml-1 text-xs">
-                                    ({player.fantasyPositions.join(', ')})
-                                  </span>
-                                )}
                             </div>
                           </div>
                         </div>
