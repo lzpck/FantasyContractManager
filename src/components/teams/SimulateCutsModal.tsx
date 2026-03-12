@@ -82,7 +82,6 @@ function calcDeadMoneyForCut(
   contract: PlayerWithContract['contract'],
   rosterStatus: string | undefined,
   deadMoneyConfig: DeadMoneyConfig | undefined,
-  annualIncreasePercentage: number,
 ): { deadMoneyCurrent: number; deadMoneyNext: number } {
   if (!contract) return { deadMoneyCurrent: 0, deadMoneyNext: 0 };
 
@@ -97,11 +96,11 @@ function calcDeadMoneyForCut(
   const { yearsRemaining } = contract;
 
   if (yearsRemaining >= 1) {
-    const annualIncreaseRate = 1 + annualIncreasePercentage / 100;
-    const nextYearSalary = contract.currentSalary * annualIncreaseRate;
     const yearsKey = Math.min(yearsRemaining, 4).toString() as '1' | '2' | '3' | '4';
     const nextYearPercent = deadMoneyConfig?.futureSeasons?.[yearsKey] ?? 0;
-    deadMoneyNext = nextYearSalary * nextYearPercent;
+    // A penalidade é calculada sobre o salário ATUAL do momento do corte.
+    // O reajuste anual não se aplica pois o jogador será dispensado antes dele ocorrer.
+    deadMoneyNext = contract.currentSalary * nextYearPercent;
   }
 
   return { deadMoneyCurrent, deadMoneyNext };
@@ -186,22 +185,12 @@ export default function SimulateCutsModal({
     const salaryReleased = selected.reduce((sum, p) => sum + (p.contract?.currentSalary ?? 0), 0);
 
     const deadMoneyGenerated = selected.reduce((sum, p) => {
-      const { deadMoneyCurrent } = calcDeadMoneyForCut(
-        p.contract,
-        p.rosterStatus,
-        deadMoneyConfig,
-        league.annualIncreasePercentage,
-      );
+      const { deadMoneyCurrent } = calcDeadMoneyForCut(p.contract, p.rosterStatus, deadMoneyConfig);
       return sum + deadMoneyCurrent;
     }, 0);
 
     const deadMoneyNextSeason = selected.reduce((sum, p) => {
-      const { deadMoneyNext } = calcDeadMoneyForCut(
-        p.contract,
-        p.rosterStatus,
-        deadMoneyConfig,
-        league.annualIncreasePercentage,
-      );
+      const { deadMoneyNext } = calcDeadMoneyForCut(p.contract, p.rosterStatus, deadMoneyConfig);
       return sum + deadMoneyNext;
     }, 0);
 
@@ -218,14 +207,7 @@ export default function SimulateCutsModal({
       newCapUsed,
       newAvailableCap,
     };
-  }, [
-    eligiblePlayers,
-    selectedIds,
-    deadMoneyConfig,
-    league.annualIncreasePercentage,
-    league.salaryCap,
-    currentCapUsed,
-  ]);
+  }, [eligiblePlayers, selectedIds, deadMoneyConfig, league.salaryCap, currentCapUsed]);
 
   const currentAvailableCap = league.salaryCap - currentCapUsed;
 
@@ -405,7 +387,6 @@ export default function SimulateCutsModal({
                   contract,
                   rosterStatus,
                   deadMoneyConfig,
-                  league.annualIncreasePercentage,
                 );
 
                 const netImpact = (contract?.currentSalary ?? 0) - deadMoneyCurrent;
