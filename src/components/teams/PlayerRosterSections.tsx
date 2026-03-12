@@ -229,18 +229,12 @@ export function PlayerRosterSections({
     const yearsRemaining = contract.yearsRemaining;
 
     if (yearsRemaining >= 1) {
-      // Usa o percentual de aumento anual da liga (padrão 15% se não configurado)
-      const annualIncreaseRate = 1 + (league?.annualIncreasePercentage ?? 15) / 100;
-
-      // Projeta salário do próximo ano com aumento anual configurado
-      const nextYearSalary = contract.currentSalary * annualIncreaseRate;
-
-      // Usa o percentual baseado nos anos restantes do contrato
-      // Se o jogador tem 3 anos restantes, usa o percentual para "3" anos
-      const yearsKey = Math.min(yearsRemaining, 4).toString() as '1' | '2' | '3' | '4'; // Máximo 4 anos
+      const yearsKey = Math.min(yearsRemaining, 4).toString() as '1' | '2' | '3' | '4';
       const nextYearPercent = leagueDeadMoneyConfig?.futureSeasons?.[yearsKey] ?? 0;
 
-      deadMoneyNext = nextYearSalary * nextYearPercent;
+      // A penalidade é calculada sobre o salário ATUAL do momento do corte.
+      // O reajuste anual não se aplica pois o jogador será dispensado antes dele ocorrer.
+      deadMoneyNext = contract.currentSalary * nextYearPercent;
     }
 
     return {

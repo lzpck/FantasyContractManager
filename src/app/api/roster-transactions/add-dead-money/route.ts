@@ -50,15 +50,13 @@ async function handlePlayerCut(
   const yearsRemaining = contract.yearsRemaining;
 
   if (yearsRemaining >= 1) {
-    // Usa o percentual baseado nos anos restantes do contrato
-    const yearsKey = Math.min(yearsRemaining, 4).toString(); // Máximo 4 anos
+    const yearsKey = Math.min(yearsRemaining, 4).toString();
     const nextYearPercent = config.futureSeasons?.[yearsKey] ?? 0;
 
     if (nextYearPercent > 0) {
-      // Projeta salário do próximo ano com aumento anual (15% padrão)
-      const annualIncreaseRate = 1 + (contract.annualIncrease ?? 0.15);
-      const nextYearSalary = contract.currentSalary * annualIncreaseRate;
-      const deadMoneyNext = nextYearSalary * nextYearPercent;
+      // A penalidade é calculada sobre o salário ATUAL do momento do corte.
+      // O reajuste anual não se aplica pois o jogador será dispensado antes dele ocorrer.
+      const deadMoneyNext = contract.currentSalary * nextYearPercent;
 
       records.push({
         playerId: contract.playerId,
