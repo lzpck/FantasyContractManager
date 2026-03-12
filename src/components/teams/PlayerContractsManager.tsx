@@ -308,6 +308,14 @@ export function PlayerContractsManager({
         onFilterStatusChange={setFilterStatus}
         onPlayerAction={handlePlayerAction}
         isCommissioner={isCommissioner}
+        deadMoneyConfig={
+          league.deadMoneyConfig
+            ? typeof league.deadMoneyConfig === 'string'
+              ? JSON.parse(league.deadMoneyConfig)
+              : league.deadMoneyConfig
+            : undefined
+        }
+        annualIncreasePercentage={league.annualIncreasePercentage}
       />
     </div>
   );

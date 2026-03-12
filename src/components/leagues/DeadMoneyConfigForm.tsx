@@ -53,16 +53,17 @@ export function DeadMoneyConfigForm({
   };
 
   // Calcular preview de dead money para um exemplo
+  // O percentual de futureSeasons já representa o total acumulado (ex: 2 anos = 50%, 3 anos = 75%).
+  // Por isso, basta multiplicar o salário pelo percentual, sem multiplicar pelo nº de anos.
   const calculatePreview = (salary: number, yearsRemaining: number) => {
     const currentSeason = salary * localConfig.currentSeason;
-    const futureSeasons =
+    const futureSeasonPercentage =
       yearsRemaining > 0
-        ? salary *
-          (localConfig.futureSeasons[
+        ? (localConfig.futureSeasons[
             Math.min(yearsRemaining, 4).toString() as keyof typeof localConfig.futureSeasons
-          ] || 0) *
-          yearsRemaining
+          ] ?? 0)
         : 0;
+    const futureSeasons = salary * futureSeasonPercentage;
     return { currentSeason, futureSeasons, total: currentSeason + futureSeasons };
   };
 

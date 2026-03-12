@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlayerWithContract, Player, Team, League, Contract, ContractWithPlayer } from '@/types';
+import {
+  PlayerWithContract,
+  Player,
+  Team,
+  League,
+  Contract,
+  ContractWithPlayer,
+  DeadMoneyConfig,
+  DEFAULT_DEAD_MONEY_CONFIG,
+} from '@/types';
 import { XMarkIcon, PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/utils/formatUtils';
 import { useContractModal } from '@/hooks/useContractModal';
@@ -128,11 +137,40 @@ export default function ContractActionsModal({
     }
   }, [isOpen, player]);
 
-  // Calcular dead money
-  const calculateDeadMoney = () => {
+  // Calcula estimativa de dead money total caso o jogador seja cortado.
+  // Mesma lógica da API route (add-dead-money/route.ts) para manter consistência.
+  const calculateDeadMoney = (): number => {
     if (!player?.contract) return 0;
-    const remainingSalary = player.contract.currentSalary * player.contract.yearsRemaining;
-    return remainingSalary * 0.25; // 25% do salário restante
+
+    // Resolve a config da liga: pode vir como objeto (já parseado pelo endpoint) ou string JSON
+    let config: DeadMoneyConfig = DEFAULT_DEAD_MONEY_CONFIG;
+    if (league.deadMoneyConfig) {
+      try {
+        config =
+          typeof league.deadMoneyConfig === 'string'
+            ? JSON.parse(league.deadMoneyConfig)
+            : (league.deadMoneyConfig as unknown as DeadMoneyConfig);
+      } catch {
+        config = DEFAULT_DEAD_MONEY_CONFIG;
+      }
+    }
+
+    const { currentSalary, yearsRemaining } = player.contract;
+
+    // Parcela da temporada atual: salário corrente × percentual configurado
+    const currentSeasonAmount = currentSalary * config.currentSeason;
+
+    // Parcela do próximo ano: salário projetado × percentual baseado nos anos restantes
+    let nextSeasonAmount = 0;
+    if (yearsRemaining >= 1) {
+      const annualIncreaseRate = 1 + (league.annualIncreasePercentage ?? 15) / 100;
+      const nextYearSalary = currentSalary * annualIncreaseRate;
+      const yearsKey = Math.min(yearsRemaining, 4).toString() as keyof typeof config.futureSeasons;
+      const nextYearPercent = config.futureSeasons[yearsKey] ?? 0;
+      nextSeasonAmount = nextYearSalary * nextYearPercent;
+    }
+
+    return currentSeasonAmount + nextSeasonAmount;
   };
 
   // Calcular valor da franchise tag usando cálculo dinâmico

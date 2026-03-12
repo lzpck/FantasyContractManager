@@ -3,7 +3,13 @@
 import Image from 'next/image';
 import { useState } from 'react';
 
-import { PlayerWithContract, ContractStatus, Contract } from '@/types';
+import {
+  PlayerWithContract,
+  ContractStatus,
+  Contract,
+  DeadMoneyConfig,
+  DEFAULT_DEAD_MONEY_CONFIG,
+} from '@/types';
 import { formatCurrency } from '@/utils/formatUtils';
 import { getPositionTailwindClasses } from '@/utils/positionColors';
 import {
@@ -40,6 +46,10 @@ interface PlayerContractsTableProps {
   onPlayerAction: (player: PlayerWithContract, action: string) => void;
   /** Se o usuário é comissário (pode editar contratos) */
   isCommissioner: boolean;
+  /** Configuração de dead money da liga (usado para calcular estimativa de corte) */
+  deadMoneyConfig?: DeadMoneyConfig;
+  /** Taxa de aumento anual do salário (ex: 15 = 15%), usada para projetar o próximo ano */
+  annualIncreasePercentage?: number;
 }
 
 const PlayerAvatar = ({ sleeperId, name }: { sleeperId: string; name: string }) => {
@@ -82,11 +92,33 @@ export function PlayerContractsTable({
   onFilterStatusChange,
   onPlayerAction,
   isCommissioner,
+  deadMoneyConfig,
+  annualIncreasePercentage = 15,
 }: PlayerContractsTableProps) {
-  // Função para calcular dead money estimado
-  const calculateDeadMoney = (contract: Contract) => {
-    const remainingSalary = contract.currentSalary * contract.yearsRemaining;
-    return remainingSalary * 0.25; // 25% do salário restante
+  // Usa a configuração da liga ou o padrão caso não seja fornecida
+  const config = deadMoneyConfig ?? DEFAULT_DEAD_MONEY_CONFIG;
+
+  /**
+   * Calcula a estimativa de dead money total se o jogador fosse cortado agora.
+   * Mesma lógica utilizada na API route (add-dead-money/route.ts).
+   */
+  const calculateDeadMoney = (contract: Contract): number => {
+    // Parcela da temporada atual: salário corrente × percentual configurado
+    const currentSeasonAmount = contract.currentSalary * config.currentSeason;
+
+    // Parcela do próximo ano: salário projetado × percentual baseado nos anos restantes
+    let nextSeasonAmount = 0;
+    const yearsRemaining = contract.yearsRemaining;
+
+    if (yearsRemaining >= 1) {
+      const annualIncreaseRate = 1 + annualIncreasePercentage / 100;
+      const nextYearSalary = contract.currentSalary * annualIncreaseRate;
+      const yearsKey = Math.min(yearsRemaining, 4).toString() as keyof typeof config.futureSeasons;
+      const nextYearPercent = config.futureSeasons[yearsKey] ?? 0;
+      nextSeasonAmount = nextYearSalary * nextYearPercent;
+    }
+
+    return currentSeasonAmount + nextSeasonAmount;
   };
 
   // Função para obter cor do status do contrato
