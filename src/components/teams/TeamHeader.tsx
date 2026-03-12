@@ -1,11 +1,11 @@
 'use client';
 
-import { ArrowLeftIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ScissorsIcon } from '@heroicons/react/24/outline';
 import { Team, League, PlayerWithContract, Contract, ContractStatus } from '@/types';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatCapUsage, getCurrencyClasses } from '@/utils/formatUtils';
-import { useMemo } from 'react';
-import { useAgent } from '@/contexts/AgentContext';
+import { useMemo, useState } from 'react';
+import SimulateCutsModal from './SimulateCutsModal';
 
 // Interface para registros de dead money da API
 interface DeadMoneyRecord {
@@ -54,7 +54,7 @@ export default function TeamHeader({
   onBack,
 }: TeamHeaderProps) {
   const router = useRouter();
-  const { openAgent } = useAgent();
+  const [isSimulateOpen, setIsSimulateOpen] = useState(false);
 
   // Cálculos dinâmicos baseados na temporada atual
   const calculations = useMemo(() => {
@@ -150,15 +150,15 @@ export default function TeamHeader({
           </div>
         </div>
 
-        {/* Botão de Negociação de Contratos */}
+        {/* Botão de Simulação de Cortes */}
         <div className="flex items-center space-x-3">
           <button
-            onClick={openAgent}
-            className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
-            title="Abrir Agente Negociador de Contratos"
+            onClick={() => setIsSimulateOpen(true)}
+            className="flex items-center px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
+            title="Simular impacto de cortes no salary cap"
           >
-            <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2" />
-            <span className="font-medium">Negociar Contratos</span>
+            <ScissorsIcon className="h-5 w-5 mr-2" />
+            <span className="font-medium">Simular Cortes</span>
           </button>
         </div>
       </div>
@@ -229,6 +229,15 @@ export default function TeamHeader({
           </div>
         </div>
       </div>
+      {/* Modal de Simulação de Cortes */}
+      <SimulateCutsModal
+        isOpen={isSimulateOpen}
+        onClose={() => setIsSimulateOpen(false)}
+        players={players}
+        league={league}
+        currentCapUsed={calculations.capUsed}
+        deadMoneyRecords={deadMoneyRecords}
+      />
     </div>
   );
 }
