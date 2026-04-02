@@ -256,67 +256,16 @@ export default function InformacoesPage() {
                 <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 shadow-2xl border border-slate-700">
                   <div className="text-center mb-8">
                     <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                      <span className="text-2xl font-bold text-white">LZ</span>
+                      <span className="text-2xl font-bold text-white">FCM</span>
                     </div>
                     <h3 className="text-xl font-semibold text-slate-100 mb-2">
-                      Leandro Zepechouka
+                      Fantasy Contract Manager
                     </h3>
                     <p className="text-slate-400">Desenvolvedor Full Stack</p>
                   </div>
 
                   {/* Grid de Contatos */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    {/* Email */}
-                    <div className="bg-slate-700/50 rounded-xl p-4 hover:bg-slate-700/70 transition-all duration-200 group">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
-                          <EnvelopeIcon className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-slate-300 mb-1">Email</p>
-                          <a
-                            href="mailto:zepechoukaleandro@gmail.com"
-                            className="text-slate-100 hover:text-blue-400 transition-colors break-all"
-                          >
-                            zepechoukaleandro@gmail.com
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* WhatsApp */}
-                    <div className="bg-slate-700/50 rounded-xl p-4 hover:bg-slate-700/70 transition-all duration-200 group">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
-                          <span className="text-xl">💬</span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-slate-300 mb-1">WhatsApp</p>
-                          <a
-                            href="https://wa.me/5541998472047"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-slate-100 hover:text-green-400 transition-colors"
-                          >
-                            (41) 99847-2047
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Discord */}
-                    <div className="bg-slate-700/50 rounded-xl p-4 hover:bg-slate-700/70 transition-all duration-200 group">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
-                          <span className="text-xl">🎮</span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-slate-300 mb-1">Discord</p>
-                          <p className="text-slate-100">lzpck</p>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* GitHub */}
                     <div className="bg-slate-700/50 rounded-xl p-4 hover:bg-slate-700/70 transition-all duration-200 group">
                       <div className="flex items-center gap-4">
@@ -325,14 +274,7 @@ export default function InformacoesPage() {
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium text-slate-300 mb-1">GitHub</p>
-                          <a
-                            href="https://github.com/lzpck"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-slate-100 hover:text-blue-400 transition-colors"
-                          >
-                            github.com/lzpck
-                          </a>
+                          <p className="text-slate-100">Abra uma issue no repositório</p>
                         </div>
                       </div>
                     </div>
